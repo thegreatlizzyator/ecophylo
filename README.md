@@ -4,7 +4,7 @@ project description
 
 The source for this project is available [here][src].
 
-Provide a link to full documentation tutorial [here] [tutorial]. 
+Provide a link to full documentation tutorial [here][tutorial]. 
 
 ----
 
