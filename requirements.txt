@@ -1,1 +1,5 @@
-sphinx
+pandas==0.25.2
+ete3==3.1.1
+msprime==0.7.3
+h5py==2.10.0
+numpy==1.17.2
