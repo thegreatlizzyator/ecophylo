@@ -32,7 +32,8 @@ def dosimuls(nsim, sample_size, comprior, muprior, sstype="SFS", npop=1,
              nepoch=1, withmigr=False, init_ratesprior=None,
              init_sizeprior=None, pastprior=None, maxtime=None,
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
-             verbose=False, writehdf5 = False, filename ='', metadata =''):
+             verbose=False, writehdf5 = False, writecsv = False, filename ='',
+             metadata =''):
 
     # CHECKS HERE FOR IDIOT-PROOFING
 
@@ -46,7 +47,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, sstype="SFS", npop=1,
         comments += (f'\n -mutation rate in {muprior}')
 
     if comprior is not None:
-        df['comsize'] = params(comprior, nsim)
+        df['comsize'] = params(comprior, nsim, typ = "int")
         comments += (f'\n -community size in {comprior}')
 
     if pastprior is not None:
@@ -118,13 +119,23 @@ def dosimuls(nsim, sample_size, comprior, muprior, sstype="SFS", npop=1,
         hdf_file.create_dataset('params', data = df)
         hdf_file.create_dataset('sumstats', data = ssdf)
         hdf_file.close()
+
+    # export to csv if specified
+    if writecsv:
+        save2path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "Simulations")
+        if not os.path.exists(save2path):
+            os.makedirs(save2path, exist_ok=True)
+        fileparams = os.path.join(save2path,f'{filename}ecophylo_params_' + datetime.datetime.now().strftime("%Y%m%d_%H%M%S" +'.csv'))
+        filesumstats = os.path.join(save2path,f'{filename}ecophylo_sumstats_' + datetime.datetime.now().strftime("%Y%m%d_%H%M%S" +'.csv'))
+        df.to_csv(fileparams)
+        ssdf.to_csv(filesumstats)
         
     return df, ssdf
 
 def counter(func):
     func.count += 1
 
-def params(lim, nsim, distrib = "uniform"):
+def params(lim, nsim, distrib = "uniform", typ = "float"):
     """
     Make a list of parameters to test from prior distribution limits.
 
@@ -148,5 +159,8 @@ def params(lim, nsim, distrib = "uniform"):
     counter(params)
     #only supports uniform prior distributions at the moment
     if distrib == "uniform":
-        p = np.random.uniform(lim[0], lim[1], size = nsim)
+        if typ == "int":
+            p = np.random.randint(lim[0], lim[1], size = nsim)
+        else:
+            p = np.random.uniform(lim[0], lim[1], size = nsim)
     return p
