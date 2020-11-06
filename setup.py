@@ -3,9 +3,9 @@ import setuptools
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
 
-setup(
+setuptools.setup(
     name="ecophylo",
-    version="0.0.1",
+    version="0.0.4",
     author="Elizabeth Barthelemy",
     author_email="elizabeth.barthelemy@univ-grenoble-alpes.fr",
     url="https://github.com/thegreatlizzyator/ecophylo",
@@ -14,7 +14,7 @@ setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     license="CeCILL",
-    packages=setuptools.find_packages()
+    packages=setuptools.find_packages(),
     install_requires=["setuptools", "requests"],
     classifiers=[
         "Programming Language :: Python :: 3",
