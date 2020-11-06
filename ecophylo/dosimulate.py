@@ -13,6 +13,8 @@ import sys
 from ete3 import Tree
 import pandas as pd
 
+from . import pastdemo
+from . import islmodel
 from . import toPhylo
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
@@ -207,24 +209,24 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1, nepoch = 1, m = 0
         if len(past_sizes) != nepoch - 1 :
             sys.exit("There should be as many sizes as there are epochs")
         if nepoch > 2: 
-            times = timeframes(nepoch-1, maxtime, 0.05)
+            times = pastdemo.timeframes(nepoch-1, maxtime, 0.05)
         else:
             times = [maxtime]
-        popchange = demographic_events(times, past_sizes)
+        popchange = pastdemo.demographic_events(times, past_sizes)
 
     # make island model
     if npop > 1:
         if init_sizes is None or init_rates is None:
             sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
-        migration = migration_matrix(npop, m)
+        migration = islmodel.migration_matrix(npop, m)
         samples = np.ones(npop, dtype=int)*sample_size
-        popconfig = population_configurations(samples, init_sizes, init_rates)
+        popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
 
         # possible mass migration between populations
         if split_dates is not None:
             # implement option later for limited mass dispersal
             M = 1
-            massmigration = mass_migrations(split_dates, migrfrom, migrto, M)
+            massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, M)
 
     demography = popchange + massmigration
 
