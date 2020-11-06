@@ -13,3 +13,6 @@ Publications using this package here.
 [src]: https://github.com/thegreatlizzyator/ecophylo
 
 To install this package, wait for it to be finished
+```shell
+pip install path_to/the_great.tar.gz
+```
