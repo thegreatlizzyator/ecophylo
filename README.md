@@ -12,4 +12,4 @@ Publications using this package here.
 
 [src]: https://github.com/thegreatlizzyator/ecophylo
 
-Package is not born yet
+To install this package, wait for it to be finished
