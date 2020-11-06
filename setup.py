@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+import setuptools
 
 with open("README.md", "r") as readme_file:
     readme = readme_file.read()
@@ -6,17 +6,20 @@ with open("README.md", "r") as readme_file:
 setup(
     name="ecophylo",
     version="0.0.1",
-    url="https://github.com/thegreatlizzyator/ecophylo",
-    download_url="https://github.com/thegreatlizzyator/ecophylo/archive/master.zip",
-    license="CeCILL",
     author="Elizabeth Barthelemy",
     author_email="elizabeth.barthelemy@univ-grenoble-alpes.fr",
+    url="https://github.com/thegreatlizzyator/ecophylo",
+    # download_url="https://github.com/thegreatlizzyator/ecophylo/archive/master.zip",
     description="Coalescent-based simulations of eco-evolutionary biodiverity dynamics",
-    long_description=readme,,
-    packages=find_packages(exclude=("tests",)),
+    long_description=readme,
+    long_description_content_type="text/markdown",
+    license="CeCILL",
+    packages=setuptools.find_packages()
     install_requires=["setuptools", "requests"],
     classifiers=[
-	"Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3",
         "License :: OSI Approved :: CeCILL FREE SOFTWARE LICENSE AGREEMENT",
+        "Operating System :: OS Independant",
     ],
+    python_requires=">=3.6",
 )
