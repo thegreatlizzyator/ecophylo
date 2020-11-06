@@ -1,1 +1,1 @@
-from . import dosimulate
+from ecophylo.dosimulate import dosimuls
