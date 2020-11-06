@@ -1,0 +1,33 @@
+Metadata-Version: 2.1
+Name: ecophylo
+Version: 0.0.4
+Summary: Coalescent-based simulations of eco-evolutionary biodiverity dynamics
+Home-page: https://github.com/thegreatlizzyator/ecophylo
+Author: Elizabeth Barthelemy
+Author-email: elizabeth.barthelemy@univ-grenoble-alpes.fr
+License: CeCILL
+Description: # EcoPhylo
+        
+        project description
+        
+        The source for this project is available [here][src].
+        
+        Provide a link to full documentation tutorial [here][tutorial]. 
+        
+        ----
+        
+        Publications using this package here. 
+        
+        [src]: https://github.com/thegreatlizzyator/ecophylo
+        
+        To install this package, wait for it to be finished
+        ```shell
+        pip install path_to/the_great.tar.gz
+        ```
+        
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: CeCILL FREE SOFTWARE LICENSE AGREEMENT
+Classifier: Operating System :: OS Independant
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
