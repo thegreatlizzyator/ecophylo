@@ -26,7 +26,8 @@ def population_configurations(samples, init_sizes, rates):
 
     Returns
     -------
-    a list object that can be passed into msprime.simulate to indicate initial 
+    a list object that can be passed into 
+    msprime.simulate to indicate initial 
     population configurations
 
     """
@@ -51,11 +52,16 @@ def migration_matrix(subpops, migr = 0):
     -------
     Given N populations, an NxN numpy array of between-subpopulation 
     migration rates. 
-
+    >>> migration_matrix(subpops=2, migr=0.5)
+    array([[0.  , 0.25],
+           [0.25, 0.  ]])
+    >>> migration_matrix(subpops=2)
+    array([[0., 0.],
+           [0., 0.]])
     """
     if subpops < 1:
         sys.exit("there should be at least 2 populations")
-    
+    # TODO: incoherence between > 1 and at least 2 statement !
     m = migr / (2 * (subpops - 1))
 
     # symmetric island model (later - implement other types of models)
@@ -71,18 +77,24 @@ def mass_migrations(times, sources, destinations, migr = 1):
     Parameters
     ----------
     times: int or list
-        One or more dates (in generation time) when mass migrations have occured
+        One or more dates (in generation time) when 
+        mass migrations have occured
     sources : int or list
-        The source population(s) from the different mass migration events
+        The source population(s) from the different 
+        mass migration events
     destinations : int or list
-        The destination population(s) from the different mass migration events
+        The destination population(s) from the different 
+        mass migration events
     migr : int or list
-        The probability(ies) of immigrating from the source population(s) to 
-        the destination populations(s). Default is 1 (merge/split populations)
+        The probability(ies) of immigrating from 
+        the source population(s) to 
+        the destination populations(s). 
+        Default is 1 (merge/split populations)
 
     Returns
     -------
-    a list object that can be passed into msprime.simulate to introduce mass
+    a list object that can be passed into 
+    msprime.simulate to introduce mass
     migration events
 
     """
@@ -102,3 +114,7 @@ def mass_migrations(times, sources, destinations, migr = 1):
     
     M = [msprime.MassMigration(time = t, source = s, dest = d, proportion = m) for t, s, d, m in zip(times, sources, destinations, migr)]
     return M
+
+if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
