@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 tophylo
-
 Created on Fri Nov 6 13:20:00 2020
 
 @author: barthele
 """
+# TODO : more info in help toPhylo
+
 import numpy as np
 import sys
 
@@ -25,6 +26,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
     None.
 
     """
+    # TODO : example toPhylo
+    # TODO : idiot proof toPhylo
     innerNodeIndex = 0
     nIndsORI = 0
     spID = 0
@@ -144,6 +147,8 @@ def ubranch_mutation(node, mu):
         whether or not a mutation should appear on the tree at this node
 
     """
+    # TODO : example ubranch_mutation
+    # TODO : idiot proof ubranch_mutation
     lambd = node.dist * mu
     rb = np.random.poisson(lambd)
     if rb >= 1:
@@ -151,3 +156,6 @@ def ubranch_mutation(node, mu):
     else:
         return False
 
+if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
