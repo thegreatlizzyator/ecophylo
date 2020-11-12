@@ -7,6 +7,8 @@ Created on Wed May 13 11:42:50 2020
 
 @author: barthele
 """
+    # TODO : doc !!!
+    # TODO : more examples
 import msprime
 import numpy as np
 import sys
@@ -23,6 +25,9 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
              verbose=False):
 
+    # TODO : doc !!!
+    # TODO : idiotproof
+    # TODO : more examples
     # CHECKS HERE FOR IDIOT-PROOFING
     if maxtime is None and pastprior is not None:
         sys.exit("Time of past demographic change should be provided")
@@ -195,6 +200,9 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
 
 def simulate(sample_size, com_size, mu, mrca = None, npop = 1, nepoch = 1, m = 0, init_rates = None, init_sizes = None, past_sizes = None, maxtime = None, split_dates = None, migrfrom = None, migrto = None, seed = 1, verbose = False):
 
+    # TODO : doc !!!
+    # TODO : idiotproof
+    # TODO : more examples
     # do dummy checks here --> try to make code stupid-proof
     if sample_size >= com_size:
         sys.exit("Sample size should not exceed community size")
@@ -280,6 +288,8 @@ def params(lim, nsim, distrib = "uniform", typ = "float"):
         a list of nsim parameter values.
 
     """
+    # TODO : idiotproof
+    # TODO : more examples
     if len(lim) == 1:
         p = np.repeat([lim[0]], nsim)
     else:
@@ -307,6 +317,8 @@ def getSFS(tree):
         DESCRIPTION.
 
     """
+    # TODO : idiotproof
+    # TODO : more examples
     sfs = list()
     abund = list()
     for leaf in tree.iter_leaves():
@@ -320,3 +332,6 @@ def getSFS(tree):
     sfs.extend(abund)
     return sfs
 
+if __name__ == "__main__":
+        import doctest
+        doctest.testmod()
