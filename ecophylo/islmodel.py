@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
- ALL ECOPHYLO
+islmodel file 
 
 
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
 """
+    # TODO : idiotproof
+    # TODO : more examples
 import msprime
 import numpy as np
 import sys
@@ -31,6 +33,8 @@ def population_configurations(samples, init_sizes, rates):
     population configurations
 
     """
+    # TODO : idiotproof
+    # TODO : more examples
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
 
@@ -59,6 +63,8 @@ def migration_matrix(subpops, migr = 0):
     array([[0., 0.],
            [0., 0.]])
     """
+    # TODO : idiotproof
+    # TODO : more examples
     if subpops < 1:
         sys.exit("there should be at least 2 populations")
     # TODO: incoherence between > 1 and at least 2 statement !
@@ -98,6 +104,8 @@ def mass_migrations(times, sources, destinations, migr = 1):
     migration events
 
     """
+    # TODO : idiotproof
+    # TODO : more examples
     # if only one mass migration event should still be of type list
     if np.isscalar(times):
         times = [times]

@@ -7,6 +7,8 @@ Created on Wed May 13 11:42:50 2020
 
 @author: barthele
 """
+# TODO : more info in pastdemo
+
 import msprime
 import numpy as np
 
@@ -35,7 +37,8 @@ def timeframes(I, T, a):
     >>> timeframes(I=3, T=2, a=0.3)
     [0.5653569842838218, 1.226602524471192, 2.0000000000000004]
     """
-    
+    # TODO : idiotproof
+    # TODO : more examples
     if a <= 0:
         sys.exit("The resolution a must be superior to 0.")
     
@@ -64,8 +67,13 @@ def demographic_events(epochs, sizes):
     Should later implement an option to change a specific population 
     for now the changes affect all populations simultaneously.
 
+    >>> demographic_events([1,2], [42, 9000])
+    [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}, {'type': 'population_parameters_change', 'time': 2, 'growth_rate': None, 'initial_size': 9000, 'population': -1}]
+
 
     """
+    # TODO : idiotproof
+    # TODO : more examples
     dc = [msprime.PopulationParametersChange(time=t, initial_size =s) for t, s in zip(epochs, sizes)]
     return dc
 
