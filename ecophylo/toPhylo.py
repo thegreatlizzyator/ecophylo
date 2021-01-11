@@ -25,6 +25,10 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
     -------
     None.
 
+    Example
+    -------
+    >>> print("test")
+    "no"
     """
     # TODO : example toPhylo
     # TODO : idiot proof toPhylo
@@ -146,6 +150,10 @@ def ubranch_mutation(node, mu):
     bool
         whether or not a mutation should appear on the tree at this node
 
+    Example
+    -------
+    >>> print("test")
+    "no"
     """
     # TODO : example ubranch_mutation
     # TODO : idiot proof ubranch_mutation
