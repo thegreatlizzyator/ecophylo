@@ -1,0 +1,53 @@
+---
+title: "Vignette ecophylo"
+author: "Team bouclé"
+date: "9 janvier 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(reticulate)
+knitr::opts_chunk$set(echo = TRUE)
+use_python(Sys.which("python3"))
+```
+
+## Rules for working in Rmarkdown with python.
+
+*we will need to check the setup chunk for location of python3 binary across different os (ubuntu work with this code)*
+
+### Python chunks calling R obj.
+
+R chunks works just fine as usual.
+
+```{r}
+a <- 42 # set a in R
+```
+
+This chunk only work when the markdown is knitted.
+See that we can call R object when looking for them in 'r' namespace.
+
+```{python}
+print(r.a)
+r.a += 1 # modify R variable in python
+print(r.a)
+b = 666 # set b in python
+```
+
+### R chunks calling Python obj.
+
+See that we can call python object when looking for them in 'py' list.
+
+```{r}
+print(a) # call a in R after modification in python
+print(py$b) # call b in R
+```
+
+You can run python code in interactive mod in the console using the following 
+function : *repl_python(quiet = T)*.
+It set the console in 'python mode' so you can type in python commands. 
+However you can't send lines from a chunk or a script.
+
+To exit the consol in python, just type *exit* and tadaa the consol is back 
+to R.
+
+
