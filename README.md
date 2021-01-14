@@ -64,8 +64,6 @@ dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] ,
 
 Note that there is random events during the simulation that you can control by setting a seed :
 ```python
-np.random.seed(42)
-dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
-np.random.seed(42)
-dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
+dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
+dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
 ```

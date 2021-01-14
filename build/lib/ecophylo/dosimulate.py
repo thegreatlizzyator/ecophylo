@@ -10,27 +10,29 @@ Created on Wed May 13 11:42:50 2020
     # TODO : doc !!!
     # TODO : more examples
 import msprime
+import random
 import numpy as np
 import sys
 from ete3 import Tree
 import pandas as pd
+from loguniform import LogUniform
 
 from . import pastdemo
 from . import islmodel
 from . import toPhylo
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
-             npop=1, nepoch=1, withmigr=False, init_ratesprior=None,
-             init_sizeprior=None, pastprior=None, maxtime=None,
+             prior_distrib = "uniform", npop=1, withmigr=False, init_ratesprior=None,
+             init_sizeprior=None, pastprior=None, changetime = None,
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
-             verbose=False):
+             verbose=False, savetrees= False, saveto = "", seed = None):
 
     # TODO : doc !!!
     # TODO : idiotproof
-    # TODO : more examples
-    # CHECKS HERE FOR IDIOT-PROOFING
-    if maxtime is None and pastprior is not None:
-        sys.exit("Time of past demographic change should be provided")
+ # CHECKS HERE FOR IDIOT-PROOFING
+    
+    if prior_distrib not in ("uniform", "log_unif"):
+        sys.exit("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
     
     comments = 'Simulating eco-evolutionary dynamics over the following parameters ranges:'
     df = pd.DataFrame()
@@ -43,12 +45,12 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         comments += (f'\n -sample size in {sample_size}')
     else:
         samp = sample_size
-
+    
     # mutation rate
     if muprior is not None:
         df['mu'] = ""
         comments += (f'\n -mutation rate in {muprior}')
-
+   
     # community size (Ne)
     if comprior is not None:
         df['comsize'] = ""
@@ -56,18 +58,13 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     
     # past size(s)
     if pastprior is not None:
-        colnames = ['pastsize{}'.format(i) for i in range(1, nepoch)]
-        for i in range(nepoch-1):
+        nepoch = len(changetime)
+        colnames = ['pastsize{}'.format(i) for i in range(1, nepoch+1)]
+        for i in range(nepoch):
             df[colnames[i]] = ""
-        comments += (f'\n -{nepoch-1} past epoch(s) in which community size varies in {pastprior}')
+        comments += (f'\n -{nepoch} past epoch(s) in which community size varies in {pastprior}')
     else:
         past_sizes = None
-
-    # date of past demographic change
-    if maxtime is not None and isinstance(maxtime, list):
-        df['changetime'] = ""
-    else:
-        changetime = None
 
     # populations sizes and growth rates
     if init_sizeprior is not None and init_ratesprior is not None and npop is not None:
@@ -99,6 +96,11 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         split_dates = None
 
     comments += f"\nEstimating the associated model's {len(df.columns)} parameter(s) based on the {sstype} summary statistic(s)"
+    
+    if savetrees and saveto is not None:
+        comments += f"\n  //!\\\ Phylogenies will be saved to the specified file"
+        trees = ""
+
     if verbose:
         print(comments)
     
@@ -107,47 +109,42 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     i = 0
     ss = list()
 
+    # While loop for calling simulate
     while i < nsim:
-        if safecount > 10000:
-            if i > 0:
-                print(f"Many simulations have failed. Returning fewer simulations than {nsim}.")
-                if sstype == 'SFS':
-                    SFS = np.zeros((nsim, max(len(x) for x in ss)))
-                    for i, j in enumerate(ss):
-                        SFS[i][0:len(j)] = j
-                ssdf = pd.DataFrame(SFS)
-                return df, ssdf
-            else:
-                sys.exit("Too many simulations have failed")
+        if safecount > 100:
+            sys.exit("Too many simulations have failed")
 
         try:
             df = df.append(pd.Series(), ignore_index=True)
             # sample parameters from prior for simulation
+
             if isinstance(sample_size, list):
-                samp = params(sample_size, nsim, typ = "int")
+                samp = sample(sample_size[0], sample_size[1], seed = seed)
                 df['sampsize'] = samp
         
             if muprior is not None:
-                mu = params(muprior, 1)[0]
+                if len(muprior) == 1:
+                    mu = muprior[0]
+                else:
+                    mu = sample(muprior[0], muprior[1], distr = prior_distrib, seed = seed)
                 df['mu'].iloc[i,] = mu
 
             if comprior is not None:
-                com_size = params(comprior, 1, typ="int")[0]
+                if len(comprior) == 1:
+                    com_size = comprior[0]
+                else:
+                    com_size = sample(comprior[0], comprior[1], distr = prior_distrib, typ = "int", seed = seed)
                 df['comsize'].iloc[i,] = com_size
             
             if pastprior is not None:
-                past_sizes = [params(pastprior, 1, typ ="int") for _ in range(nepoch-1)]
-                colnames = ['pastsize{}'.format(i) for i in range(1, nepoch)]
-                for j in range(nepoch-1):
-                    df[colnames[j]].iloc[i,] = past_sizes[j][0]
-
-            if maxtime is not None and isinstance(maxtime, list):
-                changetime = params(maxtime, 1, typ = "int")[0]
-                df['changetime'].iloc[i,] = changetime
+                past_sizes = [sample(pastprior[0], pastprior[1], distr = prior_distrib, typ = "int", seed = seed) for _ in range(nepoch)]
+                colnames = ['pastsize{}'.format(i) for i in range(1, nepoch+1)]
+                for j in range(nepoch):
+                    df[colnames[j]].iloc[i,] = past_sizes[j]
 
             if init_sizeprior is not None and init_ratesprior is not None and npop is not None:
-                init_rates = [params(init_ratesprior, 1) for _ in range(npop)][0]
-                init_sizes = [params(init_sizeprior, 1) for _ in range(npop)][0]
+                init_rates = [sample(init_ratesprior[0], init_ratesprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
+                init_sizes = [sample(init_sizeprior[0], init_sizeprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
                 colnames1 = ['initrate{}'.format(i) for i in range(1, npop+1)]
                 colnames2 = ['initsize{}'.format(i) for i in range(1, npop+1)]
                 for j in range(npop):
@@ -155,50 +152,64 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
                     df[colnames2[j]].iloc[i,] = init_sizes[j][0]
 
             if withmigr and npop is not None:
-                m = params([0, 1], 1)[0]
+                m = sample(0, 1, distr = prior_distrib, typ = "float", seed = seed)
                 df['m'].iloc[i,] = m
 
             if massprior is not None:
-                split_dates = [params(massprior, 1) for _ in range(nsplit)][0]
+                # probably better to fix split dates same as changetime
+                split_dates = [params(massprior, 1, distrib = prior_distrib) for _ in range(nsplit)][0]
                 colnames = ['splitdate{}'.format(i) for i in range(1, nsplit+1)]
                 for j in range(nsplit):
                     df[colnames[j]].iloc[i,] = split_dates[j][0]
-
             # simulate phylogeny
             phylo = simulate(sample_size = samp,
                              com_size = com_size,
                              mu = mu,
                              mrca = lim_mrca,
                              npop = npop,
-                             nepoch = nepoch,
+                             changetime = changetime,
                              m = m,
                              init_rates = init_rates,
                              init_sizes = init_sizes,
                              past_sizes = past_sizes,
-                             maxtime = changetime,
                              split_dates = split_dates,
                              migrfrom = migrfrom,
                              migrto = migrto,
-                             verbose = False)
+                             verbose = verbose, seed = seed)
 
             if sstype == 'SFS':
-                ss.append(getSFS(phylo))
+                ss.append(getSFS(phylo, samp))
+
+            if savetrees:
+                trees += phylo.write() + "\n"
         except: 
             df = df[:-1]
         else:
-            i = i+1
+            i += 1
         finally: 
             safecount+=1
-    
-    if sstype == 'SFS':
-        SFS = np.zeros((nsim, max(len(x) for x in ss)))
-        for i, j in enumerate(ss):
-            SFS[i][0:len(j)] = j
-    ssdf = pd.DataFrame(SFS)
 
+    if sstype == 'SFS':
+        SFS = np.zeros((len(ss), max(len(x) for x in ss)))
+        for k, j in enumerate(ss):
+            SFS[k][0:len(j)] = j
+    ssdf = pd.DataFrame(SFS)
+    
+    if savetrees:
+        saved = df.to_string()
+        if sstype == 'SFS':
+            saved += "\n###\n" + ssdf.to_string()
+        saved += "\n###\n" + trees
+
+        f = open(saveto, "w")
+        f.write(saved)
+        f.close()
     return df, ssdf
 
-def simulate(sample_size, com_size, mu, mrca = None, npop = 1, nepoch = 1, m = 0, init_rates = None, init_sizes = None, past_sizes = None, maxtime = None, split_dates = None, migrfrom = None, migrto = None, seed = 1, verbose = False):
+def simulate(sample_size, com_size, mu, mrca = None, npop = 1, 
+             m = 0, init_rates = None, init_sizes = None, 
+             past_sizes = None, changetime = None, split_dates = None, 
+             migrfrom = None, migrto = None, verbose = False, seed = None):
 
     # TODO : doc !!!
     # TODO : idiotproof
@@ -213,14 +224,10 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1, nepoch = 1, m = 0
     migration = None
 
     # make past demographic changes between different time frames
-    if nepoch > 1:
-        if len(past_sizes) != nepoch - 1 :
-            sys.exit("There should be as many sizes as there are epochs")
-        if nepoch > 2: 
-            times = pastdemo.timeframes(nepoch-1, maxtime, 0.05)
-        else:
-            times = [maxtime]
-        popchange = pastdemo.demographic_events(times, past_sizes)
+    if past_sizes is not None and changetime is not None:
+        if len(past_sizes) != len(changetime):
+            sys.exit("There should be as many sizes as there are past epochs")
+        popchange = demographic_events(changetime, past_sizes)
 
     # make island model
     if npop > 1:
@@ -259,17 +266,36 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1, nepoch = 1, m = 0
                                    demographic_events = demography)
 
     tree = treeseq.first()
+    if verbose: print(tree.draw(format = 'unicode'))
     if mrca is not None:
         if tree.time(tree.root) > mrca : 
             raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates fixed limit ({mrca})")
     #print(tree.draw(format="unicode"))
     node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = toPhylo.toPhylo(tree, mu)
+    phylo = toPhylo.toPhylo(tree, mu, seed = seed)
 
     return phylo   
 
-def params(lim, nsim, distrib = "uniform", typ = "float"):
+
+def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
+    random.seed(seed)
+    if upper == lower :
+        p = upper
+    
+    if distr == "uniform":
+        if typ == "int":
+            p = random.randrange(lower,upper)
+        else:
+            p = random.uniform(lower,upper)
+
+    if distr == "log_unif":
+        p =   LogUniform(lower, upper).rvs()
+
+    return p 
+
+
+def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     """
     Make a list of parameters to test from prior distribution limits.
 
@@ -293,16 +319,18 @@ def params(lim, nsim, distrib = "uniform", typ = "float"):
     if len(lim) == 1:
         p = np.repeat([lim[0]], nsim)
     else:
-        #only supports uniform prior distributions at the moment
+        np.random.seed(seed)
         if distrib == "uniform":
             if typ == "int":
                 p = np.random.randint(lim[0], lim[1], size = nsim, dtype=np.int64)
-            else:
+            if typ == "float":
                 p = np.random.uniform(lim[0], lim[1], size = nsim)
+        if distrib == "logunif":
+            p = np.exp(np.random.uniform(lim[0], lim[1], size = nsim))
     return p
 
 
-def getSFS(tree):
+def getSFS(tree, samp_size):
     """
     
 
@@ -328,8 +356,10 @@ def getSFS(tree):
             abund.append(len(inds))
         except AttributeError:
             abund.append(1)
-    abund.sort()
     sfs.extend(abund)
+    # thin about catching error when phylogeny has only 1 sp
+    if sum(sfs) != samp_size:
+        raise Exception(f"Simulated phylogeny has only one species!")
     return sfs
 
 if __name__ == "__main__":
