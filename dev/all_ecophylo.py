@@ -23,7 +23,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
              prior_distrib = "uniform", npop=1, withmigr=False, init_ratesprior=None,
              init_sizeprior=None, pastprior=None, changetime = None,
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
-             verbose=False, savetrees= False, saveto = ""):
+             verbose=False, savetrees= False, saveto = "", seed = None):
 
     # CHECKS HERE FOR IDIOT-PROOFING
     
@@ -105,6 +105,8 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     i = 0
     ss = list()
 
+
+    # While loop for calling simulate
     while i < nsim:
         if safecount > 10000:
             sys.exit("Too many simulations have failed")
@@ -112,33 +114,34 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         try:
             df = df.append(pd.Series(), ignore_index=True)
             # sample parameters from prior for simulation
+
             if isinstance(sample_size, list):
-                samp = sample(sample_size[0], sample_size[1])
+                samp = sample(sample_size[0], sample_size[1], seed = seed)
                 df['sampsize'] = samp
         
             if muprior is not None:
                 if len(muprior) == 1:
                     mu = muprior[0]
                 else:
-                    mu = sample(muprior[0], muprior[1], distr = prior_distrib)
+                    mu = sample(muprior[0], muprior[1], distr = prior_distrib, seed = seed)
                 df['mu'].iloc[i,] = mu
 
             if comprior is not None:
                 if len(comprior) == 1:
                     com_size = comprior[0]
                 else:
-                    com_size = sample(comprior[0], comprior[1], distr = prior_distrib, typ = "int")
+                    com_size = sample(comprior[0], comprior[1], distr = prior_distrib, typ = "int", seed = seed)
                 df['comsize'].iloc[i,] = com_size
             
             if pastprior is not None:
-                past_sizes = [sample(pastprior[0], pastprior[1], distr = prior_distrib, typ = "int") for _ in range(nepoch)]
+                past_sizes = [sample(pastprior[0], pastprior[1], distr = prior_distrib, typ = "int", seed = seed) for _ in range(nepoch)]
                 colnames = ['pastsize{}'.format(i) for i in range(1, nepoch+1)]
                 for j in range(nepoch):
                     df[colnames[j]].iloc[i,] = past_sizes[j]
 
             if init_sizeprior is not None and init_ratesprior is not None and npop is not None:
-                init_rates = [sample(init_ratesprior[0], init_ratesprior[1], distr = prior_distrib, typ = "float") for _ in range(npop)][0]
-                init_sizes = [sample(init_sizeprior[0], init_sizeprior[1], distr = prior_distrib, typ = "float") for _ in range(npop)][0]
+                init_rates = [sample(init_ratesprior[0], init_ratesprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
+                init_sizes = [sample(init_sizeprior[0], init_sizeprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
                 colnames1 = ['initrate{}'.format(i) for i in range(1, npop+1)]
                 colnames2 = ['initsize{}'.format(i) for i in range(1, npop+1)]
                 for j in range(npop):
@@ -146,7 +149,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
                     df[colnames2[j]].iloc[i,] = init_sizes[j][0]
 
             if withmigr and npop is not None:
-                m = sample(0, 1, distr = prior_distrib, typ = "float")
+                m = sample(0, 1, distr = prior_distrib, typ = "float", seed = seed)
                 df['m'].iloc[i,] = m
 
             if massprior is not None:
@@ -170,7 +173,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
                              split_dates = split_dates,
                              migrfrom = migrfrom,
                              migrto = migrto,
-                             verbose = False)
+                             verbose = False, seed = seed)
             
             if sstype == 'SFS':
                 ss.append(getSFS(phylo, samp))
@@ -201,7 +204,10 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         f.close()
     return df, ssdf
 
-def simulate(sample_size, com_size, mu, mrca = None, npop = 1, m = 0, init_rates = None, init_sizes = None, past_sizes = None, changetime = None, split_dates = None, migrfrom = None, migrto = None, seed = 1, verbose = False):
+def simulate(sample_size, com_size, mu, mrca = None, npop = 1, m = 0, 
+             init_rates = None, init_sizes = None, past_sizes = None, 
+             changetime = None, split_dates = None, migrfrom = None, 
+             migrto = None, verbose = False, seed = None):
 
     # do dummy checks here --> try to make code stupid-proof
     if sample_size >= com_size:
@@ -255,17 +261,19 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1, m = 0, init_rates
                                    demographic_events = demography)
 
     tree = treeseq.first()
+    print(tree.draw(format = 'unicode'))
     if mrca is not None:
         if tree.time(tree.root) > mrca : 
             raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates fixed limit ({mrca})")
     #print(tree.draw(format="unicode"))
     node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = toPhylo(tree, mu)
+    phylo = toPhylo(tree, mu, seed = seed)
 
     return phylo 
 
-def sample(lower, upper, distr = "uniform", typ = "float"):
+def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
+    random.seed(seed)
     if upper == lower :
         p = upper
     
@@ -339,7 +347,7 @@ def timeframes(I, T, a):
     return(times)
 
 
-def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
+def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
     
 
@@ -372,7 +380,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
             nIndsORI += 1
 
         if not node.is_leaf():
-            umut = ubranch_mutation(node, mu)
+            umut = ubranch_mutation(node, mu, seed = seed)
             if umut:
                 # print(f"Speciation event @ node {node.name}")
                 spID += 1
@@ -457,7 +465,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
     return tree
 
 
-def ubranch_mutation(node, mu):
+def ubranch_mutation(node, mu, seed = None):
     """
     Draw mutations following a poisson process.
 
@@ -475,6 +483,9 @@ def ubranch_mutation(node, mu):
 
     """
     lambd = node.dist * mu
+    
+    # set the seed
+    np.random.seed(seed)
     rb = np.random.poisson(lambd)
     if rb >= 1:
         return True
