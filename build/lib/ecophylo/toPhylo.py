@@ -10,7 +10,7 @@ Created on Fri Nov 6 13:20:00 2020
 import numpy as np
 import sys
 
-def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
+def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
     
 
@@ -25,6 +25,10 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
     -------
     None.
 
+    Example
+    -------
+    >>> print("test")
+    "no"
     """
     # TODO : example toPhylo
     # TODO : idiot proof toPhylo
@@ -45,7 +49,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
             nIndsORI += 1
 
         if not node.is_leaf():
-            umut = ubranch_mutation(node, mu)
+            umut = ubranch_mutation(node, mu, seed = seed)
             if umut:
                 # print(f"Speciation event @ node {node.name}")
                 spID += 1
@@ -130,7 +134,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True):
     return tree
 
 
-def ubranch_mutation(node, mu):
+def ubranch_mutation(node, mu, seed = None):
     """
     Draw mutations following a poisson process.
 
@@ -146,10 +150,16 @@ def ubranch_mutation(node, mu):
     bool
         whether or not a mutation should appear on the tree at this node
 
+    Example
+    -------
+    >>> print("test")
+    "no"
     """
     # TODO : example ubranch_mutation
     # TODO : idiot proof ubranch_mutation
     lambd = node.dist * mu
+    # set the seed
+    np.random.seed(seed)
     rb = np.random.poisson(lambd)
     if rb >= 1:
         return True

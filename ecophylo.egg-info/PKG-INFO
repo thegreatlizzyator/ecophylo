@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ecophylo
-Version: 0.0.6
+Version: 0.0.5
 Summary: Coalescent-based simulations of eco-evolutionary biodiverity dynamics
 Home-page: https://github.com/thegreatlizzyator/ecophylo
 Author: Elizabeth Barthelemy
@@ -72,10 +72,8 @@ Description: # EcoPhylo
         
         Note that there is random events during the simulation that you can control by setting a seed :
         ```python
-        np.random.seed(42)
-        dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
-        np.random.seed(42)
-        dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
+        dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
+        dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
         ```
         
 Platform: UNKNOWN
