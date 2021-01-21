@@ -39,3 +39,6 @@ pip install [your-package]
 #
 # TODO @p:10
 # ajouter save tree to dosimulate voir dans dev/
+#
+# TODO @p:1
+# idiotproof for integer should test if it's not float with no decimal value and then accept it as int !

@@ -178,7 +178,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
                              verbose = verbose, seed = seed)
 
             if sstype == 'SFS':
-                ss.append(getSFS(phylo, samp))
+                ss.append(getAbund(phylo, samp))
 
             if savetrees:
                 trees += phylo.write() + "\n"
@@ -330,7 +330,7 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     return p
 
 
-def getSFS(tree, samp_size):
+def getAbund(tree, samp_size):
     """
     
 
