@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
 """
- ALL ECOPHYLO
 
 
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+
+Functions :
+    dosimuls
+    simulate
+    sample
+    params
+    getAbund
+
 """
     # TODO : doc !!!
-    # TODO : more examples
 import msprime
 import random
 import numpy as np
@@ -250,7 +256,10 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
     # if verbose should print the demography debugger - only for debugging purposes!!! 
     if verbose:
-        dd = msprime.DemographyDebugger(Ne = com_size, demographic_events= demography, migration_matrix= migration, population_configurations= popconfig)
+        dd = msprime.DemographyDebugger(Ne = com_size, 
+                                        demographic_events= demography, 
+                                        migration_matrix= migration, 
+                                        population_configurations= popconfig)
         dd.print_history()
     
     if npop > 1:
@@ -313,6 +322,8 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     params: list
         a list of nsim parameter values.
 
+    Examples
+    --------
     """
     # TODO : idiotproof
     # TODO : more examples
@@ -344,6 +355,8 @@ def getAbund(tree, samp_size):
     sfs : TYPE
         DESCRIPTION.
 
+    Examples
+    --------
     """
     # TODO : idiotproof
     # TODO : more examples

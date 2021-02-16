@@ -5,8 +5,8 @@ from ecophylo import pastdemo
 
 if __name__ == "__main__":
     import doctest
-    print("Testing islmodel functions")
+    print("\n\nTesting islmodel functions")
     print(doctest.testmod(islmodel))
-    print("Testing pastdem functions")
+    print("\n\nTesting pastdem functions")
     print(doctest.testmod(pastdemo))
 

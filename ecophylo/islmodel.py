@@ -8,6 +8,12 @@ by the ecophylo.simulate function.
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+
+Functions :
+    population_configurations
+    migration_matrix
+    mass_migrations
+
 """
 # Dependencies
 
@@ -35,7 +41,7 @@ def population_configurations(samples, init_sizes, rates) :
     msprime.simulate to indicate initial 
     population configurations
     
-    Example
+    Examples
     -------
     >>> print("test")
     "no"
@@ -128,7 +134,7 @@ def mass_migrations(times, sources, destinations, migr = 1):
     msprime.simulate to introduce mass
     migration events
 
-    Example
+    Examples
     -------
     >>> print("test")
     "no"

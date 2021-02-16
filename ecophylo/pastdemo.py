@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """
- ALL ECOPHYLO
 
 
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+
+Functions :
+    timeframes
+    demographic_events
+
 """
 # TODO : more info in pastdemo
 
@@ -32,6 +36,9 @@ def timeframes(I, T, a):
     -------
     a list of dates (in generation time) corresponding to the
     different time windows
+
+    Examples
+    --------
     >>> timeframes(I=2, T=2, a=0.3)
     [0.8830368802245059, 2.0000000000000004]
     
@@ -78,10 +85,10 @@ def demographic_events(epochs, sizes):
     Should later implement an option to change a specific population 
     for now the changes affect all populations simultaneously.
 
+    Examples
+    --------
     >>> demographic_events([1,2], [42, 9000])
     [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}, {'type': 'population_parameters_change', 'time': 2, 'growth_rate': None, 'initial_size': 9000, 'population': -1}]
-
-
     """
     if not isinstance(epochs, list) :
         sys.exit('epochs must be a list')
