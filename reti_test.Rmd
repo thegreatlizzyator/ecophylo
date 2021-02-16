@@ -45,13 +45,6 @@ print(py$b) # call b in R
 # Also possible to call directly python function in r
 rand <- import('numpy')$random # import python module numpy and submod random
 rand$randint(3) # call of function randint
-# Be carefull for idiotproof of ecophylo and int class !
-eco <- import('ecophylo')
-eco$timeframes(I=as.integer(3), T=2, a=0.3)
-# make dataframes with pandas is same as R
-pd <- import('pandas')
-d <- list(col1 = c(1,2,3), col2 = c(4,5,6))
-pd$DataFrame(d)
 ```
 
 You can run python code in interactive mod in the console using the following 
@@ -74,6 +67,8 @@ d <- list(col1 = c(1,2,3), col2 = c(4,5,6))
 pd$DataFrame(d)
 ```
 
+\newpage
+
 # Serious Part #####
 
 ## Introduction
@@ -91,34 +86,47 @@ wget -L https://github.com/thegreatlizzyator/ecophylo/blob/master/dist/ecophylo-
 python3 -m pip install ecophylo-0.0.5.tar.gz
 ```
 
-### Repo github
 
 <!--
+### Repo github
+
 ### CRAN
+
 -->
 ## Single simulation
 
-```{r, eval=FALSE}
-# NOT RUN
-eco$simulate(10, 1e4, 1-3)
+```{r}
+# First we need to import the python module 
+eco <- import('ecophylo')
+# Be carefull for idiotproof of ecophylo and int class ! we need to 
+eco$timeframes(I=as.integer(3), T=2, a=0.3)
+sim1 <- eco$simulate(as.integer(100), as.integer(1e4), as.integer(1e-3))
+sim1
 ```
 
-```{python, eval=FALSE}
+```{python, eval=FALSE, include = FALSE} 
+# HIDDEN CHUNK
+# same code in python. Noneed to modify to int here
+import ecophylo as eco
 # NOT RUN
-eco.simulate(100, 1e4, 1-3)
+eco.simulate(100, 1e4, 1e-3)
 ```
 
 ## Multiple simulations
 
 ```{r, eval=FALSE}
 # NOT RUN
-eco$dosimuls(nsim = 5, sample_size = 100, comprior = list(1000,10e9), muprior = list(1e-6) , verbose = True, seed = 42)
+eco$dosimuls(nsim = 5, sample_size = 100, comprior = list(1000,10e9),
+             muprior = list(1e-6) , verbose = TRUE, seed = 42)
 ```
 
 ```{python, eval=FALSE}
 # NOT RUN
-eco.dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
+eco.dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], 
+             muprior = [1e-6] , verbose = True, seed = 42)
 ```
+
+
 <!--
 ## Adding Migrations
 -->
