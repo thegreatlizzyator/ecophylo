@@ -1,19 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-islmodel file 
+islmodel.py file 
 
+Module with functions creating msprime (dependence) objects to be used 
+by the ecophylo.simulate function.
 
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+
+Functions :
+    population_configurations
+    migration_matrix
+    mass_migrations
+
 """
-    # TODO : idiotproof
-    # TODO : more examples
+# Dependencies
+
 import msprime
 import numpy as np
 import sys
 
-def population_configurations(samples, init_sizes, rates):
+
+def population_configurations(samples, init_sizes, rates) :
     """
     Set up the initial population configurations.
 
@@ -31,12 +40,27 @@ def population_configurations(samples, init_sizes, rates):
     a list object that can be passed into 
     msprime.simulate to indicate initial 
     population configurations
-
+    
+    Examples
+    -------
+    >>> print("test")
+    "no"
     """
-    # TODO : idiotproof
-    # TODO : more examples
+
+    # TODO : examples
+    
+    if not isinstance(samples, list) :
+        sys.exit('samples must be a list')
+    if not isinstance(init_sizes, list) :
+        sys.exit('init_sizes must be a list')
+    if not isinstance(rates, list) :
+        sys.exit('rates must be a list')
+    if not len(samples) == len(init_sizes) == len(rates) :
+        sys.exit('all parameters must be list of same lengths')
+
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
+
 
 def migration_matrix(subpops, migr = 0):
     """
@@ -56,6 +80,9 @@ def migration_matrix(subpops, migr = 0):
     -------
     Given N populations, an NxN numpy array of between-subpopulation 
     migration rates. 
+    
+    Examples
+    --------
     >>> migration_matrix(subpops=2, migr=0.5)
     array([[0.  , 0.25],
            [0.25, 0.  ]])
@@ -63,11 +90,14 @@ def migration_matrix(subpops, migr = 0):
     array([[0., 0.],
            [0., 0.]])
     """
-    # TODO : idiotproof
-    # TODO : more examples
-    if subpops < 1:
-        sys.exit("there should be at least 2 populations")
-    # TODO: incoherence between > 1 and at least 2 statement !
+    
+    if not isinstance(subpops, int) or subpops < 2 :
+        sys.exit('subpops must be an integer, with a minimum value of 2')
+    
+    if not isinstance(migr, (int,float)) :
+        sys.exit('migr must be a float')
+    # TODO : migr can be negative ? sup to 1 ?
+
     m = migr / (2 * (subpops - 1))
 
     # symmetric island model (later - implement other types of models)
@@ -75,6 +105,7 @@ def migration_matrix(subpops, migr = 0):
     np.fill_diagonal(migration_matrix, 0)
 
     return migration_matrix
+
 
 def mass_migrations(times, sources, destinations, migr = 1):
     """
@@ -103,9 +134,14 @@ def mass_migrations(times, sources, destinations, migr = 1):
     msprime.simulate to introduce mass
     migration events
 
+    Examples
+    -------
+    >>> print("test")
+    "no"
     """
     # TODO : idiotproof
-    # TODO : more examples
+    # TODO : examples
+
     # if only one mass migration event should still be of type list
     if np.isscalar(times):
         times = [times]

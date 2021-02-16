@@ -2,6 +2,7 @@
 
 from ecophylo import islmodel
 from ecophylo import pastdemo
+from ecophylo import dosimulate
 
 if __name__ == "__main__":
     import doctest
@@ -9,4 +10,6 @@ if __name__ == "__main__":
     print(doctest.testmod(islmodel))
     print("\n\nTesting pastdem functions")
     print(doctest.testmod(pastdemo))
+    print("\n\nTesting dosimulate functions")
+    print(doctest.testmod(dosimulate))
 

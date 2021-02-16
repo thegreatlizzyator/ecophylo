@@ -116,14 +116,14 @@ eco.simulate(100, 1e4, 1e-3)
 
 ```{r, eval=FALSE}
 # NOT RUN
-eco$dosimuls(nsim = 5, sample_size = 100, comprior = list(1000,10e9),
-             muprior = list(1e-6) , verbose = TRUE, seed = 42)
+truc <- eco$dosimuls(nsim = 1, sample_size = 100, comprior = list(1000,10e9),
+             muprior = list(1e-3) , verbose = TRUE, seed = 42)
 ```
 
 ```{python, eval=FALSE}
 # NOT RUN
 eco.dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], 
-             muprior = [1e-6] , verbose = True, seed = 42)
+             muprior = [1e-3] , verbose = True, seed = 42)
 ```
 
 

@@ -4,6 +4,11 @@ tophylo
 Created on Fri Nov 6 13:20:00 2020
 
 @author: barthele
+
+Functions : 
+    toPhylo
+    ubranch_mutation
+
 """
 # TODO : more info in help toPhylo
 
@@ -25,8 +30,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     -------
     None.
 
-    Example
-    -------
+    Examples
+    --------
     >>> print("test")
     "no"
     """
@@ -150,18 +155,18 @@ def ubranch_mutation(node, mu, seed = None):
     bool
         whether or not a mutation should appear on the tree at this node
 
-    Example
+    Examples
     -------
     >>> print("test")
     "no"
     """
     # TODO : example ubranch_mutation
     # TODO : idiot proof ubranch_mutation
-    lambd = node.dist * mu
+    lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
     # set the seed
     np.random.seed(seed)
-    rb = np.random.poisson(lambd)
-    if rb >= 1:
+    rb = np.random.poisson(lambd) 
+    if rb >= 1: # parametrize the 1 by a value n
         return True
     else:
         return False
