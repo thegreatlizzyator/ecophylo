@@ -1,14 +1,19 @@
 # -*- coding: utf-8 -*-
 """
- ALL ECOPHYLO
-
 
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+
+Functions :
+    dosimuls
+    simulate
+    sample
+    params
+    getAbund
+
 """
     # TODO : doc !!!
-    # TODO : more examples
 import msprime
 import random
 import numpy as np
@@ -210,6 +215,69 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
              m = 0, init_rates = None, init_sizes = None, 
              past_sizes = None, changetime = None, split_dates = None, 
              migrfrom = None, migrto = None, verbose = False, seed = None):
+    """
+    Simulate a phylogeny with msprime
+    
+    Parameters
+    ----------
+    sample_size : TYPE
+        DESCRIPTION
+    com_size : TYPE
+        DESCRIPTION
+    mu : TYPE
+        DESCRIPTION
+    mrca = None : TYPE
+        DESCRIPTION
+    npop = 1 : TYPE
+        DESCRIPTION
+    m = 0 : TYPE
+        DESCRIPTION
+    init_rates = None : TYPE
+        DESCRIPTION
+    init_sizes = None : TYPE
+        DESCRIPTION
+    past_sizes = None : TYPE
+        DESCRIPTION
+    changetime = None : TYPE
+        DESCRIPTION
+    split_dates = None : TYPE
+        DESCRIPTION
+    migrfrom = None : TYPE
+        DESCRIPTION
+    migrto = None : TYPE
+        DESCRIPTION
+    verbose = False : TYPE
+        DESCRIPTION
+    seed = None
+    
+    tree : TYPE
+        DESCRIPTION.
+    mu : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    Examples
+    --------
+    >>> t = simulate(10, 1e5, 0.03, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-1
+       /-|
+      |  |   /-8
+      |   \-|
+    --|      \-0
+      |
+      |   /-7
+      |  |
+       \-|      /-5
+         |   /-|
+          \-|   \-3
+            |
+             \-6
+    """
 
     # TODO : doc !!!
     # TODO : idiotproof
@@ -244,13 +312,15 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
             massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, M)
 
     demography = popchange + massmigration
-
     if len(demography) == 0:
         demography = None
 
     # if verbose should print the demography debugger - only for debugging purposes!!! 
     if verbose:
-        dd = msprime.DemographyDebugger(Ne = com_size, demographic_events= demography, migration_matrix= migration, population_configurations= popconfig)
+        dd = msprime.DemographyDebugger(Ne = com_size, 
+                                        demographic_events= demography, 
+                                        migration_matrix= migration, 
+                                        population_configurations= popconfig)
         dd.print_history()
     
     if npop > 1:
@@ -269,7 +339,8 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     if verbose: print(tree.draw(format = 'unicode'))
     if mrca is not None:
         if tree.time(tree.root) > mrca : 
-            raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates fixed limit ({mrca})")
+            raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
+                             " fixed limit ({mrca})")
     #print(tree.draw(format="unicode"))
     node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
@@ -313,6 +384,8 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     params: list
         a list of nsim parameter values.
 
+    Examples
+    --------
     """
     # TODO : idiotproof
     # TODO : more examples
@@ -344,6 +417,8 @@ def getAbund(tree, samp_size):
     sfs : TYPE
         DESCRIPTION.
 
+    Examples
+    --------
     """
     # TODO : idiotproof
     # TODO : more examples
