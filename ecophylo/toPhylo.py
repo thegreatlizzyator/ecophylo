@@ -162,11 +162,11 @@ def ubranch_mutation(node, mu, seed = None):
     """
     # TODO : example ubranch_mutation
     # TODO : idiot proof ubranch_mutation
-    lambd = node.dist * mu
+    lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
     # set the seed
     np.random.seed(seed)
-    rb = np.random.poisson(lambd)
-    if rb >= 1:
+    rb = np.random.poisson(lambd) 
+    if rb >= 1: # parametrize the 1 by a value n
         return True
     else:
         return False
