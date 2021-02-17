@@ -221,8 +221,8 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     
     Parameters
     ----------
-    sample_size : TYPE
-        DESCRIPTION
+    sample_size : int
+        Sample size should not exceed community size
     com_size : TYPE
         DESCRIPTION
     mu : TYPE
@@ -247,14 +247,11 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
         DESCRIPTION
     migrto = None : TYPE
         DESCRIPTION
-    verbose = False : TYPE
+    verbose = False : bool
         DESCRIPTION
-    seed = None
-    
-    tree : TYPE
-        DESCRIPTION.
-    mu : TYPE
-        DESCRIPTION.
+    seed = None : int
+        An integer used to set the seed in all the random events in msprime
+        and in the mutation on the phylogeny.
 
     Returns
     -------
@@ -279,6 +276,14 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
             |
              \-6
     >>> simulate(1e5, 1e5, 0.03, seed = 42)
+    Traceback (most recent call last):
+      File "/usr/lib/python3.6/doctest.py", line 1330, in __run
+        compileflags, 1), test.globs)
+      File "<doctest ecophylo.dosimulate.simulate[2]>", line 1, in <module>
+        simulate(1e5, 1e5, 0.03, seed = 42)
+      File "/home/maxime/Bureau/BEE/ecophylo/ecophylo/dosimulate.py", line 289, in simulate
+        sys.exit("Sample size should not exceed community size")
+    SystemExit: Sample size should not exceed community size
     """
 
     # TODO : doc !!!

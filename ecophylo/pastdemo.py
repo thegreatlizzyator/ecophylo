@@ -44,12 +44,15 @@ def timeframes(I, T, a):
     
     >>> timeframes(I=3, T=2, a=0.3)
     [0.5653569842838218, 1.226602524471192, 2.0000000000000004]
+
     >>> timeframes(I=3, T=0, a=0.3)
-    "test"
+    [0.0, 0.0, 0.0]
+
     >>> timeframes(I=3, T=0.5, a=0.3)
-    "test"
+    [0.15896517723882417, 0.32551133275002, 0.4999999999999997]
+
     >>> timeframes(I=3, T=-0.7, a=0.3)
-    "test"
+    [-0.2518881782078394, -0.48474206011941934, -0.7]
     """
     # TODO : idiotproof the T value
     if not isinstance(I, int) or I <= 0 :
