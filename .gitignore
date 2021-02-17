@@ -4,3 +4,4 @@
 build/
 
 ecophylo/__pycache__/
+.Rprofile
