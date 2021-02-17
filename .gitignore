@@ -1,6 +1,6 @@
 .Rproj.user
 .Rhistory
 .RData
-^build$
+build/
 
 ecophylo/__pycache__/
