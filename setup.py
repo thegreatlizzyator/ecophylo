@@ -18,8 +18,8 @@ setuptools.setup(
     install_requires=["setuptools", "requests"],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: CeCILL FREE SOFTWARE LICENSE AGREEMENT",
-        "Operating System :: OS Independant",
+        "License :: CeCILL-B Free Software License Agreement (CECILL-B)",
+        "Operating System :: OS Independent",
     ],
     python_requires=">=3.6",
 )

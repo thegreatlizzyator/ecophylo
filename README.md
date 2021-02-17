@@ -53,6 +53,16 @@ You can experiment difficulties for installing msprime, check the help [here][ms
 
 [msprime]: https://msprime.readthedocs.io/en/stable/installation.html
 
+### Installation and usage on Windows PC
+
+```r
+install.packages('reticulate')
+# answer yes
+conda_install('r-reticulate', 'msprime')
+conda_install('r-reticulate', 'ete3')
+conda_install('r-reticulate', 'pandas')
+conda_install('r-reticulate', 'loguniform')
+```
 
 ## Running ##
 
