@@ -202,20 +202,14 @@ summary {
 <h2>Installation</h2>
 <p>To install this package, you can either download the tar.gz file in the dist directory of the repository :</p>
 <pre class="shell"><code>python3 -m pip install &lt;path_to&gt;/ecophylo-&lt;VERSION&gt;.tar.gz</code></pre>
-<!---
-TODO : put the package on Pypi
-or instal from the Python Package index (Pypi) :
-
-```shell
-python3 -m pip install ecophylo
-``` 
--->
+<p>or install from the Python Package index (Pypi) :</p>
+<pre class="shell"><code>python3 -m pip install ecophylo</code></pre>
 <p>or install from github (it does not work for private repository):</p>
 <pre class="shell"><code>python3 -m pip install git+https://github.com/thegreatlizzyator/ecophylo/tree/packaging/dist/ecophylo-0.0.5.tar.gz</code></pre>
 <!---
 TODO : check if better way to check on dependencies
 -->
-<p>To end the installation please check for the dependancies. In python you can check the dependencies like this :</p>
+<p>To end the installation please check for the dependencies. In python you can check the dependencies like this :</p>
 <pre class="python"><code># dependencies
 import msprime
 import numpy as np
@@ -225,6 +219,14 @@ import pandas as pd</code></pre>
 <p>You can install them by running (numpy is an example):</p>
 <pre class="shell"><code>python3 -m pip install numpy</code></pre>
 <p>You can experiment difficulties for installing msprime, check the help <a href="https://msprime.readthedocs.io/en/stable/installation.html">here</a></p>
+<div id="installation-and-usage-in-r-on-windows-aka-the-painfull-way" class="section level3">
+<h3>Installation and usage in R (on Windows aka the painfull way)</h3>
+<blockquote>
+<p>For François : First create a new project in rstudio with <em>version control</em> from the <a href="https://github.com/thegreatlizzyator/ecophylo">github</a>.</p>
+</blockquote>
+<p>You will need to install <code>{reticulate}</code> package and python dependencies.</p>
+<p><code>{r, eval=FALSE} # NOT RUN install.packages(&#39;reticulate&#39;) # answer yes library(reticulate) # python dependencies conda_install(&#39;r-reticulate&#39;, c(&#39;msprime&#39;,&#39;ete3&#39;,&#39;pandas&#39;))</code></p>
+</div>
 </div>
 <div id="running" class="section level2">
 <h2>Running</h2>
