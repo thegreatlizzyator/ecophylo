@@ -3,9 +3,15 @@ title: "Vignette ecophylo"
 author: "Team bouclé"
 date: "9 janvier 2021"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
+  
 ---
+
+<style>
+body {
+text-align: justify}
+</style>
 
 ```{r setup, include=FALSE}
 library(reticulate)
@@ -22,6 +28,7 @@ use_python(Sys.which("python3"))
 R chunks works just fine as usual.
 
 ```{r}
+py_config()
 a <- 42 # set a in R
 ```
 
@@ -57,7 +64,7 @@ to R.
 
 ### Using Python modules in R.
 
-```{r}
+```{r, eval=FALSE}
 # Be carefull for idiotproof of ecophylo and int class !
 eco <- import('ecophylo')
 eco$timeframes(I=as.integer(3), T=2, a=0.3)
@@ -73,7 +80,16 @@ pd$DataFrame(d)
 
 ## Introduction
 
+We introduce the Python package ecophylo dedicated to the coalescent-based simulation of neutral eco-evolutionary dynamics. Species assemblages and their shared ancestry can be simulated by jointly taking into account the influence of past demographic fluctuations and extinctions along with how divergent genotypes have introduced new species over time through speciation.
+
+The model rests on two main components: (i) a demographic component driving stochastic changes in population sizes, structure and extinctions due to habitat availability possibly linked migration events, (ii) a mutation and protracted speciation component representing how divergent genotypes emerge and define new species over time. 
+
+Here we show how to simulate communities and their phylogenetic relationships for a wide range of past demographic scenarios having affected whole assemblages of species. We also provide ways to produce many simulated datasets from prior distributions so as to allow Approximate Bayesian Computation (ABC) methods, to retrieve likely parameter values from the comparison of these simulations to observed diversity patterns. 
+
+
 ## Installation
+
+*explain that ecophylo is a python package, that the current vignette shows us here how to use in r blablbla*
 
 The packages can be installed from the public repository Pypi with the `pip` tool.
 
@@ -108,26 +124,61 @@ conda_install('r-reticulate', c('msprime','ete3','pandas'))
 ### CRAN
 
 -->
-## Single simulation
+## Simulating phylogenies 
+
+### Constant size model
+
+Our model rests on the fundamental hypothesis that fluctuations in the relative species abundances in a given habitat are driven by neutral drift dynamics, depending on the size of the assemblage (Hubbell, 2001). Thus, the dynamics of the assemblage they form can be represented by coalescence, i.e. by tracing the shared co-ancestry of extant individuals backwards in time until a single common ancestor is found (Kingman 1982).
+
+We start by simulating the shared co-ancestry of n sampled individuals observed at present time in each assemblage using a backward simulation of the coalescent tree. Variant individuals are then sprinkled over the simulated genealogy conditionally to its topology and branch lengths. 
+
+
+*EXPLAIN PROTRACTEDNESS - The probability that a mutation occurred on a specific branch of the genealogy, leading to a new variant individual, follows a Poisson distribution with parameter µ·B where µ is the point mutation rate and B is the length of the branch -- change to explain protracted parameters* 
+
+Let us first simulate a case in which there are no past fluctuations nor migration events linking populations. This implies assuming that Jm the metacommunity effective size has been at equilibrium from present backward, until all lineages coalesced into their Most Recent Common Ancestor (MRCA). 
+
 
 ```{r}
-# First we need to import the python module 
-eco <- import('ecophylo')
-# Be carefull for idiotproof of ecophylo and int class ! we need to 
-eco$timeframes(I=as.integer(3), T=2, a=0.3)
-sim1 <- eco$simulate(as.integer(10), as.integer(1e5), as.numeric(0.03), seed = as.integer(42))
-sim1
+ecophylo <- import('ecophylo')
+
+n <- as.integer(10) # the sample size
+Jm <- as.integer(1e5) # the size of the metacommunity (sensu Hubbell, 2001)
+mu <- as.numeric(0.03) # the point mutation rate
+
+tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42))
+abund <- ecophylo$getAbund(tree, n)
+
+#TODO : Find a way to compute PD, MPD, MNTD from 'tree' object directly in R 
 ```
+
 
 ```{python, eval=FALSE, include = FALSE} 
 # HIDDEN CHUNK
-# same code in python. Noneed to modify to int here
-import ecophylo as eco
-# NOT RUN
-eco.simulate(100, 1e4, 1e-3)
+# same code in python
+
+import ecophylo
+
+tree = ecophylo.simulate(10, 1e5, 0.03, seed = 42)
+print(tree)
 ```
 
-## Multiple simulations
+### Simulating past community-wide demographic fluctuations
+
+However, Jm can only be approximately considered as the harmonic mean of the per-generation Jm dynamics. Thus by allowing Jm  to vary at specific ages of the past we can relax this equilibrium assumption and account for the discordance of demographic histories between distinct metacommunities.
+
+
+
+
+
+
+### Simulating sub-populations inked by vicariance and migration events
+
+
+
+## Intensive simulations along priors
+
+
+
 
 ```{r, eval=FALSE}
 # NOT RUN
