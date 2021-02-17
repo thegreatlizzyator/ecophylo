@@ -61,6 +61,16 @@ Description: # EcoPhylo
         
         [msprime]: https://msprime.readthedocs.io/en/stable/installation.html
         
+        ### Installation and usage on Windows PC
+        
+        ```r
+        install.packages('reticulate')
+        # answer yes
+        conda_install('r-reticulate', 'msprime')
+        conda_install('r-reticulate', 'ete3')
+        conda_install('r-reticulate', 'pandas')
+        conda_install('r-reticulate', 'loguniform')
+        ```
         
         ## Running ##
         
@@ -78,7 +88,7 @@ Description: # EcoPhylo
         
 Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: CeCILL FREE SOFTWARE LICENSE AGREEMENT
-Classifier: Operating System :: OS Independant
+Classifier: License :: CeCILL-B Free Software License Agreement (CECILL-B)
+Classifier: Operating System :: OS Independent
 Requires-Python: >=3.6
 Description-Content-Type: text/markdown

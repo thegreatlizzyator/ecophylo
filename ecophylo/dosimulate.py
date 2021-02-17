@@ -20,7 +20,8 @@ import numpy as np
 import sys
 from ete3 import Tree
 import pandas as pd
-from loguniform import LogUniform
+#from loguniform import LogUniform
+from scipy.stats import loguniform
 
 from . import pastdemo
 from . import islmodel
@@ -277,6 +278,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
           \-|   \-3
             |
              \-6
+    >>> simulate(1e5, 1e5, 0.03, seed = 42)
     """
 
     # TODO : doc !!!
@@ -361,7 +363,7 @@ def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
             p = random.uniform(lower,upper)
 
     if distr == "log_unif":
-        p =   LogUniform(lower, upper).rvs()
+        p =   loguniform(lower, upper).rvs()
 
     return p 
 
