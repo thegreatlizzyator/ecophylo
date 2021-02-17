@@ -75,17 +75,32 @@ pd$DataFrame(d)
 
 ## Installation
 
-You need to download the *tar.gz* file from the repository and install it with pip. You need to use python3 and install the dependancies before.
+The packages can be installed from the public repository Pypi with the `pip` tool.
+
+You can also download the *tar.gz* file from the repository and install it with pip. You need to use python3 and install the dependencies before. Note that it is a development stage.
 
 **impossible at this moment as the repository is private**
-**impossible to install from popy because not pushed there at this time**
 
 ```{bash, eval=FALSE}
+python3 -m pip install ecophylo
 # NOT RUN
-wget -L https://github.com/thegreatlizzyator/ecophylo/blob/master/dist/ecophylo-0.0.5.tar.gz
-python3 -m pip install ecophylo-0.0.5.tar.gz
+# wget -L https://github.com/thegreatlizzyator/ecophylo/blob/master/dist/ecophylo-0.0.5.tar.gz
+# python3 -m pip install ecophylo-0.0.5.tar.gz
 ```
 
+### Installation on Windows (the painfull way)
+
+> For François : First create a new project in rstudio with **version control** from the [github](https://github.com/thegreatlizzyator/ecophylo). 
+
+You will need to install `{reticulate}` package and python dependencies.
+
+```{r, eval=FALSE}
+# NOT RUN
+install.packages('reticulate') # answer yes
+library(reticulate)
+# python dependencies
+conda_install('r-reticulate', c('msprime','ete3','pandas'))
+```
 
 <!--
 ### Repo github
@@ -100,7 +115,7 @@ python3 -m pip install ecophylo-0.0.5.tar.gz
 eco <- import('ecophylo')
 # Be carefull for idiotproof of ecophylo and int class ! we need to 
 eco$timeframes(I=as.integer(3), T=2, a=0.3)
-sim1 <- eco$simulate(as.integer(100), as.integer(1e4), as.integer(1e-3))
+sim1 <- eco$simulate(as.integer(10), as.integer(1e5), as.numeric(0.03), seed = as.integer(42))
 sim1
 ```
 
