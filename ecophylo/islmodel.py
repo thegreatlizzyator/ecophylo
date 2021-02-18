@@ -28,11 +28,14 @@ def population_configurations(samples, init_sizes, rates) :
 
     Parameters
     ----------
-    samples : list
+    samples : list of int
+        positive values
         The different population sample sizes
-    init_sizes : list
+    init_sizes : list of int
+        positive vlaues
         The initial population sizes
-    rates : list
+    rates : list of float
+        # TODO : test rates limites (real, -1:1 or -inf:inf)
         The initial population growth rates
 
     Returns
@@ -74,6 +77,7 @@ def migration_matrix(subpops, migr = 0):
     subpops: int
         Number of sub-populations. Should be at least 2.
     migr: float
+        # TODO : test between 0 and 1
         overall symetric migration rate. Default is 0. 
 
     Returns

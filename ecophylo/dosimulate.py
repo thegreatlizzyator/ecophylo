@@ -32,6 +32,26 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
              init_sizeprior=None, pastprior=None, changetime = None,
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
              verbose=False, savetrees= False, saveto = "", seed = None):
+  """
+  
+  nsim : int
+  comprior : list of int 
+    lenght = 2
+  muprior : list of float
+    length = 2
+  sstype : str
+  prior_distrib
+  withmigr : bool
+  inits_ratesprior : TYPE
+  nsplit : TYPE
+  massprior : TYPE
+  pastprior : TYPE
+  savetrees : TYPE
+  saveto : TYPE
+  
+  # TODO : find simulate parameters
+  # TODO : rename lim_mrca with mrca
+  """
 
     # TODO : doc !!!
     # TODO : idiotproof
@@ -222,31 +242,53 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     Parameters
     ----------
     sample_size : int
+      number of individual in the community
         Sample size should not exceed community size
-    com_size : TYPE
+    com_size : int
+        taille de la meta-communauté sensu hubbel 2001
+    mu : float
+        # TODO :DESCRIPTION.
+        0 : 1
+    mrca = None : int
+        number of generation
+        # TODO : test if it is not a float
         DESCRIPTION
-    mu : TYPE
+    npop = 1 : int
+        > 0
         DESCRIPTION
-    mrca = None : TYPE
+    m = 0 : float
         DESCRIPTION
-    npop = 1 : TYPE
+        # TODO : rename migr: float
+        # TODO : test between 0 and 1
+        overall symetric migration rate. Default is 0. 
+    init_rates = None : list of float$
+        list of length = npop
         DESCRIPTION
-    m = 0 : TYPE
+        # TODO : rename with ilsmodel rates : list of float
+        # TODO : test rates limites (real, -1:1 or -inf:inf)
+        The initial population growth rates
+    init_sizes = None : list of int
         DESCRIPTION
-    init_rates = None : TYPE
+        # TODO : same as in islmodels init_sizes : list of int
+        positive values
+        The initial population sizes
+    past_sizes = None : list of int
+        past size of populations
+        same length as npop
         DESCRIPTION
-    init_sizes = None : TYPE
-        DESCRIPTION
-    past_sizes = None : TYPE
-        DESCRIPTION
+        # TODO : rename sizes in pastdemos
     changetime = None : TYPE
+        # TODO :rename because same as epochs in pastdemos
         DESCRIPTION
-    split_dates = None : TYPE
+    split_dates = None : list of int
+        # TODO : check if it work with list length == 1
         DESCRIPTION
     migrfrom = None : TYPE
         DESCRIPTION
+        # TODO : rename accordingly to sources in islmodel
     migrto = None : TYPE
         DESCRIPTION
+        # TODO : rename accordingly to destinations in islmodel
     verbose = False : bool
         DESCRIPTION
     seed = None : int
@@ -357,6 +399,31 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
 
 def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
+    """
+    
+
+    Parameters
+    ----------
+    lower : int or float
+        the inferior and superior limits of the prior distribution.
+        length == 2
+    upper : int or float
+        number of replicates.
+    distr : str
+      distribution law choice are uniform and log_unif
+    typ : str
+      float or int, typ of lim elements.
+    seed : int
+        None by default, set the seed for mutation random events.
+
+    Returns
+    -------
+    params: 
+      # TODO : test what type is returned
+
+    Examples
+    --------
+    """
     random.seed(seed)
     if upper == lower :
         p = upper
@@ -379,12 +446,18 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
 
     Parameters
     ----------
-    lim: list
+    lim: list of int or float
         the inferior and superior limits of the prior distribution.
+        length == 2
     nsim: int
         number of replicates.
     distrib: str, optional
         the type of prior distribution. The default is "uniform".
+        choice are uniform, logunif
+    typ : str
+      float or int, typ of lim elements.
+    seed : int
+        None by default, set the seed for mutation random events.
 
     Returns
     -------
@@ -406,6 +479,7 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
             if typ == "float":
                 p = np.random.uniform(lim[0], lim[1], size = nsim)
         if distrib == "logunif":
+            # TODO : add case for int input
             p = np.exp(np.random.uniform(lim[0], lim[1], size = nsim))
     return p
 
@@ -416,8 +490,12 @@ def getAbund(tree, samp_size):
 
     Parameters
     ----------
-    tree : TYPE
-        DESCRIPTION.
+    tree : Tree Node (ete3 class)
+        # TODO : DESCRIPTION.
+        Is a phylogeny
+    samp_size : int
+      number of individual in the community
+      # TODO : rename sample_size
 
     Returns
     -------
@@ -442,6 +520,7 @@ def getAbund(tree, samp_size):
     # thin about catching error when phylogeny has only 1 sp
     if sum(sfs) != samp_size:
         raise Exception(f"Simulated phylogeny has only one species!")
+        # TODO : modify error with a better check
     return sfs
 
 if __name__ == "__main__":

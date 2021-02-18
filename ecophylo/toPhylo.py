@@ -17,18 +17,31 @@ import sys
 
 def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
-    
+    Merge branches of genealogy following speciation model of the user choice.
 
     Parameters
     ----------
-    tree : TYPE
-        DESCRIPTION.
-    mu : TYPE
-        DESCRIPTION.
+    tree : Tree Node (ete3 class)
+        # TODO : DESCRIPTION.
+        Is a genealogy
+    mu : float
+        # TODO :DESCRIPTION.
+        0 : 1
+    spmodel : string
+        # TODO :DESCRIPTION
+        choices SGD, NTD ; type of model of speciation wanted
+        NTD -> hubbel speciation (point mutation)
+        SGD -> manseau & al 2015 (with a tau != 1 is different model)
+    force_ultrametric : bool
+        True by default
+        # TODO : check if option is usefull
+    seed : int
+        None by default, set the seed for mutation random events.
 
     Returns
     -------
-    None.
+    Tree Node (ete3 class)
+    Is a species tree
 
     Examples
     --------
@@ -148,7 +161,11 @@ def ubranch_mutation(node, mu, seed = None):
     node : ete3.coretype.tree.TreeNode
         node from which to compute branch length
     mu : float
-        mutation rate
+        # TODO :DESCRIPTION.
+        0 : 1
+    seed : int
+        None by default, set the seed for mutation random events.
+    # TODO : add tau parameter for speciation
 
     Returns
     -------
@@ -170,6 +187,7 @@ def ubranch_mutation(node, mu, seed = None):
         return True
     else:
         return False
+    # TODO : aaahaaaaaahaahahahahah 
 
 if __name__ == "__main__":
         import doctest
