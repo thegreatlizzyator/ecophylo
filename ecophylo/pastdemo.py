@@ -101,7 +101,7 @@ def demographic_events(epochs, sizes):
     if not isinstance(sizes, list) :
         sys.exit('sizes must be a list')
     if len(epochs) != len(sizes) :
-        sys.exit('epcohs and sizes list must be of same length')
+        sys.exit('epochs and sizes list must be of same length')
 
     dc = [msprime.PopulationParametersChange(time=t, initial_size =s) for t, s in zip(epochs, sizes)]
     return dc
