@@ -49,8 +49,8 @@ TODO list :
 
 ### Sim phylogeny
 
-- [ ] Constant size model
-- [ ] Demo fluctuation
+- [x] Constant size model
+- [x] Demo fluctuation
 - [ ] Vicariance migration
 
 ### Intensive sim with priors
@@ -64,7 +64,9 @@ TODO list :
 
 ## Codebase packaging and doc
 
-- [ ] Deploy on Pypi
+- [x] Deploy on Pypi
+- [ ] Write common README.md for Pypi and github.
+- [ ] get erro test out in special test file
 
 ### dosimulate.py
 
@@ -95,9 +97,12 @@ TODO list :
 
 ### toPhylo.py
 
-- [ ] Doc
-- [x] Parameters type
-- [ ] Parameters doc
-- [x] Returns
-- [ ] Test/examples
+- [ ] toPhylo function (00000)
+
+- [x] ubranch_mutation function (11111)
 - [ ] protracted speciation
+
+
+Achievement in function is coded by 5 values 0 or 1 if the following tests are done : 
+
+Doc ; Parameters type ; Parameters doc ; Returns ; Test/examples
