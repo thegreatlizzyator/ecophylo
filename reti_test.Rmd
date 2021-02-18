@@ -142,36 +142,61 @@ Let us first simulate a case in which there are no past fluctuations nor migrati
 ecophylo <- import('ecophylo')
 
 n <- as.integer(10) # the sample size
-Jm <- as.integer(1e5) # the size of the metacommunity (sensu Hubbell, 2001)
+Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
 mu <- as.numeric(0.03) # the point mutation rate
 
-tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42))
+tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42), verbose = FALSE)
+
+```
+
+We can then compute summary statistics on the resulting phylogeny 
+
+```{r}
+library(ape)
+library(picante)
+library(vegan)
+
 abund <- ecophylo$getAbund(tree, n)
+phylo <- read.tree(text = tree$write())
 
-#TODO : Find a way to compute PD, MPD, MNTD from 'tree' object directly in R 
+# taxonomic diversity metrics:
+S <- specnumber(abund) # species richness
+H <- diversity(abund) # shannon's diversity
+simp <- diversity(abund, "simpson") # simpson's diversity
+
+# phylogenetic diversity metrics:
+PD <- pd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), phylo) # Faith's phylogenetic diversity
+MPD <- mpd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo)) # Mean pairwise distance
+MNTD <- mntd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo)) # Mean nearest taxon distance
+
 ```
 
-
-```{python, eval=FALSE, include = FALSE} 
-# HIDDEN CHUNK
-# same code in python
-
-import ecophylo
-
-tree = ecophylo.simulate(10, 1e5, 0.03, seed = 42)
-print(tree)
-```
 
 ### Simulating past community-wide demographic fluctuations
 
-However, Jm can only be approximately considered as the harmonic mean of the per-generation Jm dynamics. Thus by allowing Jm  to vary at specific ages of the past we can relax this equilibrium assumption and account for the discordance of demographic histories between distinct metacommunities.
+However, past environmental changes such as alternating periods of contraction and expansion of suitable environmental conditions, may have shaped the evolutionary and ecological diversity of extant organisms. Specifically, climatic fluctuations have made environmental conditions alternatively common or rare over time. For instance, taxa may have undergone restriction of their distribution to local refugia during habitat contraction, from which they could expand when suitable habitat became more common. Yet, in the constant size model, Jm can only be approximately considered as the harmonic mean of the per-generation Jm dynamics. Thus by allowing Jm  to vary at specific ages of the past we can relax this equilibrium assumption and account for the discordance of demographic histories between distinct meta-communities.
+
+
+Let us assume that the Jm has fluctuated in the past. 
+
+```{r}
+n <- as.integer(10) # the sample size
+Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
+mu <- as.numeric(0.03) # the point mutation rate
+
+pastsizes <- list(as.integer(1000))
+changetime <- list(as.integer(400))
+
+tree <- ecophylo$simulate(n, Jm, mu, 
+                          past_sizes = pastsizes, 
+                          changetime = changetime, 
+                          seed = as.integer(42), verbose = TRUE)
+```
 
 
 
 
-
-
-### Simulating sub-populations inked by vicariance and migration events
+### Simulating sub-populations linked by vicariance and migration events
 
 
 
