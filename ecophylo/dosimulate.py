@@ -32,30 +32,30 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
              init_sizeprior=None, pastprior=None, changetime = None,
              nsplit=None, massprior=None, migrfrom=None, migrto=None,
              verbose=False, savetrees= False, saveto = "", seed = None):
-  """
+    """
   
-  nsim : int
-  comprior : list of int 
-    lenght = 2
-  muprior : list of float
-    length = 2
-  sstype : str
-  prior_distrib
-  withmigr : bool
-  inits_ratesprior : TYPE
-  nsplit : TYPE
-  massprior : TYPE
-  pastprior : TYPE
-  savetrees : TYPE
-  saveto : TYPE
+    nsim : int
+    comprior : list of int 
+      lenght = 2
+    muprior : list of float
+      length = 2
+    sstype : str
+    prior_distrib
+    withmigr : bool
+    inits_ratesprior : TYPE
+    nsplit : TYPE
+    massprior : TYPE
+    pastprior : TYPE
+    savetrees : TYPE
+    saveto : TYPE
   
-  # TODO : find simulate parameters
-  # TODO : rename lim_mrca with mrca
-  """
+    # TODO : find simulate parameters
+    # TODO : rename lim_mrca with mrca
+    """
 
     # TODO : doc !!!
     # TODO : idiotproof
- # CHECKS HERE FOR IDIOT-PROOFING
+    # CHECKS HERE FOR IDIOT-PROOFING
     
     if prior_distrib not in ("uniform", "log_unif"):
         sys.exit("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
@@ -79,8 +79,8 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
    
     # community size (Ne)
     if comprior is not None:
-        df['comsize'] = ""
-        comments += (f'\n -community size in {comprior}')
+       df['comsize'] = ""
+       comments += (f'\n -community size in {comprior}')
     
     # past size(s)
     if pastprior is not None:

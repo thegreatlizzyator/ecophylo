@@ -21,7 +21,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
 
     Parameters
     ----------
-    tree : Tree Node (ete3 class)
+    tree : TreeNode (ete3 class)
         # TODO : DESCRIPTION.
         Is a genealogy
     mu : float
@@ -54,7 +54,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     nIndsORI = 0
     spID = 0
     
-    for node in tree.traverse("preorder"):
+    # mutation model on branches
+    for node in tree.traverse("preorder"): # traverse les noeuds
         try:
             node.sp
         except AttributeError:
@@ -79,6 +80,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                         leaf.add_features(sp=1)
             # print(f"node {innerNodeIndex} --> sp: {node.sp}")
 
+    # merging the branches with different models
     if spmodel == "NTB" :
         traversedNodes = set()
         for node in tree.traverse("postorder"):
@@ -174,20 +176,35 @@ def ubranch_mutation(node, mu, seed = None):
 
     Examples
     -------
-    >>> print("test")
-    "no"
+    >>> from ete3 import Tree
+    >>> tree = Tree()
+    >>> tree.populate(5)
+    >>> node = tree.get_tree_root()
+    
+    >>> ubranch_mutation(node = node, mu = 0, seed = 42)
+    False
+    
+    >>> ubranch_mutation(node = node, mu = 1, seed = 42)
+    False
+    
+    >>> ubranch_mutation(node = node, mu = 0.2, seed = 42)
+    False
+    
+    >>> ubranch_mutation(node = node, mu = -1, seed = 42)
+    sys.exit('mu must be a float between 0 and 1')
     """
+    
+    if mu < 0 or mu > 1 or not isinstance(mu, float):
+        sys.exit('mu must be a float between 0 and 1')
+    
     # TODO : example ubranch_mutation
     # TODO : idiot proof ubranch_mutation
     lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
     # set the seed
     np.random.seed(seed)
     rb = np.random.poisson(lambd) 
-    if rb >= 1: # parametrize the 1 by a value n
-        return True
-    else:
-        return False
-    # TODO : aaahaaaaaahaahahahahah 
+    return rb >= 1 # parametrize the 1 by a value n
+
 
 if __name__ == "__main__":
         import doctest

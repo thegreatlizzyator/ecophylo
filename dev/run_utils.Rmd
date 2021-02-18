@@ -1,0 +1,40 @@
+---
+title: "run_utils"
+author: "Maxime Jaunatre"
+date: "18/02/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+```
+
+Small bit of code to help debug. Objective is to regroup here all examples of the python code.
+
+# toPhylo.py
+
+Work with python tree.
+
+```{python}
+from ete3 import Tree
+tree = Tree()
+# We create a random tree topology
+tree.populate(5)
+print(tree)
+```
+
+
+init parameters of 
+
+```{python}
+
+node = tree.get_tree_root()
+
+mu = 0
+seed = 42
+
+lambd = node.dist * mu
+
+```
+
