@@ -344,7 +344,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     if past_sizes is not None and changetime is not None:
         if len(past_sizes) != len(changetime):
             sys.exit("There should be as many sizes as there are past epochs")
-        popchange = demographic_events(changetime, past_sizes)
+        popchange = pastdemo.demographic_events(changetime, past_sizes)
 
     # make island model
     if npop > 1:
