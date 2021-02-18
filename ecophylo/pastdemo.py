@@ -11,12 +11,14 @@ Functions :
     demographic_events
 
 """
-# TODO : more info in pastdemo
+# TODO : more info in pastdemo
 
 import msprime
 import numpy as np
 import sys
 
+
+# TODO : figure out what to do with timeframes function
 def timeframes(I, T, a):
     """
     Compute window frames.
@@ -74,9 +76,9 @@ def demographic_events(epochs, sizes):
 
     Parameters
     ----------
-    epochs: list
+    epochs: list of int
         When the demographic changes have occured.
-    sizes: list
+    sizes: list of int
         Population sizes at the different time periods.
 
     Returns
@@ -93,6 +95,7 @@ def demographic_events(epochs, sizes):
     >>> demographic_events([1,2], [42, 9000])
     [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}, {'type': 'population_parameters_change', 'time': 2, 'growth_rate': None, 'initial_size': 9000, 'population': -1}]
     """
+    # TODO : test if input is float
     if not isinstance(epochs, list) :
         sys.exit('epochs must be a list')
     if not isinstance(sizes, list) :
