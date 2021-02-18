@@ -84,7 +84,7 @@ We introduce the Python package ecophylo dedicated to the coalescent-based simul
 
 The model rests on two main components: (i) a demographic component driving stochastic changes in population sizes, structure and extinctions due to habitat availability possibly linked migration events, (ii) a mutation and protracted speciation component representing how divergent genotypes emerge and define new species over time. 
 
-Here we show how to simulate communities and their phylogenetic relationships for a wide range of past demographic scenarios having affected whole assemblages of species. We also provide ways to produce many simulated datasets from prior distributions so as to allow Approximate Bayesian Computation (ABC) methods, to retrieve likely parameter values from the comparison of these simulations to observed diversity patterns. 
+Here we show how to simulate communities and their phylogenetic relationships for a wide range of past demographic scenarios having affected whole assemblages of species. We also provide ways to produce many simulated datasets from prior distributions so as to allow Approximate Bayesian Computation (ABC) methods to retrieve likely parameter values from the comparison of these simulations to observed diversity patterns. 
 
 
 ## Installation
@@ -116,6 +116,7 @@ install.packages('reticulate') # answer yes
 library(reticulate)
 # python dependencies
 conda_install('r-reticulate', c('msprime','ete3','pandas'))
+py_install("ecophylo", envname = "r-reticulate", pip = TRUE)
 ```
 
 <!--
@@ -143,32 +144,45 @@ ecophylo <- import('ecophylo')
 
 n <- as.integer(10) # the sample size
 Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
-mu <- as.numeric(0.03) # the point mutation rate
+mu <- as.numeric(0.01) # the point mutation rate
 
-tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42), verbose = FALSE)
-
+tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42))
 ```
 
 We can then compute summary statistics on the resulting phylogeny 
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 library(ape)
 library(picante)
 library(vegan)
 
 abund <- ecophylo$getAbund(tree, n)
 phylo <- read.tree(text = tree$write())
+```
 
-# taxonomic diversity metrics:
-S <- specnumber(abund) # species richness
-H <- diversity(abund) # shannon's diversity
-simp <- diversity(abund, "simpson") # simpson's diversity
+- taxonomic diversity metrics:
+```{r, message=FALSE, warning=FALSE}
+# species richness
+specnumber(abund)
 
-# phylogenetic diversity metrics:
-PD <- pd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), phylo) # Faith's phylogenetic diversity
-MPD <- mpd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo)) # Mean pairwise distance
-MNTD <- mntd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo)) # Mean nearest taxon distance
+# shannon's diversity
+diversity(abund)
 
+# simpson's diversity
+diversity(abund, "simpson") 
+```
+
+- phylogenetic diveristy metrics:
+
+```{r}
+# Faith's phylogenetic diversity (PD)
+pd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), phylo)[[1]]
+
+# Mean pairwise distance (MPD)
+mpd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo))
+
+# Mean nearest taxon distance (MNTD)
+mntd(matrix(abund, nrow =1, dimnames = list("", phylo$tip.label)), cophenetic(phylo)) 
 ```
 
 
@@ -180,20 +194,58 @@ However, past environmental changes such as alternating periods of contraction a
 Let us assume that the Jm has fluctuated in the past. 
 
 ```{r}
-n <- as.integer(10) # the sample size
-Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
-mu <- as.numeric(0.03) # the point mutation rate
+pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
+changetime <- list(as.integer(100)) # the time (in generations) at which metacommunity size has changed
 
-pastsizes <- list(as.integer(1000))
-changetime <- list(as.integer(400))
-
-tree <- ecophylo$simulate(n, Jm, mu, 
+tree1 <- ecophylo$simulate(n, Jm, mu, 
                           past_sizes = pastsizes, 
                           changetime = changetime, 
-                          seed = as.integer(42), verbose = TRUE)
+                          seed = as.integer(42))
+
+abund1 <- ecophylo$getAbund(tree1, n)
+phylo1 <- read.tree(text = tree1$write())
 ```
 
+```{python eval=FALSE, include=FALSE}
 
+sample_size = 10
+com_size = 500
+mu = 0.03
+past_sizes = [10000]
+changetime = [400]
+
+tr = ecophylo.simulate(sample_size,com_size,mu,past_sizes=past_sizes, changetime=chagetime, verbose = False, seed= 42)
+
+print(tr)
+
+```
+
+We can compute the same set of statistics on the resulting phylogeny for which Jm has changed in the past an thus compare extant diversity patterns for different past demographic scenarios
+
+- taxonomic diversity metrics:
+```{r, message=FALSE, warning=FALSE}
+# species richness
+specnumber(abund1)
+
+# shannon's diversity
+diversity(abund1)
+
+# simpson's diversity
+diversity(abund1, "simpson") 
+```
+
+- phylogenetic diveristy metrics:
+
+```{r}
+# Faith's phylogenetic diversity (PD)
+pd(matrix(abund1, nrow =1, dimnames = list("", phylo1$tip.label)), phylo)[[1]]
+
+# Mean pairwise distance (MPD)
+mpd(matrix(abund1, nrow =1, dimnames = list("", phylo1$tip.label)), cophenetic(phylo1))
+
+# Mean nearest taxon distance (MNTD)
+mntd(matrix(abund1, nrow =1, dimnames = list("", phylo1$tip.label)), cophenetic(phylo1)) 
+```
 
 
 ### Simulating sub-populations linked by vicariance and migration events
