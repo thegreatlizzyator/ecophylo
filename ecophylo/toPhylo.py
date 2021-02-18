@@ -157,18 +157,17 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
 def ubranch_mutation(node, mu, seed = None):
     """
     Draw mutations following a poisson process.
+    # TODO : add tau parameter for speciation
 
     Parameters
     ----------
     node : ete3.coretype.tree.TreeNode
         node from which to compute branch length
     mu : float
-        # TODO :DESCRIPTION.
-        0 : 1
+        mutation rate, must be comprised between between 0 and 1.
     seed : int
         None by default, set the seed for mutation random events.
-    # TODO : add tau parameter for speciation
-
+        
     Returns
     -------
     bool
@@ -177,28 +176,36 @@ def ubranch_mutation(node, mu, seed = None):
     Examples
     -------
     >>> from ete3 import Tree
-    >>> tree = Tree()
-    >>> tree.populate(5)
-    >>> node = tree.get_tree_root()
+    >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
+    >>> node = tree.children[0] # first non-root node
     
     >>> ubranch_mutation(node = node, mu = 0, seed = 42)
     False
     
     >>> ubranch_mutation(node = node, mu = 1, seed = 42)
-    False
+    True
     
-    >>> ubranch_mutation(node = node, mu = 0.2, seed = 42)
-    False
+    >>> ubranch_mutation(node = node, mu = 0.5, seed = 42)
+    True
+    
+    >>> ubranch_mutation(node = 'bamboo', mu = -1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: node must have a classe TreeNode
     
     >>> ubranch_mutation(node = node, mu = -1, seed = 42)
-    sys.exit('mu must be a float between 0 and 1')
+    Traceback (most recent call last):
+      ...
+    SystemExit: mu must be a float between 0 and 1
     """
-    
-    if mu < 0 or mu > 1 or not isinstance(mu, float):
+    # Idiot proof
+    if node.__class__.__name__ != 'TreeNode' :
+        sys.exit('node must have a classe TreeNode')
+    if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
         sys.exit('mu must be a float between 0 and 1')
+    if not isinstance(seed, int):
+        sys.exit('seed must be an integer')
     
-    # TODO : example ubranch_mutation
-    # TODO : idiot proof ubranch_mutation
     lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
     # set the seed
     np.random.seed(seed)
