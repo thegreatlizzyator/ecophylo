@@ -17,39 +17,115 @@ import sys
 
 def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
-    Merge branches of genealogy following speciation model of the user choice.
+    Merge branches of genealogy following speciation model of the user choice 
+    after applying mutation to the tree.
 
     Parameters
     ----------
     tree : TreeNode (ete3 class)
-        # TODO : DESCRIPTION.
-        Is a genealogy
+        A tree with all the individuals.
     mu : float
-        # TODO :DESCRIPTION.
-        0 : 1
-    spmodel : string
+        mutation rate, must be comprised between between 0 and 1.
+    spmodel = "SGD" : string
         # TODO :DESCRIPTION
         choices SGD, NTD ; type of model of speciation wanted
         NTD -> hubbel speciation (point mutation)
         SGD -> manseau & al 2015 (with a tau != 1 is different model)
-    force_ultrametric : bool
-        True by default
-        # TODO : check if option is usefull
-    seed : int
+    force_ultrametric = True : bool
+        msprime tree are not ultrametric by default so here is the correction.
+    seed = None : int
         None by default, set the seed for mutation random events.
 
     Returns
     -------
     Tree Node (ete3 class)
-    Is a species tree
+      Individuals are merged based on the mutation present to represent species.
+      A species population size can be assessed by the getAbund function.
 
     Examples
     --------
-    >>> print("test")
-    "no"
+    >>> from ete3 import Tree
+    >>> tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+    >>> print(tree)
+    <BLANKLINE>
+             /-A
+          /-|
+         |  |   /-B
+         |   \-|
+       /-|      \-C
+      |  |
+      |  |   /-D
+    --|   \-|
+      |      \-E
+      |
+      |   /-F
+       \-|
+          \-G
+    >>> phylo = toPhylo(tree, 0.5, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+          /-A
+       /-|
+    --|   \-D
+      |
+       \-F
+    >>> import ecophylo as eco
+    >>> eco.getAbund(phylo, 7)
+    [3, 2, 2]
+    
+    >>> toPhylo(tree = 'bamboo', mu = 0.5, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: tree must have a class TreeNode
+    
+    >>> toPhylo(tree = tree, mu = -1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: mu must be a float between 0 and 1
+    
+    >>> toPhylo(tree = tree, mu = 0.5, spmodel = 'creationism', seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
+    
+    >>> toPhylo(tree = tree, mu = 0.5, force_ultrametric = 'ça fait plaisir', seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: force_ultrametric must be a boolean
+    
+    >>> tree_er = Tree('((A:4,(B:4,C:3)1:4)1:5, Err:1, (D:1,E:1)1:1);')
+    >>> print(tree_er)
+    <BLANKLINE>
+          /-A
+       /-|
+      |  |   /-B
+      |   \-|
+      |      \-C
+    --|
+      |--Err
+      |
+      |   /-D
+       \-|
+          \-E
+    >>> eco.toPhylo(tree_er, 0.5, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: The algorithm does not know how to deal with non dichotomic trees!
     """
-    # TODO : example toPhylo
-    # TODO : idiot proof toPhylo
+    # Idiot proof
+    if tree.__class__.__name__ != 'TreeNode' :
+        sys.exit('tree must have a class TreeNode')
+    if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
+        sys.exit('mu must be a float between 0 and 1')
+    if not spmodel in ['SGD', 'NTD']:
+        sys.exit(spmodel+' is not a correct model. '+
+                'spmodel must be either "SGD" or "NTD" string')
+    if not isinstance(force_ultrametric, bool):
+        sys.exit('force_ultrametric must be a boolean')
+    if not isinstance(seed, int):
+        sys.exit('seed must be an integer')
+
+    # init some parameters
     innerNodeIndex = 0
     nIndsORI = 0
     spID = 0
@@ -144,7 +220,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                             # actualize "mergedInd" feature of new leaf
                             newLeaf[0].mergedInd = mergedLeaves
     
-    if force_ultrametric:
+    if force_ultrametric: # TODO : add is.ultramtric from ete3
         tree_dist = tree.get_farthest_leaf()[1]
         for leaf in tree.iter_leaves():
             dst = tree.get_distance(leaf)
@@ -158,6 +234,7 @@ def ubranch_mutation(node, mu, seed = None):
     """
     Draw mutations following a poisson process.
     # TODO : add tau parameter for speciation
+    # TODO : 
 
     Parameters
     ----------
@@ -191,7 +268,7 @@ def ubranch_mutation(node, mu, seed = None):
     >>> ubranch_mutation(node = 'bamboo', mu = -1, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: node must have a classe TreeNode
+    SystemExit: node must have a class TreeNode
     
     >>> ubranch_mutation(node = node, mu = -1, seed = 42)
     Traceback (most recent call last):
@@ -200,7 +277,7 @@ def ubranch_mutation(node, mu, seed = None):
     """
     # Idiot proof
     if node.__class__.__name__ != 'TreeNode' :
-        sys.exit('node must have a classe TreeNode')
+        sys.exit('node must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
         sys.exit('mu must be a float between 0 and 1')
     if not isinstance(seed, int):

@@ -60,6 +60,9 @@ def population_configurations(samples, init_sizes, rates) :
         sys.exit('rates must be a list')
     if not len(samples) == len(init_sizes) == len(rates) :
         sys.exit('all parameters must be list of same lengths')
+        
+    # if not all(isinstance(x, int) for x in past_sizes) :
+    #     sys.exit('past_sizes must be a list of int')
 
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
@@ -100,7 +103,7 @@ def migration_matrix(subpops, migr = 0):
     
     if not isinstance(migr, (int,float)) :
         sys.exit('migr must be a float')
-    # TODO : migr can be negative ? sup to 1 ?
+    # TODO : migr can be negative ? sup to 1 ?
 
     m = migr / (2 * (subpops - 1))
 

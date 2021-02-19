@@ -4,7 +4,7 @@ ecophylo/__init__.py
 ecophylo/dosimulate.py
 ecophylo/islmodel.py
 ecophylo/pastdemo.py
-ecophylo/toPhylo.py
+ecophylo/phylogen.py
 ecophylo.egg-info/PKG-INFO
 ecophylo.egg-info/SOURCES.txt
 ecophylo.egg-info/dependency_links.txt
