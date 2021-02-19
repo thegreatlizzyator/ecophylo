@@ -25,7 +25,7 @@ from scipy.stats import loguniform
 
 from . import pastdemo
 from . import islmodel
-from . import toPhylo
+from . import phylogen
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
              prior_distrib = "uniform", npop=1, withmigr=False, init_ratesprior=None,
@@ -51,6 +51,11 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
   
     # TODO : find simulate parameters
     # TODO : rename lim_mrca with mrca
+    
+    Examples
+    --------
+    >>> print('test')
+    no
     """
 
     # TODO : doc !!!
@@ -247,8 +252,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     com_size : int
         taille de la meta-communauté sensu hubbel 2001
     mu : float
-        # TODO :DESCRIPTION.
-        0 : 1
+        mutation rate, must be comprised between between 0 and 1.
     mrca = None : int
         number of generation
         # TODO : test if it is not a float
@@ -273,13 +277,11 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
         positive values
         The initial population sizes
     past_sizes = None : list of int
-        past size of populations
-        same length as npop
-        DESCRIPTION
-        # TODO : rename sizes in pastdemos
-    changetime = None : TYPE
-        # TODO :rename because same as epochs in pastdemos
-        DESCRIPTION
+        Population past_sizes at the different time periods. Must be > 0.
+        Must be of same length as npop and same length as changetime.
+    changetime = None : list of int
+        When the demographic changes have occured. Must be >= 0.
+        Must be of same length as past_sizes
     split_dates = None : list of int
         # TODO : check if it work with list length == 1
         DESCRIPTION
@@ -326,6 +328,8 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
       File "/home/maxime/Bureau/BEE/ecophylo/ecophylo/dosimulate.py", line 289, in simulate
         sys.exit("Sample size should not exceed community size")
     SystemExit: Sample size should not exceed community size
+    >>> print('test')
+    no
     """
 
     # TODO : doc !!!
@@ -393,7 +397,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     #print(tree.draw(format="unicode"))
     node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = toPhylo.toPhylo(tree, mu, seed = seed)
+    phylo = phylogen.toPhylo(tree, mu, seed = seed)
 
     return phylo   
 
@@ -423,6 +427,8 @@ def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
 
     Examples
     --------
+    >>> print('test')
+    no
     """
     random.seed(seed)
     if upper == lower :
@@ -466,6 +472,8 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
 
     Examples
     --------
+    >>> print('test')
+    no
     """
     # TODO : idiotproof
     # TODO : more examples
@@ -496,6 +504,7 @@ def getAbund(tree, samp_size):
     samp_size : int
       number of individual in the community
       # TODO : rename sample_size
+      # TODO : set this check as optionnal
 
     Returns
     -------
@@ -504,6 +513,8 @@ def getAbund(tree, samp_size):
 
     Examples
     --------
+    >>> print('test')
+    no
     """
     # TODO : idiotproof
     # TODO : more examples
