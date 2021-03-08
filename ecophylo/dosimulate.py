@@ -354,8 +354,12 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     if npop > 1:
         if init_sizes is None or init_rates is None:
             sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
+        
+        # subpops =  npop
+        
         migration = islmodel.migration_matrix(npop, m)
         samples = np.ones(npop, dtype=int)*sample_size
+        # TODO : allow differential sampling in pop (provide sample list same length as npop)
         popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
 
         # possible mass migration between populations
@@ -369,7 +373,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
         demography = None
 
     # if verbose should print the demography debugger - only for debugging purposes!!! 
-    if verbose:
+    if verbose: 
         dd = msprime.DemographyDebugger(Ne = com_size, 
                                         demographic_events= demography, 
                                         migration_matrix= migration, 
