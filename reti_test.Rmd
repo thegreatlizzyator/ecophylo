@@ -207,6 +207,7 @@ phylo1 <- read.tree(text = tree1$write())
 ```
 
 ```{python eval=FALSE, include=FALSE}
+import ecophylo 
 
 sample_size = 10
 com_size = 500
@@ -214,7 +215,7 @@ mu = 0.03
 past_sizes = [10000]
 changetime = [400]
 
-tr = ecophylo.simulate(sample_size,com_size,mu,past_sizes=past_sizes, changetime=chagetime, verbose = False, seed= 42)
+tr = ecophylo.simulate(sample_size,com_size,mu,past_sizes=past_sizes, changetime=changetime, verbose = False, seed= 42)
 
 print(tr)
 
@@ -250,7 +251,29 @@ mntd(matrix(abund1, nrow =1, dimnames = list("", phylo1$tip.label)), cophenetic(
 
 ### Simulating sub-populations linked by vicariance and migration events
 
+```{r}
+split_dates <- list(as.integer(100))
 
+npop <- as.integer(2)
+migrfrom <- as.integer(1.00)
+migrto <- as.integer(2.00)
+init_sizes <- list(rep(as.integer(500),2))
+init_rates <- list(rep(as.integer(1),2))
+m <- as.integer(0)
+
+tree2 <- ecophylo$simulate(n, Jm, mu, 
+                           split_dates,
+                           npop,
+                           init_rates,
+                           init_sizes,
+                           migrfrom,
+                           migrto,
+                           m,
+                          seed = as.integer(42))
+
+abund12 <- ecophylo$getAbund(tree2, n)
+phylo2 <- read.tree(text = tree2$write())
+```
 
 ## Intensive simulations along priors
 

@@ -357,8 +357,11 @@ past = [2, 4, 2, 5]
 
 time = [10, 10, 10, 10]
 
+tb = 0
+sb = init
+gr = []
 for i in range(len(past)):
-  
+  gr.append
   print(i)
 tb = 0
 tn = time[i]
@@ -366,7 +369,5 @@ sb = init
 sn = past[i]
 
 math.log(sn/sb)/(tn - tb)
-
-
 
 ```
