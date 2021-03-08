@@ -68,8 +68,8 @@ def population_configurations(samples, init_sizes, rates) :
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
 
-def sizes2rates(init_size, past_sisez, times):
-     """
+def sizes2rates(init_size, past_sizes, times):
+    """
     Compute the growth rates corresponding to a set of past sizes at different 
     times for a single population with a given initial size
 
@@ -93,10 +93,18 @@ def sizes2rates(init_size, past_sisez, times):
     
     Examples
     -------
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 30, 40])
+    [0.0, 0.06931471805599453, -0.06931471805599453, 0.0916290731874155]
     >>> print("test")
     "no"
     """
-    rates = [math.log(nt/init_size) / t for nt,t in zip(past_sizes,times)]
+    stime = 0
+    sprev = init_size
+    rates = []
+    for i in range(len(past_sizes)):
+        rates.append(math.log(past_sizes[i]/sprev)/(times[i] - stime))
+        sprev = past_sizes[i]
+        stime = times[i]
     return rates
 
 

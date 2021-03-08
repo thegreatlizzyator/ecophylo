@@ -47,11 +47,7 @@ seed = 42
 
 lambd = node.dist * mu
 
-```
-
-
-
-@>>> print(tree)
+print(tree)
 
       /-1
    /-|
@@ -72,11 +68,11 @@ lambd = node.dist * mu
            |   /-3
             \-|
                \-4
-@>>> tree.write()
+tree.write()
 '((1:65314.4,(8:15354.3,(0:2085.64,2:2085.64)1:13268.6)1:49960.1)1:361157,(7:69185.4,((6:9732.48,9:9732.48)1:14540.2,(5:16152.1,(3:3211.46,4:3211.46)1:12940.7)1:8120.56)1:44912.7)1:357286);'
-@>>> import ecophylo as eco
-@>>> phylo = eco.toPhylo(tree, 0.03, seed = 42)
-@>>> print(phylo)
+import ecophylo as eco
+phylo = eco.toPhylo(tree, 0.03, seed = 42)
+print(phylo)
 
       /-1
    /-|
@@ -91,9 +87,9 @@ lambd = node.dist * mu
       \-|   \-3
         |
          \-6
-@>>> phylo.write()
+phylo.write()
 '((1:65314.4,(8:15354.3,0:15354.3)1:49960.1)1:361157,(7:69185.4,((5:16152.1,3:16152.1)1:8120.56,6:24272.7)1:44912.7)1:357286);'
-@>>> 
+```
 
 ```{python}
 import ecophylo as eco
@@ -355,19 +351,17 @@ print(tree.draw(format = 'unicode'))
 init = 2
 past = [2, 4, 2, 5]
 
-time = [10, 10, 10, 10]
+time = [10, 20, 30, 40]
 
 tb = 0
 sb = init
 gr = []
-for i in range(len(past)):
-  gr.append
-  print(i)
-tb = 0
-tn = time[i]
-sb = init
-sn = past[i]
 
-math.log(sn/sb)/(tn - tb)
+for i in range(len(past)):
+  gr.append(math.log(past[i]/sb)/(time[i] - tb))
+  sb = past[i]
+  tb = time[i]
+print(gr)
+
 
 ```
