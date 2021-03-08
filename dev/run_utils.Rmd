@@ -138,3 +138,235 @@ print(eco.toPhylo(mano, 0.5, seed = 42))
 # print(t)
 ```
 
+
+```{python}
+# work on population configuration objects
+sample_size = 10
+com_size = 500
+npop = 2
+m = 0
+init_rates = None
+init_sizes = None
+past_sizes = None
+changetime = None
+split_dates = None
+migrfrom = None
+migrto = None
+verbose = False
+seed = 42
+
+# init variables
+popchange = []
+massmigration = []
+popconfig = None
+migration = None
+
+# make past demographic changes between different time frames
+if past_sizes is not None and changetime is not None:
+  if len(past_sizes) != len(changetime):
+    sys.exit("There should be as many sizes as there are past epochs")
+    popchange = pastdemo.demographic_events(changetime, past_sizes)
+    
+# make island model
+if npop > 1:
+  if init_sizes is None or init_rates is None:
+    sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
+    migration = islmodel.migration_matrix(npop, m)
+    samples = np.ones(npop, dtype=int)*sample_size
+    popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
+    
+  # possible mass migration between populations
+  if split_dates is not None:
+    # implement option later for limited mass dispersal
+    M = 1
+    massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, M)
+          
+  demography = popchange + massmigration
+  if len(demography) == 0:
+    demography = None
+            
+  # if verbose should print the demography debugger - only for debugging purposes!!! 
+  if verbose: 
+    dd = msprime.DemographyDebugger(Ne = com_size, 
+    demographic_events= demography, 
+    migration_matrix= migration, 
+    population_configurations= popconfig)
+    dd.print_history()
+    
+  if npop > 1:
+    treeseq = msprime.simulate(Ne = com_size,
+    random_seed= seed,
+    population_configurations = popconfig, # ici joue le même role que sample_size
+    migration_matrix = migration,
+    demographic_events = demography)
+  else: 
+    treeseq = msprime.simulate(sample_size= sample_size,# same as population config
+    Ne = com_size,
+    random_seed= seed,
+    demographic_events = demography)
+    
+```
+
+
+```{python, out of africa}
+import math
+import msprime
+
+# First we set out the maximum likelihood values of the various parameters
+# given in Table 1.
+N_A = 7300
+N_B = 2100
+N_AF = 12300
+N_EU0 = 1000
+N_AS0 = 510
+# Times are provided in years, so we convert into generations.
+generation_time = 25
+T_AF = 220e3 / generation_time
+T_B = 140e3 / generation_time
+T_EU_AS = 21.2e3 / generation_time
+# We need to work out the starting (diploid) population sizes based on
+# the growth rates provided for these two populations
+r_EU = 0.004
+r_AS = 0.0055
+N_EU = N_EU0 / math.exp(-r_EU * T_EU_AS)
+N_AS = N_AS0 / math.exp(-r_AS * T_EU_AS)
+# Migration rates during the various epochs.
+m_AF_B = 25e-5
+m_AF_EU = 3e-5
+m_AF_AS = 1.9e-5
+m_EU_AS = 9.6e-5
+# Population IDs correspond to their indexes in the population
+# configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
+# initially.
+population_configurations = [
+  msprime.PopulationConfiguration(
+    sample_size=0, initial_size=N_AF),
+  msprime.PopulationConfiguration(
+    sample_size=1, initial_size=N_EU, growth_rate=r_EU),
+  msprime.PopulationConfiguration(
+    sample_size=1, initial_size=N_AS, growth_rate=r_AS)
+]
+migration_matrix = [
+  [      0, m_AF_EU, m_AF_AS],
+  [m_AF_EU,       0, m_EU_AS],
+  [m_AF_AS, m_EU_AS,       0],
+]
+demographic_events = [
+  # CEU and CHB merge into B with rate changes at T_EU_AS
+  msprime.MassMigration(
+    time=T_EU_AS, source=2, destination=1, proportion=1.0),
+  msprime.MigrationRateChange(time=T_EU_AS, rate=0),
+  msprime.MigrationRateChange(
+    time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
+  msprime.MigrationRateChange(
+    time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
+  msprime.PopulationParametersChange(
+    time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
+  # Population B merges into YRI at T_B
+  msprime.MassMigration(
+    time=T_B, source=1, destination=0, proportion=1.0),
+  msprime.MigrationRateChange(time=T_B, rate=0),
+  # Size changes to N_A at T_AF
+  msprime.PopulationParametersChange(
+    time=T_AF, initial_size=N_A, population_id=0)
+]
+dd = msprime.DemographyDebugger(
+  population_configurations=population_configurations,
+  migration_matrix=migration_matrix,
+  demographic_events=demographic_events)
+dd.print_history()
+```
+
+
+
+```{python, out of africa}
+import math
+import msprime
+
+
+# initial pop size
+pop1 = 500
+pop2 = 420
+gr1 = 0.05
+gr2 = 0
+
+samp1 = 5
+samp2 = 4
+
+population_configurations = [
+  msprime.PopulationConfiguration(
+    sample_size = 2,
+    initial_size=pop1),
+    
+  msprime.PopulationConfiguration(
+    sample_size = 2,
+    initial_size=pop2, 
+    growth_rate=gr2)
+]
+
+migration_matrix = [
+  [ 0, 0],
+  [ 0, 0]
+]
+
+demographic_events = [
+  msprime.PopulationParametersChange(
+    time= 20, initial_size=800, population_id=0)
+]
+
+dd = msprime.DemographyDebugger(
+  population_configurations=population_configurations,
+  migration_matrix=migration_matrix,
+  demographic_events=demographic_events)
+dd.print_history()
+
+# S_{t-1} = S_{t0} * exp(-0.05 * Dt)
+# = 9.643749e-20
+
+
+treeseq = msprime.simulate(
+  random_seed= 42,
+  population_configurations = population_configurations,
+  migration_matrix = migration_matrix,
+  demographic_events = demography)
+  
+tree = treeseq.first()
+print(tree.draw(format = 'unicode'))
+# demographic_events = [
+#   # CEU and CHB merge into B with rate changes at T_EU_AS
+#   msprime.MassMigration(
+#     time=T_EU_AS, source=2, destination=1, proportion=1.0),
+#   msprime.MigrationRateChange(time=T_EU_AS, rate=0),
+#   msprime.MigrationRateChange(
+#     time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
+#   msprime.MigrationRateChange(
+#     time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
+#   msprime.PopulationParametersChange(
+#     time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
+#   # Population B merges into YRI at T_B
+#   msprime.MassMigration(
+#     time=T_B, source=1, destination=0, proportion=1.0),
+#   msprime.MigrationRateChange(time=T_B, rate=0),
+#   # Size changes to N_A at T_AF
+#   msprime.PopulationParametersChange(
+#     time=T_AF, initial_size=N_A, population_id=0)
+# ]
+
+init = 2
+past = [2, 4, 2, 5]
+
+time = [10, 10, 10, 10]
+
+for i in range(len(past)):
+  
+  print(i)
+tb = 0
+tn = time[i]
+sb = init
+sn = past[i]
+
+math.log(sn/sb)/(tn - tb)
+
+
+
+```

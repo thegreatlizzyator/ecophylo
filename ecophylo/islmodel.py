@@ -20,6 +20,7 @@ Functions :
 import msprime
 import numpy as np
 import sys
+import math
 
 
 def population_configurations(samples, init_sizes, rates) :
@@ -68,7 +69,7 @@ def population_configurations(samples, init_sizes, rates) :
     return pc
 
 
-def migration_matrix(subpops, migr = 0):
+def migration_matrix(npop, m = 0):
     """
     Set up the migration matrix between sub-populations.
     
@@ -77,11 +78,11 @@ def migration_matrix(subpops, migr = 0):
     
     Parameters
     ----------
-    subpops: int
+    npop: int
         Number of sub-populations. Should be at least 2.
-    migr: float
-        # TODO : test between 0 and 1
-        overall symetric migration rate. Default is 0. 
+    m: float
+        overall symetric migration rate. Default is 0, maximum is 1.
+        Is the percentage of the population to be immigrants.
 
     Returns
     -------
@@ -90,25 +91,32 @@ def migration_matrix(subpops, migr = 0):
     
     Examples
     --------
-    >>> migration_matrix(subpops=2, migr=0.5)
+    >>> migration_matrix(npop=2, m=0.5)
     array([[0.  , 0.25],
            [0.25, 0.  ]])
-    >>> migration_matrix(subpops=2)
+    >>> migration_matrix(npop=2)
     array([[0., 0.],
            [0., 0.]])
+    >>> migration_matrix(npop=1)
+    Traceback (most recent call last):
+      ...
+    SystemExit: npop must be an integer, with a minimum value of 2
+    >>> migration_matrix(npop=3, m=1.2)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migr must be a float between 0 and 1 (both included
     """
     
-    if not isinstance(subpops, int) or subpops < 2 :
-        sys.exit('subpops must be an integer, with a minimum value of 2')
+    if not isinstance(npop, int) or npop < 2 :
+        sys.exit('npop must be an integer, with a minimum value of 2')
     
-    if not isinstance(migr, (int,float)) :
-        sys.exit('migr must be a float')
-    # TODO : migr can be negative ? sup to 1 ?
-
-    m = migr / (2 * (subpops - 1))
+    if not isinstance(m, (int,float)) or m < 0 or m > 1 :
+        sys.exit('migr must be a float between 0 and 1 (both included')
+        
+    m = m / (2 * (npop - 1))
 
     # symmetric island model (later - implement other types of models)
-    migration_matrix = np.ones((subpops,subpops))*m
+    migration_matrix = np.ones((npop,npop))*m
     np.fill_diagonal(migration_matrix, 0)
 
     return migration_matrix
