@@ -68,7 +68,7 @@ def population_configurations(samples, init_sizes, rates) :
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
 
-def sizes2rates(init_size, past_sizes, times):
+def sizes2rates(init_size, past_sizes, changetime):
     """
     Compute the growth rates corresponding to a set of past sizes at different 
     times for a single population with a given initial size
@@ -78,11 +78,11 @@ def sizes2rates(init_size, past_sizes, times):
     init_size : int
         positive value
         the initial size of the population
-    past_sizes: list of int
+    past_sizes : list of int
         positive values
         the sizes of the population in the past
         # TODO : should have the same length as time 
-    times : list of int
+    changetime : list of int
         times at which the population size changes
         # TODO : should have the same length as t past_sizes
 
@@ -95,16 +95,67 @@ def sizes2rates(init_size, past_sizes, times):
     -------
     >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 30, 40])
     [0.0, 0.06931471805599453, -0.06931471805599453, 0.0916290731874155]
-    >>> print("test")
-    "no"
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime and past_sizes list must be of same length
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 20, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: Duplicated times in changetime are not possible
+    
+    >>> sizes2rates(2, [2, 4, 2, '5'], [10, 20, 30, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_sizes must be a list of int
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, '30', 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime must be a list of int
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, -30, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime must be strict positive values
+    >>> sizes2rates(2, [2, 4, 2, -5], [10, 20, 30, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_sizes must be strict positive values
+    
+    >>> sizes2rates(0, [2, 4, 2, 5], [10, 20, 30, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: init_size must be a single strict positive value
+    >>> sizes2rates(-5, [2, 4, 2, 5], [10, 20, 30, 40])
+    Traceback (most recent call last):
+      ...
+    SystemExit: init_size must be a single strict positive value
     """
+    
+    # Idiot proof
+    if len(changetime) != len(past_sizes) :
+        sys.exit('changetime and past_sizes list must be of same length')
+    if len(set(changetime)) != len(changetime) :
+        sys.exit('Duplicated times in changetime are not possible')
+    
+    if not all(isinstance(x, int) for x in past_sizes) :
+        sys.exit('past_sizes must be a list of int')
+    if not all(isinstance(x, int) for x in changetime) :
+        sys.exit('changetime must be a list of int')
+    if not all((x > 0) for x in changetime) :
+        sys.exit('changetime must be strict positive values')
+    if not all((x > 0) for x in past_sizes) :
+        sys.exit('past_sizes must be strict positive values')
+        
+    if not isinstance(init_size, int) or init_size <= 0 :
+        sys.exit('init_size must be a single strict positive value')
+    
     stime = 0
     sprev = init_size
     rates = []
     for i in range(len(past_sizes)):
-        rates.append(math.log(past_sizes[i]/sprev)/(times[i] - stime))
+        rates.append(math.log(past_sizes[i]/sprev)/(changetime[i] - stime))
         sprev = past_sizes[i]
-        stime = times[i]
+        stime = changetime[i]
     return rates
 
 
