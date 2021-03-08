@@ -49,9 +49,10 @@ TODO list :
 
 ### Sim phylogeny
 
-- [ ] Constant size model
-- [ ] Demo fluctuation
+- [x] Constant size model
+- [x] Demo fluctuation
 - [ ] Vicariance migration
+- [ ] make a example for timeframes usage
 
 ### Intensive sim with priors
 
@@ -64,7 +65,9 @@ TODO list :
 
 ## Codebase packaging and doc
 
-- [ ] Deploy on Pypi
+- [x] Deploy on Pypi
+- [ ] Write common README.md for Pypi and github.
+- [ ] get error test out in special test file
 
 ### dosimulate.py
 
@@ -77,27 +80,27 @@ TODO list :
 
 ### islmodel.py
 
-- [ ] Doc
-- [x] Parameters type
-- [ ] Parameters doc (limits)
-- [x] Returns
-- [ ] Test/examples
+- [ ] population_configuration (11010)
+- [ ] migration_matrix (11010)
+- [ ] mass_migration (10010)
 
 ### pastdemo.py
 
-- [x] Doc
-- [x] Parameters type
-- [x] Parameters doc
-- [x] Returns
-- [ ] Test/examples
-
-- [ ] refacto of timeframes
+- [x] timeframes (11111)
+- [x] demographic_events (11111)
+- [ ] check the case where T = 0.
+- [ ] check the case where size are 0 at one time.
 
 ### toPhylo.py
 
-- [ ] Doc
-- [x] Parameters type
-- [ ] Parameters doc
-- [x] Returns
-- [ ] Test/examples
+- [x] toPhylo function (11111)
+- [ ] Explain models in more detail
+- [ ] give the options to simulate
+
+- [x] ubranch_mutation function (11111)
 - [ ] protracted speciation
+
+
+Achievement in function is coded by 5 values 0 or 1 if the following tests are done : 
+
+Doc ; Parameters type ; Parameters doc ; Returns ; Test/examples

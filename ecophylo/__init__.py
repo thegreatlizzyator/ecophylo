@@ -11,5 +11,5 @@ from ecophylo.islmodel import population_configurations
 from ecophylo.islmodel import migration_matrix
 from ecophylo.islmodel import mass_migrations
 
-from ecophylo.toPhylo import toPhylo
-from ecophylo.toPhylo import ubranch_mutation
+from ecophylo.phylogen import toPhylo
+from ecophylo.phylogen import ubranch_mutation
