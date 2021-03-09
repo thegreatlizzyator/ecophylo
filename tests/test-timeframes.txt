@@ -1,0 +1,32 @@
+The ``ecophylo`` module
+======================
+
+Using ``timeframes``
+-------------------
+
+This is an example text file in reStructuredText format.  First import
+``timeframes`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import timeframes
+
+Now use it:
+
+    >>> timeframes(I=2, T=-2, a=0.3)
+    Traceback (most recent call last):
+      ...
+    SystemExit: T maximum time in generation time must be a strict positive float.
+    
+    >>> timeframes(I=-2, T=2, a=0.3)
+    Traceback (most recent call last):
+      ...
+    SystemExit: I number of time windows must be an integer superior to 0.
+    
+    >>> timeframes(I=3, T=0, a=0.3)
+    Traceback (most recent call last):
+      ...
+    SystemExit: T maximum time in generation time must be a strict positive float.
+    
+    >>> timeframes(I=2, T=2, a=-0.3)
+    Traceback (most recent call last):
+      ...
+    SystemExit: The resolution a must be a float superior to 0.

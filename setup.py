@@ -5,7 +5,7 @@ with open("README.md", "r") as readme_file:
 
 setuptools.setup(
     name="ecophylo",
-    version="0.0.6",
+    version="0.0.7",
     author="Elizabeth Barthelemy",
     author_email="elizabeth.barthelemy@univ-grenoble-alpes.fr",
     url="https://github.com/thegreatlizzyator/ecophylo",
