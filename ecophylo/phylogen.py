@@ -72,45 +72,6 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     >>> import ecophylo as eco
     >>> eco.getAbund(phylo, 7)
     [3, 2, 2]
-    
-    >>> toPhylo(tree = 'bamboo', mu = 0.5, seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: tree must have a class TreeNode
-    
-    >>> toPhylo(tree = tree, mu = -1, seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: mu must be a float between 0 and 1
-    
-    >>> toPhylo(tree = tree, mu = 0.5, spmodel = 'creationism', seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
-    
-    >>> toPhylo(tree = tree, mu = 0.5, force_ultrametric = 'ça fait plaisir', seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: force_ultrametric must be a boolean
-    
-    >>> tree_er = Tree('((A:4,(B:4,C:3)1:4)1:5, Err:1, (D:1,E:1)1:1);')
-    >>> print(tree_er)
-    <BLANKLINE>
-          /-A
-       /-|
-      |  |   /-B
-      |   \-|
-      |      \-C
-    --|
-      |--Err
-      |
-      |   /-D
-       \-|
-          \-E
-    >>> eco.toPhylo(tree_er, 0.5, seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: The algorithm does not know how to deal with non dichotomic trees!
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
@@ -264,16 +225,6 @@ def ubranch_mutation(node, mu, seed = None):
     
     >>> ubranch_mutation(node = node, mu = 0.5, seed = 42)
     True
-    
-    >>> ubranch_mutation(node = 'bamboo', mu = -1, seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: node must have a class TreeNode
-    
-    >>> ubranch_mutation(node = node, mu = -1, seed = 42)
-    Traceback (most recent call last):
-      ...
-    SystemExit: mu must be a float between 0 and 1
     """
     # Idiot proof
     if node.__class__.__name__ != 'TreeNode' :

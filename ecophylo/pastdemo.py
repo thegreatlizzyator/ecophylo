@@ -49,26 +49,6 @@ def timeframes(I, T, a):
 
     >>> timeframes(I=3, T=0.5, a=0.3)
     [0.15896517723882417, 0.32551133275002, 0.4999999999999997]
-
-    >>> timeframes(I=-2, T=2, a=0.3)
-    Traceback (most recent call last):
-      ...
-    SystemExit: I number of time windows must be an integer superior to 0.
-    
-    >>> timeframes(I=2, T=-2, a=0.3)
-    Traceback (most recent call last):
-      ...
-    SystemExit: T maximum time in generation time must be a strict positive float.
-    
-    >>> timeframes(I=3, T=0, a=0.3)
-    Traceback (most recent call last):
-      ...
-    SystemExit: T maximum time in generation time must be a strict positive float.
-    
-    >>> timeframes(I=2, T=2, a=-0.3)
-    Traceback (most recent call last):
-      ...
-    SystemExit: The resolution a must be a float superior to 0.
     """
     # Idiotproof
     if not isinstance(I, int) or I <= 0 :
@@ -111,29 +91,6 @@ def demographic_events(changetime, past_sizes):
     
     >>> demographic_events([1], [42])
     [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}]
-    
-    >>> demographic_events([1, 2], [42])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime and past_sizes list must be of same length
-    
-    >>> demographic_events([1, '2'], [42, 9000])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime must be a list of int
-    >>> demographic_events([1, 2], [42, '9000'])
-    Traceback (most recent call last):
-      ...
-    SystemExit: past_sizes must be a list of int
-    
-    >>> demographic_events([1, -2], [42, 9000])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime must be strict positive values
-    >>> demographic_events([1, 2], [42, -9000])
-    Traceback (most recent call last):
-      ...
-    SystemExit: past_sizes must be strict positive values
     """
     # Idiot proof
     if len(changetime) != len(past_sizes) :

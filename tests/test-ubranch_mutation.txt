@@ -1,0 +1,25 @@
+The ``ecophylo`` module
+======================
+
+Using ``ubranch_mutation``
+-------------------
+
+This is an example text file in reStructuredText format.  First import
+``ubranch_mutation`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import ubranch_mutation
+
+Now use it:
+
+    >>> from ete3 import Tree
+    >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
+    >>> node = tree.children[0] # first non-root node
+    >>> ubranch_mutation(node = 'bamboo', mu = -1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: node must have a class TreeNode
+    
+    >>> ubranch_mutation(node = node, mu = -1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: mu must be a float between 0 and 1

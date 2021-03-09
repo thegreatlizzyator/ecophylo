@@ -7,12 +7,26 @@ from ecophylo import dosimulate
 
 if __name__ == "__main__":
     import doctest
-    print("Testing phylogen functions")
+    print('==================')
+    print("phylogen examples")
     print(doctest.testmod(phylogen))
-    print("\n\nTesting islmodel functions")
+    print('\nphylogen error tests')
+    print(doctest.testfile("tests/test-toPhylo.txt"))
+    print(doctest.testfile("tests/test-ubranch_mutation.txt"))
+
+
+    print('\n==================')
+    print("islmodel examples")
     print(doctest.testmod(islmodel))
-    print("\n\nTesting pastdem functions")
+    print('\nislmodel error tests')
+    print(doctest.testfile("tests/test-sizes2rates.txt"))
+    
+    print('\n==================')
+    print('Pastdemos examples')
     print(doctest.testmod(pastdemo))
-    print("\n\nTesting dosimulate functions")
-    print(doctest.testmod(dosimulate))
+    print('\nPastdemos error tests')
+    print(doctest.testfile("tests/test-timeframes.txt"))
+    print(doctest.testfile("tests/test-demographic_events.txt"))
+    # print("\n\nTesting dosimulate functions")
+    # print(doctest.testmod(dosimulate))
 
