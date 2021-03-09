@@ -8,7 +8,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 library(reticulate)
 ```
 
@@ -205,39 +205,42 @@ if npop > 1:
 
 
 
-```{python, out of africa}
+```{python}
 import math
 import msprime
 
-
 # initial pop size
 pop1 = 500
-pop2 = 420
+pop2 = 200
 gr1 = 0.05
-gr2 = 0
+gr2 = 0.05
 
 samp1 = 5
 samp2 = 4
 
 population_configurations = [
   msprime.PopulationConfiguration(
-    sample_size = 2,
-    initial_size=pop1),
+    sample_size=2,
+    initial_size=pop1 #, 
+    # growth_rate = 0.02
+    ),
     
   msprime.PopulationConfiguration(
-    sample_size = 2,
+    sample_size = 3,
     initial_size=pop2, 
     growth_rate=gr2)
 ]
 
 migration_matrix = [
-  [ 0, 0],
-  [ 0, 0]
+  [ 0, 1],
+  [ 1, 0]
 ]
 
 demographic_events = [
-  msprime.PopulationParametersChange(
-    time= 20, initial_size=800, population_id=0)
+  # msprime.PopulationParametersChange(
+    # time= 20, growth_rate=0.05, population_id=0),
+    msprime.PopulationParametersChange(
+    time= 20, initial_size=500, population_id=0)
 ]
 
 dd = msprime.DemographyDebugger(
@@ -247,14 +250,13 @@ dd = msprime.DemographyDebugger(
 dd.print_history()
 
 # S_{t-1} = S_{t0} * exp(-0.05 * Dt)
-# = 9.643749e-20
-
-
+# = 9.643749e-20!
+  
 treeseq = msprime.simulate(
   random_seed= 42,
   population_configurations = population_configurations,
   migration_matrix = migration_matrix,
-  demographic_events = demography)
+  demographic_events = demographic_events)
   
 tree = treeseq.first()
 print(tree.draw(format = 'unicode'))
@@ -278,87 +280,8 @@ print(tree.draw(format = 'unicode'))
 #     time=T_AF, initial_size=N_A, population_id=0)
 # ]
 
-def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = True):
-    """
-    Compute the growth rates corresponding to a set of past sizes at different 
-    times for a single population with a given initial size
-
-    Parameters
-    ----------
-    past_sizes : list of int
-        positive values
-        the sizes of the population in the past
-        # TODO : should have the same length as time
-    init_size : list of int
-        positive value
-        the initial size of the population
-        # TODO : same len as past_value matrix
-    changetime : list of int
-        None by default
-        times at which the population size changes
-        # TODO : should have the same length as t past_sizes
-    sizesvalues : bool
-        indicate if the past_values list is a matrix of sizes or growth rates.
-
-    Returns
-    -------
-    a list object containing the different growth rates of a given population
-    at each given time period
-    
-    """
-
-    npop = len(past_values)
-    # aggregate the times.
-    nrow = changetime[0]
-    for i in range(1,len(changetime)):
-      nrow = sorted(nrow + list(set(changetime[i]) - set(nrow) ))
-    
-    matrix = [nrow]
-    for i in range(npop) :
-      tmpsize = list(past_values[i])
-      tmptime = list(changetime[i])
-      res = [] # init empty list
-      for ii in  nrow:
-        
-        if len(tmptime) == 0 : # if no time left for this pop
-          res.append('NA') 
-          continue
-        
-        if ii == tmptime[0]: # when time is defined for a pop
-          val = tmpsize.pop(0)
-          tmptime.remove(tmptime[0])
-          if sizevalues : # compute directly the growrate
-            tmp = val
-            val = eco.sizes2rates(init_size[i], 
-                                  past_sizes = [val], 
-                                  changetime = [ii])[0]
-            init_size[i] = tmp
-          
-          res.append(val) # add the value
-          # remove previous NA (only if its grates)
-          place = len(res)-1
-          while res[place-1] == 'NA' and place >= 0 :
-            place-=1
-          
-          # change NA with values
-          for iii in range(place, len(res)) :
-            res[iii] = val
-        else: # if nothing defined for this pop at this time
-          res.append('NA')
-      
-      if(res[-1] == 'NA'): # if ending with NA, expand last known rate
-        place = len(res)-1
-        while res[place-1] == 'NA' and place >= 0 :
-          place-=1
-          # change NA with values
-        for iii in range(place, len(res)) :
-          res[iii] = res[place-1]
-      matrix.append(res) # append this pop list in matrix
-    return matrix
-
 init_size = [2, 3]
-past_values = [[0.2, 0.1, -0.09, 0.009],
-[0.42, -0.4, 0.07, 0.42,0.01]]
+
 changetime = [[10, 20, 30, 40],
 [10, 15, 21, 60, 70]]
 sizevalues = False
@@ -382,8 +305,85 @@ mergesizes2rates([[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], [2], False)
 mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], [2], True)
 
 import ecophylo as eco
-mergesizes2rates(past_values, changetime, init_size, sizevalues)
 
-eco.sizes2rates(2, past_sizes = [2],  changetime = [10])[0]
+init_size = [2, 3]
+past_values = [[4, 3, 10, 7], [1, 2, 5, 2,3]]
+changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
+sizevalues = True
+
+# besoin de calculer les init_rates a partir des premiers elements de past sizes.
+# et les comparer aux premiers gr si donnés.
+
+# past_values = [[0.2, 0.1, -0.09, 0.009], [0.42, -0.4, 0.07, 0.42,0.01]]
+# sizevalues = False
+
+past_rates = eco.mergesizes2rates(past_values, changetime, init_size, False)
+past_rates
+# [[  10,     15,     20,    21,     30,     40,     60,     70], 
+# [0.069, -0.014, -0.014,  0.04,   0.04, -0.009, -0.009, -0.009], 
+# [-0.11,  0.046,  0.044, 0.044, -0.015, -0.015, -0.015,  0.006]]
+
+population_changes(paste_rates)
+
+population_configurations(init_size, paste_sizes, init_rates, sample)
+
+# soit besoin de fournir les init_rates soit les trouver a partir de past_sizes.
+
+# cas 1
+init_sizes = [2, 3]
+past_sizes = [[4, 3, 7], [1, 2, 5]]
+changetime = [[10, 20, 30], [10, 15, 60]]
+samples = [1, 1]
+rates = None
+stable_pop = False
+
+if stable_pop:
+  pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i) for s, i in zip(samples, init_sizes)]
+  
+  pastdemo = []
+  for i in range(len(changetime)):
+    pastdemo = pastdemo +  [msprime.PopulationParametersChange(time=t, initial_size =s, population_id= i) for t, s in zip(changetime[i], past_sizes[i])]
+  
+elif rates == None :
+  rates = eco.mergesizes2rates(past_sizes, changetime, init_size, True)
+  sizes = eco.mergesizes2rates(past_sizes, changetime, init_size, False)
+  rate_time = rates[0]
+  pc = []
+  for i in range(len(changetime)):
+    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+    rates[i + 1].remove(rates[i+1][0])
+    rates[i+1].append(rates[i+1][-1])
+  
+  # print(rates)
+    # [[10, 15, 20, 30, 60], 
+    # [-0.056, -0.014, -0.014, 0.028, 0.028],
+    # [-0.161, 0.046, 0.015, 0.015, 0.015]]
+  pastdemo = []
+  # print(rate_time)
+  for i in range(len(changetime)): # TODO : need to sort this by time now....
+    for ii in range(len(rate_time)):
+      # print(i, ii, len(rate_time), len(sizes[i]), len(rates[i+1]))
+      # print(rate_time[ii], sizes[i][ii],rates[i+1][ii] )
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange(
+        time=rate_time[ii],
+        initial_size = sizes[i][ii],
+        growth_rate=rates[i+1][ii],
+        population_id= i)]
+
+migration_matrix = [ [ 0, 0.1], [ 0.1, 0] ]
+
+dd = msprime.DemographyDebugger(
+  population_configurations=pc, 
+  demographic_events=pastdemo)
+dd.print_history()
+
+treeseq = msprime.simulate(
+  random_seed= 42,
+  population_configurations = population_configurations,
+  migration_matrix = migration_matrix,
+  demographic_events = demographic_events)
+  
+tree = treeseq.first()
+print(tree.draw(format = 'unicode'))
 
 ```
