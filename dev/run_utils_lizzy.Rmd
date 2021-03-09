@@ -1,0 +1,116 @@
+---
+title: "run_utils_lizzy"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(reticulate)
+knitr::opts_chunk$set(echo = TRUE)
+use_python(Sys.which("python3"))
+```
+
+```{python}
+def sizes2rates(init_size, past_sizes, times):
+    """
+    Compute the growth rates corresponding to a set of past sizes at different 
+    times for a single population with a given initial size
+
+    Parameters
+    ----------
+    init_size : int
+        positive value
+        the initial size of the population
+    past_sizes: list of int
+        positive values
+        the sizes of the population in the past
+        # TODO : should have the same length as time 
+    times : list of int
+        times at which the population size changes
+        # TODO : should have the same length as t past_sizes
+
+    Returns
+    -------
+    a list object containing the different growth rates of a given population
+    at each given time period
+    
+    Examples
+    -------
+    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 30, 40])
+    [0.0, 0.06931471805599453, -0.06931471805599453, 0.0916290731874155]
+    >>> print("test")
+    "no"
+    """
+    stime = 0
+    sprev = init_size
+    rates = []
+    for i in range(len(past_sizes)):
+        rates.append(math.log(past_sizes[i]/sprev)/(times[i] - stime))
+        sprev = past_sizes[i]
+        stime = times[i]
+    return rates
+
+init1 = 2
+init2 = 3 
+
+past1 = [2, 4, 2, 5]
+past2 = [4, 3, 5, 2,10]
+
+pastsizes = [past1,past2]
+
+t1 = [10, 20, 30, 40]
+t2 = [10, 15, 21, 60, 70]
+
+pastimes = [t1,t2]
+
+npop = 2
+
+nrow = sorted((t1 + list(set(t2) - set(t1))))
+matrix = [nrow]
+for i in range(npop) :
+  tmpsize = list(pastsizes[i])
+  tmptime = list(pastimes[i])
+  res = []
+  for ii in  nrow:
+    if len(tmptime) == 0 :
+      if ii == nrow[len(nrow) - 1] : break
+      else : 
+        res.append('NA') 
+        break
+    if ii == tmptime[0]:
+      res.append(tmpsize.pop(0))
+      # TODO : possibly compute growth rates directly here
+      tmptime.remove(tmptime[0])
+    else:
+      res.append('NA')
+  matrix.append(res)
+
+
+i = 0
+while matrix[1][i] != 'NA':
+  i=+1
+  print(i)
+
+
+
+
+
+
+
+gr1 = sizes2rates(init1, past1 ,t1)
+gr2 = sizes2rates(init2, past2, t2)
+
+import pandas as pd 
+
+poparams1 =  pd.DataFrame()
+
+poparams1['times'] = t1
+poparams1['pastsizepop1'] = past1 
+poparams['pastsizepop2'] = past2
+poparams1['rates'] = gr1 + gr2
+poparams['popid'] = sum(([x]*y for x,y in zip(['A','B'], (len(t1),len(t2)))),[])
+
+poparams = poparams.sort_values('times')
+
+
+```
+
