@@ -81,10 +81,10 @@ def sizes2rates(init_size, past_sizes, changetime):
     past_sizes : list of int
         positive values
         the sizes of the population in the past
-        # TODO : should have the same length as time 
+        should have the same length as time 
     changetime : list of int
         times at which the population size changes
-        # TODO : should have the same length as t past_sizes
+        should have the same length as t past_sizes
 
     Returns
     -------
@@ -94,41 +94,7 @@ def sizes2rates(init_size, past_sizes, changetime):
     Examples
     -------
     >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 30, 40])
-    [0.0, 0.06931471805599453, -0.06931471805599453, 0.0916290731874155]
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime and past_sizes list must be of same length
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 20, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: Duplicated times in changetime are not possible
-    
-    >>> sizes2rates(2, [2, 4, 2, '5'], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: past_sizes must be a list of int
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, '30', 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime must be a list of int
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, -30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: changetime must be strict positive values
-    >>> sizes2rates(2, [2, 4, 2, -5], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: past_sizes must be strict positive values
-    
-    >>> sizes2rates(0, [2, 4, 2, 5], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: init_size must be a single strict positive value
-    >>> sizes2rates(-5, [2, 4, 2, 5], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: init_size must be a single strict positive value
+    [0.0, 0.069, -0.069, 0.092]
     """
     
     # Idiot proof
@@ -153,10 +119,146 @@ def sizes2rates(init_size, past_sizes, changetime):
     sprev = init_size
     rates = []
     for i in range(len(past_sizes)):
-        rates.append(math.log(past_sizes[i]/sprev)/(changetime[i] - stime))
+        val = math.log(past_sizes[i]/sprev)/(changetime[i] - stime)
+        rates.append(round(val, 3))
         sprev = past_sizes[i]
         stime = changetime[i]
     return rates
+
+
+def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = True):
+    """
+    Compute the growth rates corresponding to a set of past sizes at different 
+    times for a single population with a given initial size
+
+    Parameters
+    ----------
+    past_values : list of int or list of list of int
+        positive values
+        the sizes of the population in the past
+        # TODO : should have the same length as time
+    init_size : list of int
+        positive value
+        the initial size of the population
+        # TODO : same len as past_value matrix
+    changetime : list of int
+        None by default
+        times at which the population size changes
+        # TODO : should have the same length as t past_sizes
+    sizesvalues : bool
+        indicate if the past_values list is a matrix of sizes or growth rates.
+
+    Returns
+    -------
+    a list object containing the different growth rates of a given population
+    at each given time period
+    
+    Examples
+    -------
+    >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], [2], True)
+    [[10, 20, 30, 40], [0.041, 0.026, -0.017, 0.007]]
+    
+    >>> mergesizes2rates([[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], [2], False)
+    [[10, 20, 30, 40], [0.2, 0.1, -0.09, 0.009]]
+    
+    >>> init_size = [2, 3]
+    >>> past_values = [[4, 3, 10, 7], [1, 2, 5, 2,3]]
+    >>> changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
+    >>> mergesizes2rates(past_values, changetime, init_size, True)
+    [[10, 15, 20, 21, 30, 40, 60, 70], [0.069, -0.014, -0.014, 0.04, 0.04, -0.009, -0.009, -0.009], [-0.11, 0.046, 0.044, 0.044, -0.015, -0.015, -0.015, 0.006]]
+    
+    >>> init_size = [2, 3]
+    >>> past_values = [[0.2, 0.1, -0.09, 0.009], [0.42, -0.4, 0.07, 0.42,0.01]]
+    >>> changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
+    >>> mergesizes2rates(past_values, changetime, init_size, False)
+    [[10, 15, 20, 21, 30, 40, 60, 70], [0.2, 0.1, 0.1, -0.09, -0.09, 0.009, 0.009, 0.009], [0.42, -0.4, 0.07, 0.07, 0.42, 0.42, 0.42, 0.01]]
+    
+    """
+    
+    # Idiot proof
+    #  past_values : list of int or list of list of int
+    #     positive values
+    #     the sizes of the population in the past
+    #     # TODO : should have the same length as time
+    # init_size : list of int
+    #     positive value
+    #     the initial size of the population
+    #     # TODO : same len as past_value matrix
+    # changetime : list of int
+    #     None by default
+    #     times at which the population size changes
+    #     # TODO : should have the same length as t past_sizes
+    # sizesvalues : bool
+    #     indicate if the past_values list is a matrix of sizes or growth rates.
+    
+    if len(changetime) != len(past_values) :
+        sys.exit('changetime and past_values list must be of same length')
+    # if len(set(changetime)) != len(changetime) :
+    #     sys.exit('Duplicated times in changetime are not possible')
+    
+    # if not all(isinstance(x, int) for x in past_values) :
+    #     sys.exit('past_values must be a list of int')
+    # if not all(isinstance(x, int) for x in changetime) :
+    #     sys.exit('changetime must be a list of int')
+    # if not all((x > 0) for x in changetime) :
+    #     sys.exit('changetime must be strict positive values')
+    # if not all((x > 0) for x in past_values) :
+    #     sys.exit('past_values must be strict positive values')
+        
+    # if not isinstance(init_size, int) or init_size <= 0 :
+    #     sys.exit('init_size must be a single strict positive value')
+        
+    # TODO : check if sizevalue,  if past values are int !
+    # TODO : check if changetime[1] same size as pastvalue[1] etc
+    
+    npop = len(past_values)
+    # aggregate the times.
+    nrow = changetime[0]
+    for i in range(1,len(changetime)):
+      nrow = sorted(nrow + list(set(changetime[i]) - set(nrow) ))
+    
+    matrix = [nrow]
+    for i in range(npop) :
+      tmpsize = list(past_values[i])
+      tmptime = list(changetime[i])
+      res = [] # init empty list
+      for ii in  nrow:
+        
+        if len(tmptime) == 0 : # if no time left for this pop
+          res.append('NA') 
+          continue
+        
+        if ii == tmptime[0]: # when time is defined for a pop
+          val = tmpsize.pop(0)
+          tmptime.remove(tmptime[0])
+          if sizevalues : # compute directly the growrate
+            tmp = val
+            val = sizes2rates(init_size[i], 
+                                  past_sizes = [val], 
+                                  changetime = [ii])[0]
+            init_size[i] = tmp
+          
+          res.append(val) # add the value
+          # remove previous NA (only if its grates)
+          place = len(res)-1
+          while res[place-1] == 'NA' and place >= 0 :
+            place-=1
+          
+          # change NA with values
+          for iii in range(place, len(res)) :
+            res[iii] = val
+        else: # if nothing defined for this pop at this time
+          res.append('NA')
+      
+      if(res[-1] == 'NA'): # if ending with NA, expand last known rate
+        place = len(res)-1
+        while res[place-1] == 'NA' and place >= 0 :
+          place-=1
+          # change NA with values
+        for iii in range(place, len(res)) :
+          res[iii] = res[place-1]
+      matrix.append(res) # append this pop list in matrix
+    return matrix
 
 
 def migration_matrix(npop, m = 0):
