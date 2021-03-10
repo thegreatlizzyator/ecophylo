@@ -335,40 +335,58 @@ past_sizes = [[4, 3, 7], [1, 2, 5]]
 changetime = [[10, 20, 30], [10, 15, 60]]
 samples = [1, 1]
 rates = None
-stable_pop = False
+stable_pop = True
 
-if stable_pop:
-  pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i) for s, i in zip(samples, init_sizes)]
-  
+if rates == None :
   pastdemo = []
-  for i in range(len(changetime)):
-    pastdemo = pastdemo +  [msprime.PopulationParametersChange(time=t, initial_size =s, population_id= i) for t, s in zip(changetime[i], past_sizes[i])]
+  sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
+  times = sizes[0]
+  print(sizes)
   
-elif rates == None :
-  rates = eco.mergesizes2rates(past_sizes, changetime, init_size, True)
-  sizes = eco.mergesizes2rates(past_sizes, changetime, init_size, False)
-  rate_time = rates[0]
-  pc = []
+  if stable_pop:
+    rates = [ [0]*len(times) for _ in range(len(changetime))]
+    rates = [times] + rates
+  else : 
+    rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
+  print(rates)
+  
+  pc = [] # initial population configurations
   for i in range(len(changetime)):
     pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
-    rates[i + 1].remove(rates[i+1][0])
-    rates[i+1].append(rates[i+1][-1])
+    rates[i + 1].remove(rates[i+1][0]) # remove first rate
+    rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
+    
+  # pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i) for s, i in zip(samples, init_sizes)]
   
-  # print(rates)
-    # [[10, 15, 20, 30, 60], 
-    # [-0.056, -0.014, -0.014, 0.028, 0.028],
-    # [-0.161, 0.046, 0.015, 0.015, 0.015]]
-  pastdemo = []
-  # print(rate_time)
-  for i in range(len(changetime)): # TODO : need to sort this by time now....
-    for ii in range(len(rate_time)):
-      # print(i, ii, len(rate_time), len(sizes[i]), len(rates[i+1]))
-      # print(rate_time[ii], sizes[i][ii],rates[i+1][ii] )
-      pastdemo = pastdemo +  [msprime.PopulationParametersChange(
-        time=rate_time[ii],
-        initial_size = sizes[i][ii],
-        growth_rate=rates[i+1][ii],
-        population_id= i)]
+  for i in range(len(times)): # later populations parameter changes
+    for ii in range(len(changetime)):
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
+  
+# elif rates == None :
+#   rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
+#   sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
+#   rate_time = rates[0]
+#   pc = []
+#   for i in range(len(changetime)):
+#     pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+#     rates[i + 1].remove(rates[i+1][0])
+#     rates[i+1].append(rates[i+1][-1])
+#   
+#   # print(rates)
+#     # [[10, 15, 20, 30, 60], 
+#     # [-0.056, -0.014, -0.014, 0.028, 0.028],
+#     # [-0.161, 0.046, 0.015, 0.015, 0.015]]
+#   pastdemo = []
+#   # print(rate_time)
+#   for i in range(len(changetime)): # TODO : need to sort this by time now....
+#     for ii in range(len(rate_time)):
+#       # print(i, ii, len(rate_time), len(sizes[i]), len(rates[i+1]))
+#       # print(rate_time[ii], sizes[i][ii],rates[i+1][ii] )
+#       pastdemo = pastdemo +  [msprime.PopulationParametersChange(
+#         time=rate_time[ii],
+#         initial_size = sizes[i][ii],
+#         growth_rate=rates[i+1][ii],
+#         population_id= i)]
 
 migration_matrix = [ [ 0, 0.1], [ 0.1, 0] ]
 
