@@ -221,8 +221,8 @@ samp2 = 4
 population_configurations = [
   msprime.PopulationConfiguration(
     sample_size=2,
-    initial_size=pop1 #, 
-    # growth_rate = 0.02
+    initial_size=pop1 , 
+    growth_rate = 0.02
     ),
     
   msprime.PopulationConfiguration(
@@ -236,12 +236,12 @@ migration_matrix = [
   [ 1, 0]
 ]
 
-demographic_events = [
-  # msprime.PopulationParametersChange(
-    # time= 20, growth_rate=0.05, population_id=0),
-    msprime.PopulationParametersChange(
-    time= 20, initial_size=500, population_id=0)
-]
+demographic_events = []
+#   # msprime.PopulationParametersChange(
+#     # time= 20, growth_rate=0.05, population_id=0),
+#     msprime.PopulationParametersChange(
+#     time= 20, initial_size=500, population_id=0)
+# ]
 
 dd = msprime.DemographyDebugger(
   population_configurations=population_configurations,
@@ -334,10 +334,15 @@ init_sizes = [2, 3]
 past_sizes = [[4, 3, 7], [1, 2, 5]]
 changetime = [[10, 20, 30], [10, 15, 60]]
 samples = [1, 1]
-rates = None
+rates = [0.02, 0.05]
 stable_pop = True
+if rates != None :
+  stable_pop = False
 
-if rates == None :
+# if rates == None :
+#   rates = []
+
+if True :
   pastdemo = []
   sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
   times = sizes[0]
@@ -346,49 +351,30 @@ if rates == None :
   if stable_pop:
     rates = [ [0]*len(times) for _ in range(len(changetime))]
     rates = [times] + rates
+  elif rates != None : # if rates are provided, fixed rates for all the epochs
+    if len(rates) == len(changetime) and all(isinstance(x, (int,float)) for x in rates):
+      tmp_rates = [times]
+      for i in range(len(changetime)):
+        tmp_rates = tmp_rates + [[rates[i]]*len(times)]
+      rates = tmp_rates
+  #   else :
+  #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
   else : 
     rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
   print(rates)
-  
+  print(init_sizes)
   pc = [] # initial population configurations
   for i in range(len(changetime)):
     pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
     rates[i + 1].remove(rates[i+1][0]) # remove first rate
     rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
-    
-  # pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i) for s, i in zip(samples, init_sizes)]
+  print(rates)
   
   for i in range(len(times)): # later populations parameter changes
     for ii in range(len(changetime)):
       pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
   
-# elif rates == None :
-#   rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
-#   sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
-#   rate_time = rates[0]
-#   pc = []
-#   for i in range(len(changetime)):
-#     pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
-#     rates[i + 1].remove(rates[i+1][0])
-#     rates[i+1].append(rates[i+1][-1])
-#   
-#   # print(rates)
-#     # [[10, 15, 20, 30, 60], 
-#     # [-0.056, -0.014, -0.014, 0.028, 0.028],
-#     # [-0.161, 0.046, 0.015, 0.015, 0.015]]
-#   pastdemo = []
-#   # print(rate_time)
-#   for i in range(len(changetime)): # TODO : need to sort this by time now....
-#     for ii in range(len(rate_time)):
-#       # print(i, ii, len(rate_time), len(sizes[i]), len(rates[i+1]))
-#       # print(rate_time[ii], sizes[i][ii],rates[i+1][ii] )
-#       pastdemo = pastdemo +  [msprime.PopulationParametersChange(
-#         time=rate_time[ii],
-#         initial_size = sizes[i][ii],
-#         growth_rate=rates[i+1][ii],
-#         population_id= i)]
-
-migration_matrix = [ [ 0, 0.1], [ 0.1, 0] ]
+migration_matrix = [ [ 0, 1], [ 1, 0] ]
 
 dd = msprime.DemographyDebugger(
   population_configurations=pc, 
