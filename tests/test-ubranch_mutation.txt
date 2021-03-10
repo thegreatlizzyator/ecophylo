@@ -3,6 +3,7 @@ The ``ecophylo`` module
 
 Using ``ubranch_mutation``
 -------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
 ``ubranch_mutation`` from the ``ecophylo`` module:

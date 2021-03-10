@@ -3,6 +3,7 @@ The ``ecophylo`` module
 
 Using ``timeframes``
 -------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
 ``demographic_events`` from the ``ecophylo`` module:
