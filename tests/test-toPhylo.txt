@@ -3,6 +3,7 @@ The ``ecophylo`` module
 
 Using ``toPhylo``
 -------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
 ``toPhylo`` from the ``ecophylo`` module:

@@ -27,6 +27,11 @@ if __name__ == "__main__":
     print('\nPastdemos error tests')
     print(doctest.testfile("tests/test-timeframes.txt"))
     print(doctest.testfile("tests/test-demographic_events.txt"))
-    # print("\n\nTesting dosimulate functions")
-    # print(doctest.testmod(dosimulate))
+    
+    print('\n==================')
+    print('Dosimulate examples')
+    print(doctest.testmod(dosimulate))
+    print('\nDosimulate error tests')
+    print(doctest.testfile("tests/test-getAbund.txt"))
+
 

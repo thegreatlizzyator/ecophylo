@@ -3,6 +3,7 @@ The ``ecophylo`` module
 
 Using ``sizes2rates``
 -------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
 ``sizes2rates`` from the ``ecophylo`` module:

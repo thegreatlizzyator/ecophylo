@@ -391,3 +391,15 @@ tree = treeseq.first()
 print(tree.draw(format = 'unicode'))
 
 ```
+
+
+```{python}
+from ete3 import Tree
+tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+print(tree)
+import ecophylo as eco
+phylo = eco.toPhylo(tree, 0.5, seed = 42)
+print(phylo)
+eco.getAbund(phylo, 6)
+```
+
