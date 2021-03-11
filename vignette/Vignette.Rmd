@@ -133,8 +133,8 @@ However, past environmental changes such as alternating periods of contraction a
 Let us assume that the Jm has fluctuated in the past. 
 
 ```{r}
-pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
-changetime <- list(as.integer(100)) # the time (in generations) at which metacommunity size has changed
+pastsizes <- list(as.integer(1000), as.integer(5000)) # the size of the metacommunity in the past 
+changetime <- list(as.integer(100),as.integer(200)) # the time (in generations) at which metacommunity size has changed
 
 tree1 <- ecophylo$simulate(n, Jm, mu, 
                           past_sizes = pastsizes, 
@@ -143,6 +143,8 @@ tree1 <- ecophylo$simulate(n, Jm, mu,
 
 abund1 <- ecophylo$getAbund(tree1, n)
 phylo1 <- read.tree(text = tree1$write())
+
+# TO DO: print demmography debuger here 
 ```
 
 ```{python eval=FALSE, include=FALSE}
