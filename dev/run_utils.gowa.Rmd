@@ -19,18 +19,85 @@ Small bit of code to help debug. Objective is to regroup here all examples of th
 
 ### Population configurations
 
+#### Define function
+```{python}
+def population_configurations(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
+  
+  # need to check :
+  # sample is uniq, then duplicate
+  # same with stable_pop, 
+  
+  # need to provide empty list for 
+  # len init_sizes = len past_sizes = len_changetime (= len stable_pop) = len samples
+  # if rates, len rates = npop
+  if rates != None :
+    stable_pop = False
+  npop = len(init_sizes)
+  
+  pastdemo = []
+  sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
+  times = sizes[0]
+  print(sizes)
+  # working on rates
+  if stable_pop: # no rates
+    rates = [ [0]*len(times) for _ in range(npop)]
+    rates = [times] + rates
+    
+  elif rates != None : # if rates are provided, fixed rates for all the epochs
+    if len(rates) == npop and all(isinstance(x, (int,float)) for x in rates):
+      tmp_rates = [times]
+      for i in range(npop):
+        tmp_rates = tmp_rates + [[rates[i]]*len(times)]
+      rates = tmp_rates
+  #   else : # not homogenous rates in time...too difficult to code right now
+  #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
+  else : # no rates provided so computed them from past_sizes and changetime
+    rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
+  print(rates) # TODO : remove this
+  print(init_sizes) # TODO : remove this
+  
+  pc = [] # initial population configurations
+  for i in range(npop): # initiate every pop
+    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+    
+    if not stable_pop and npop == 1 :# case where one pop and need to set 1st rate. Sioux to set it as pastdemo and pop_config
+      pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[i+1][0], population_id= 0) ]
+    print('hello there')
+    rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
+    rates[i + 1].remove(rates[i+1][0]) # remove first rate
+    print('general kenobi')
+  print(rates)
+  
+  for i in range(len(times)): # later populations parameter changes
+    for ii in range(npop):
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
+  
+  # if not stable_pop and npop == 1 : # case where one pop and need to set 1st rate
+  #   pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[0], population_id= 0) ] + pastdemo
+  return pc, pastdemo
+
+```
+
+
+
 ```{python, include = FALSE, eval = FALSE}
 import msprime
 import ecophylo as eco
 # cas 0
-init_sizes = [2]
-past_sizes = [[4, 3, 7]]
-changetime = [[10, 20, 30]]
+init_sizes = [500]
+past_sizes = [[1000]]
+changetime = [[100]]
 samples = [1]
-rates = [0.02]
+rates = None #[0.02]
 stable_pop = True
-if rates != None :
-  stable_pop = False
+
+  
+pc, pastdemo = population_configurations(init_sizes, past_sizes, changetime, stable_pop, rates, samples)
+
+dd = msprime.DemographyDebugger(
+  Ne = init_sizes[0], 
+  demographic_events=pastdemo)
+dd.print_history()
 
 # cas 1
 init_sizes = [2, 3]
@@ -45,38 +112,6 @@ if rates != None :
 # if rates == None :
 #   rates = []
 
-if True :
-  pastdemo = []
-  sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
-  times = sizes[0]
-  print(sizes)
-  
-  if stable_pop:
-    rates = [ [0]*len(times) for _ in range(len(changetime))]
-    rates = [times] + rates
-  elif rates != None : # if rates are provided, fixed rates for all the epochs
-    if len(rates) == len(changetime) and all(isinstance(x, (int,float)) for x in rates):
-      tmp_rates = [times]
-      for i in range(len(changetime)):
-        tmp_rates = tmp_rates + [[rates[i]]*len(times)]
-      rates = tmp_rates
-  #   else :
-  #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
-  else : 
-    rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
-  print(rates)
-  print(init_sizes)
-  pc = [] # initial population configurations
-  for i in range(len(changetime)):
-    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
-    rates[i + 1].remove(rates[i+1][0]) # remove first rate
-    rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
-  print(rates)
-  
-  for i in range(len(times)): # later populations parameter changes
-    for ii in range(len(changetime)):
-      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
-  
 migration_matrix = [ [ 0, 1], [ 1, 0] ]
 
 dd = msprime.DemographyDebugger(
