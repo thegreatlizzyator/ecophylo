@@ -66,7 +66,7 @@ def timeframes(I, T, a):
 
 def demographic_events(changetime, past_sizes):
     """
-    Change the demography of populations over given time periods.
+    Change the demography of one populations over given time periods.
 
     Parameters
     ----------
@@ -95,7 +95,7 @@ def demographic_events(changetime, past_sizes):
     # Idiot proof
     if len(changetime) != len(past_sizes) :
         sys.exit('changetime and past_sizes list must be of same length')
-    if not all(isinstance(x, int) for x in changetime) :
+    if not all(isinstance(x, (int,float)) for x in changetime) :
         sys.exit('changetime must be a list of int')
     if not all(isinstance(x, int) for x in past_sizes) :
         sys.exit('past_sizes must be a list of int')
