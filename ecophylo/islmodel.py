@@ -11,6 +11,8 @@ Created on Wed May 13 11:42:50 2020
 
 Functions :
     population_configurations
+    sizes2rates
+    mergesizes2rates
     migration_matrix
     mass_migrations
 
@@ -67,6 +69,63 @@ def population_configurations(samples, init_sizes, rates) :
 
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
+
+
+def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
+  
+  # need to check :
+  # sample is uniq, then duplicate
+  # same with stable_pop, 
+  
+  # need to provide empty list for 
+  # len init_sizes = len past_sizes = len_changetime (= len stable_pop) = len samples
+  # if rates, len rates = npop
+  if rates != None :
+    stable_pop = False
+  npop = len(init_sizes)
+  
+  pastdemo = []
+  sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
+  times = sizes[0]
+  print(sizes)
+  # working on rates
+  if stable_pop: # no rates
+    rates = [ [0]*len(times) for _ in range(npop)]
+    rates = [times] + rates
+    
+  elif rates != None : # if rates are provided, fixed rates for all the epochs
+    if len(rates) == npop and all(isinstance(x, (int,float)) for x in rates):
+      tmp_rates = [times]
+      for i in range(npop):
+        tmp_rates = tmp_rates + [[rates[i]]*len(times)]
+      rates = tmp_rates
+  #   else : # not homogenous rates in time...too difficult to code right now
+  #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
+  else : # no rates provided so computed them from past_sizes and changetime
+    rates = mergesizes2rates(past_sizes, changetime, init_sizes, True)
+  print(rates) # TODO : remove this
+  print(init_sizes) # TODO : remove this
+  
+  pc = [] # initial population configurations
+  for i in range(npop): # initiate every pop
+    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+    
+    if not stable_pop and npop == 1 :# case where one pop and need to set 1st rate. Sioux to set it as pastdemo and pop_config
+      pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[i+1][0], population_id= 0) ]
+    
+    rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
+    rates[i + 1].remove(rates[i+1][0]) # remove first rate
+    
+  print(rates)
+  
+  for i in range(len(times)): # later populations parameter changes
+    for ii in range(npop):
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
+  
+  # if not stable_pop and npop == 1 : # case where one pop and need to set 1st rate
+  #   pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[0], population_id= 0) ] + pastdemo
+  return pc, pastdemo
+
 
 def sizes2rates(init_size, past_sizes, changetime):
     """
@@ -166,11 +225,13 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     >>> changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
     >>> mergesizes2rates(past_values, changetime, init_size, True)
     [[10, 15, 20, 21, 30, 40, 60, 70], [0.069, -0.014, -0.014, 0.04, 0.04, -0.009, -0.009, -0.009], [-0.11, 0.046, 0.044, 0.044, -0.015, -0.015, -0.015, 0.006]]
+    >>> mergesizes2rates(past_values, changetime, init_size, False)
+    [[10, 15, 20, 21, 30, 40, 60, 70], [4, 4, 3, 3, 10, 7, 7, 7], [1, 2, 2, 5, 5, 5, 2, 3]]
     
     >>> init_size = [2, 3]
     >>> past_values = [[0.2, 0.1, -0.09, 0.009], [0.42, -0.4, 0.07, 0.42,0.01]]
     >>> changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
-    >>> mergesizes2rates(past_values, changetime, init_size, False)
+    >>> mergesizes2rates(past_values, changetime, init_size, True)
     [[10, 15, 20, 21, 30, 40, 60, 70], [0.2, 0.1, 0.1, -0.09, -0.09, 0.009, 0.009, 0.009], [0.42, -0.4, 0.07, 0.07, 0.42, 0.42, 0.42, 0.01]]
     
     """
@@ -211,6 +272,14 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     # TODO : check if sizevalue,  if past values are int !
     # TODO : check if changetime[1] same size as pastvalue[1] etc
     
+    is_rate = False
+    for i in range(len(past_values)):
+        for ii in past_values[i]:
+            if ii  < 1 :
+                is_rate = True
+                break
+    first_size = list(init_size)
+    
     npop = len(past_values)
     # aggregate the times.
     nrow = changetime[0]
@@ -231,12 +300,12 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
         if ii == tmptime[0]: # when time is defined for a pop
           val = tmpsize.pop(0)
           tmptime.remove(tmptime[0])
-          if sizevalues : # compute directly the growrate
+          if sizevalues and not is_rate : # compute directly the growrate
             tmp = val
-            val = sizes2rates(init_size[i], 
+            val = sizes2rates(first_size[i], 
                                   past_sizes = [val], 
                                   changetime = [ii])[0]
-            init_size[i] = tmp
+            first_size[i] = tmp
           
           res.append(val) # add the value
           # remove previous NA (only if its grates)
@@ -244,9 +313,12 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
           while res[place-1] == 'NA' and place >= 0 :
             place-=1
           
-          # change NA with values
-          for iii in range(place, len(res)) :
-            res[iii] = val
+          if not sizevalues : # if it is sizes, get last sizes and apply it
+            for iii in range(place, len(res)-1):
+              res[iii] = res[place - 1]
+          else: # apply NA with lateest rates
+            for iii in range(place, len(res)) :
+              res[iii] = val
         else: # if nothing defined for this pop at this time
           res.append('NA')
       
