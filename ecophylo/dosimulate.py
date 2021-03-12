@@ -416,13 +416,10 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
              past_sizes = None, changetime = None, mrca = None, 
              m = 0, verbose = False, seed = None):
                
-    # parameters that will be used later
-    split_dates = None # won't be used
-    migrfrom = None # won't be used
-    migrto = None # won't be used
-    
-    migration = None
-    popconfig = None # TODO here !
+    # # parameters that will be used later when mass migration will be coded
+    # split_dates = None # won't be used
+    # migrfrom = None # won't be used
+    # migrto = None # won't be used
     
     # Idiotproof
     if not isinstance(seed, (int,float)):
@@ -443,11 +440,19 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             # demography = pastdemo.demographic_events(changetime, past_sizes)
             
             stable_pop = True
-            rates = None # TODO : get these parameters to the simulate functions !
             tmp, demography = islmodel.population_configurations_stripe(
-              [sample_size],
+              [com_size],
               [past_sizes], 
-              [changetime], stable_pop, rates, samples = [1])
+              [changetime], stable_pop, init_rates, samples = [sample_size])
+              # tmp is not to be used
+        
+        # if verbose should print the demography debugger - only for debugging purposes!!! 
+        if verbose: 
+            dd = msprime.DemographyDebugger(Ne = com_size, 
+                                            demographic_events= demography)
+            # dd.print_history()
+            dd.print_history(output=sys.stderr)
+        
         # simulatation
         treeseq = msprime.simulate(sample_size= sample_size,
                                    Ne = com_size,
@@ -455,6 +460,9 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                                    demographic_events = demography)
         
     else : # make island model
+        migration = None
+        popconfig = None # TODO : this weel
+        
         npop = len(sample_size)
         init_sizes = sample_size
       
@@ -463,39 +471,45 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
         massmigration = []
       
         # TODO : init the populations
+        popconfig, demography = islmodel.population_configurations_stripe(
+              com_size, past_sizes, changetime, stable_pop, 
+              init_rates, samples = sample_size)
       
-        if init_sizes is None or init_rates is None:
-            sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
-            # subpops =  npop
-            migration = islmodel.migration_matrix(npop, m)
-            samples = np.ones(npop, dtype=int)*sample_size
-            # TODO : allow differential sampling in pop (provide sample list same length as npop)
-            popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
-        
-            # possible mass migration between populations
-            if split_dates is not None:
-                # implement option later for limited mass dispersal
-                massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+        # if init_sizes is None or init_rates is None:
+        #     sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
+        #     # subpops =  npop
+        #     migration = islmodel.migration_matrix(npop, m)
+        #     samples = np.ones(npop, dtype=int)*sample_size
+        #     # TODO : allow differential sampling in pop (provide sample list same length as npop)
+        #     popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
+        # 
+            # # possible mass migration between populations
+            # if split_dates is not None:
+            #     # implement option later for limited mass dispersal
+            #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
       
-        demography = popchange + massmigration
+        # demography = popchange + massmigration
         if len(demography) == 0:
             demography = None
-      
+        
+        # if verbose should print the demography debugger - only for debugging purposes!!! 
+        if verbose: 
+            dd = msprime.DemographyDebugger(
+              Ne = com_size,
+              population_configurations=population_configurations,
+              migration_matrix=migration,
+              demographic_events= demography)
+            # dd.print_history()
+            dd.print_history(output=sys.stderr)
+        
         treeseq = msprime.simulate(Ne = com_size,
                                    random_seed= seed,
                                    population_configurations = popconfig,
                                    migration_matrix = migration,
                                    demographic_events = demography)
+        
     
-    # if verbose should print the demography debugger - only for debugging purposes!!! 
-    if verbose: 
-          dd = msprime.DemographyDebugger(Ne = com_size, 
-                                          demographic_events= demography, 
-                                          migration_matrix= migration, 
-                                          population_configurations= popconfig)
-          # dd.print_history()
-          dd.print_history(output=sys.stderr)
-
+    # Work on the result tree
     tree = treeseq.first()
     if verbose: print(tree.draw(format = 'unicode'))
     if mrca is not None:

@@ -8,6 +8,7 @@ by the ecophylo.simulate function.
 Created on Wed May 13 11:42:50 2020
 
 @author: barthele
+@Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 Functions :
     population_configurations
@@ -47,10 +48,6 @@ def population_configurations(samples, init_sizes, rates) :
     msprime.simulate to indicate initial 
     population configurations
     
-    Examples
-    -------
-    >>> print("test")
-    "no"
     """
 
     # TODO : examples
@@ -70,8 +67,42 @@ def population_configurations(samples, init_sizes, rates) :
     pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
     return pc
 
-
+# TODO : stripe is the second mogwai born of Gizmo, be gentle with him
 def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
+  """
+    Set up the initial population configurations.
+
+    Parameters
+    ----------
+    init_sizes : list of int
+        positive values
+        The initial community sizes at t0
+    past_sizes : list of list of int
+        positive values
+        The past community sizes. Must be a list with a list of past sizes for
+        evey community. 
+    changetime : list of list of int
+        Same format as past_sizes, but with times.
+    stable_pop : bool
+        indicate if the community size changement are brutal or progressive. 
+        This values is overwritten to False if a growth_rate is provided.
+    rates : list of float
+        The initial community growth rates. 
+        
+    Notes
+    -----
+      All parameters must have the same length, with an exception for stable_pop.
+
+    Returns
+    -------
+      two list object that can be passed into msprime.simulate to indicate
+      initial community states and past demographic changes.
+    
+    Examples
+    -------
+    >>> print("test")
+    "no"
+    """
   
   # need to check :
   # sample is uniq, then duplicate
@@ -103,8 +134,6 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
   else : # no rates provided so computed them from past_sizes and changetime
     rates = mergesizes2rates(past_sizes, changetime, init_sizes, True)
-  print(rates) # TODO : remove this
-  print(init_sizes) # TODO : remove this
   
   pc = [] # initial population configurations
   for i in range(npop): # initiate every pop
@@ -115,8 +144,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
     
     rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
     rates[i + 1].remove(rates[i+1][0]) # remove first rate
-    
-  print(rates)
+  
   
   for i in range(len(times)): # later populations parameter changes
     for ii in range(npop):
@@ -196,16 +224,21 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
         positive values
         the sizes of the population in the past
         # TODO : should have the same length as time
+    changetime : list of int or list of list of int
+        None by default
+        times at which the population size changes
+        # TODO : should have the same length as t past_sizes
     init_size : list of int
         positive value
         the initial size of the population
         # TODO : same len as past_value matrix
-    changetime : list of int
-        None by default
-        times at which the population size changes
-        # TODO : should have the same length as t past_sizes
     sizesvalues : bool
         indicate if the past_values list is a matrix of sizes or growth rates.
+        will be overridden if any past_values is a float below one.
+        
+    Notes
+    -----
+      sizes in float will be changed to int.
 
     Returns
     -------
@@ -215,6 +248,8 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     Examples
     -------
     >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], [2], True)
+    [[10, 20, 30, 40], [0.041, 0.026, -0.017, 0.007]]
+    >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], 2, True)
     [[10, 20, 30, 40], [0.041, 0.026, -0.017, 0.007]]
     
     >>> mergesizes2rates([[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], [2], False)
@@ -237,40 +272,65 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     """
     
     # Idiot proof
+    ## Init_size 
+    if not isinstance(init_size, list):
+      if isinstance(init_size, (int,float)) : 
+        init_size = [int(init_size)]
+      else :
+        sys.exit('init_size must be an int or a list of int. '+
+                 'Float will be rounded to int')
+    if not all(isinstance(x, (int, float)) for x in init_size) :
+        sys.exit('init_size must be a list of int')
+    if not all(x > 0 for x in init_size) :
+        sys.exit('init_size must be positive values')
+    else : 
+      for x in range(len(init_size)) : 
+        init_size[x] = int(init_size[x])
+    # changetime : list of int or list of list of int
+    if not isinstance(changetime, list):
+      if isinstance(changetime, (int,float)) : 
+        if changetime >= 0 :
+          changetime = [[changetime]]
+        else :
+          sys.exit('changetime must be positive values')
+      else :
+        sys.exit('changetime must be int, list of int or'+
+        ' nested list of int')
+    else :
+      for x in changetime:
+        if isinstance(x, list):
+          if not all(isinstance(y, (float, int)) for y in x) : 
+            sys.exit('changetime must be int, list of int or'+
+                     ' nested list of int')
+          if any(y < 0for y in x) : 
+            sys.exit('changetime must be positive values')
+        else :
+          if not isinstance(x, (float, int)):
+            sys.exit('changetime must be int, list of int or'+
+        ' nested list of int')
+          if x < 0:
+            sys.exit('changetime must be positive values')
+          changetime = [changetime]
+    # past_values
     #  past_values : list of int or list of list of int
     #     positive values
     #     the sizes of the population in the past
     #     # TODO : should have the same length as time
-    # init_size : list of int
-    #     positive value
-    #     the initial size of the population
-    #     # TODO : same len as past_value matrix
-    # changetime : list of int
-    #     None by default
-    #     times at which the population size changes
-    #     # TODO : should have the same length as t past_sizes
-    # sizesvalues : bool
-    #     indicate if the past_values list is a matrix of sizes or growth rates.
+    # size_values
+    if not isinstance(sizevalues, bool):
+        sys.exit('sizevalues must be a boolean')
+        
+    # check lengths
+    # TODO : check if changetime[1] same size as pastvalue[1] etc
     
-    if len(changetime) != len(past_values) :
-        sys.exit('changetime and past_values list must be of same length')
+    
+    # if len(changetime) != len(past_values) :
+    #     sys.exit('changetime and past_values list must be of same length')
     # if len(set(changetime)) != len(changetime) :
     #     sys.exit('Duplicated times in changetime are not possible')
     
-    # if not all(isinstance(x, int) for x in past_values) :
-    #     sys.exit('past_values must be a list of int')
-    # if not all(isinstance(x, int) for x in changetime) :
-    #     sys.exit('changetime must be a list of int')
-    # if not all((x > 0) for x in changetime) :
-    #     sys.exit('changetime must be strict positive values')
-    # if not all((x > 0) for x in past_values) :
-    #     sys.exit('past_values must be strict positive values')
-        
-    # if not isinstance(init_size, int) or init_size <= 0 :
-    #     sys.exit('init_size must be a single strict positive value')
-        
     # TODO : check if sizevalue,  if past values are int !
-    # TODO : check if changetime[1] same size as pastvalue[1] etc
+    
     
     is_rate = False
     for i in range(len(past_values)):
@@ -415,8 +475,6 @@ def mass_migrations(times, sources, destinations, migr = 1):
 
     Examples
     -------
-    >>> print("test")
-    "no"
     """
     # TODO : idiotproof
     # TODO : examples
