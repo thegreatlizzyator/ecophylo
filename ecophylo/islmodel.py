@@ -70,39 +70,51 @@ def population_configurations(samples, init_sizes, rates) :
 # TODO : stripe is the second mogwai born of Gizmo, be gentle with him
 def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
   """
-    Set up the initial population configurations.
+  Set up the initial population configurations and past demographic events.
 
-    Parameters
-    ----------
-    init_sizes : list of int
-        positive values
-        The initial community sizes at t0
-    past_sizes : list of list of int
-        positive values
-        The past community sizes. Must be a list with a list of past sizes for
-        evey community. 
-    changetime : list of list of int
-        Same format as past_sizes, but with times.
-    stable_pop : bool
-        indicate if the community size changement are brutal or progressive. 
-        This values is overwritten to False if a growth_rate is provided.
-    rates : list of float
-        The initial community growth rates. 
+  Parameters
+  ----------
+  init_sizes : list of int
+      positive values
+      The initial community sizes at t0
+  past_sizes : list of list of int
+      positive values
+      The past community sizes. Must be a list with a list of past sizes for
+      evey community. 
+  changetime : list of list of int
+      Same format as past_sizes, but with times.
+  stable_pop : bool
+      indicate if the community size changement are brutal or progressive. 
+      This values is overwritten to False if a growth_rate is provided.
+  rates : list of float
+      The initial community growth rates.
+  sample : int or list of int
+      the number of individual to follow in coalescent model
         
-    Notes
-    -----
-      All parameters must have the same length, with an exception for stable_pop.
+  Notes
+  -----
+    All parameters must have the same length, with an exception for stable_pop.
 
-    Returns
-    -------
-      two list object that can be passed into msprime.simulate to indicate
-      initial community states and past demographic changes.
+  Returns
+  -------
+    two list object that can be passed into msprime.simulate to indicate
+    initial community states and past demographic changes.
     
-    Examples
-    -------
-    >>> print("test")
-    "no"
-    """
+  Examples
+  -------
+  """
+  # Idiot proof
+  # check past_sizes
+  # check changetime
+  # check init_sizes
+  # check rates
+  # check lenghts
+  if len(past_sizes) != len(changetime) or len(changetime) != len(init_sizes) or
+  len(rates != len(init_sizes) or len(samples) != len(init_sizes):
+      sys.exit('past_sizes, changetime and init_sizes must have the same'+
+      ' number of elements')
+      
+      init_sizes, past_sizes, changetime, stable_pop, rates, samples
   
   # need to check :
   # sample is uniq, then duplicate
@@ -137,10 +149,17 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   
   pc = [] # initial population configurations
   for i in range(npop): # initiate every pop
-    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+    pc = pc + [msprime.PopulationConfiguration(
+      sample_size = samples[i], 
+      growth_rate= rates[i+1][0],  
+      initial_size = init_sizes[i] )]
     
-    if not stable_pop and npop == 1 :# case where one pop and need to set 1st rate. Sioux to set it as pastdemo and pop_config
-      pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[i+1][0], population_id= 0) ]
+    if not stable_pop and npop == 1 :
+      # case where one pop and need to set 1st rate. 
+      #Sioux to set it as pastdemo and pop_config
+      pastdemo = [msprime.PopulationParametersChange(
+        time=0, initial_size = init_sizes[0], 
+        growth_rate = rates[i+1][0], population_id= 0) ]
     
     rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
     rates[i + 1].remove(rates[i+1][0]) # remove first rate
@@ -148,10 +167,10 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   
   for i in range(len(times)): # later populations parameter changes
     for ii in range(npop):
-      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange(
+        time=times[i], initial_size = sizes[ii+1][i], 
+        growth_rate = rates[ii+1][i], population_id= ii) ]
   
-  # if not stable_pop and npop == 1 : # case where one pop and need to set 1st rate
-  #   pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[0], population_id= 0) ] + pastdemo
   return pc, pastdemo
 
 
@@ -223,15 +242,12 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     past_values : list of int or list of list of int
         positive values
         the sizes of the population in the past
-        # TODO : should have the same length as time
     changetime : list of int or list of list of int
         None by default
         times at which the population size changes
-        # TODO : should have the same length as t past_sizes
     init_size : list of int
-        positive value
+        positive values
         the initial size of the population
-        # TODO : same len as past_value matrix
     sizesvalues : bool
         indicate if the past_values list is a matrix of sizes or growth rates.
         will be overridden if any past_values is a float below one.
@@ -239,6 +255,11 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     Notes
     -----
       sizes in float will be changed to int.
+      past_values, changetime and init_sizes must have the same lengths
+      every element of past_values and changetime need to have the same length
+      ex : [3, 2] & [3, 2] where the first element is past_values and the second
+      is changetime. The first element of past_values is of size 3 and 
+      changetime too.
 
     Returns
     -------
@@ -312,25 +333,33 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
             sys.exit('changetime must be positive values')
           changetime = [changetime]
     # past_values
-    #  past_values : list of int or list of list of int
-    #     positive values
-    #     the sizes of the population in the past
-    #     # TODO : should have the same length as time
+    if not isinstance(past_values, list):
+      if not isinstance(past_values, (int,float)) : 
+        sys.exit('past_values must be int, list of int or'+
+        ' nested list of int')
+    else :
+      for x in past_values:
+        if isinstance(x, list):
+          if not all(isinstance(y, (float, int)) for y in x) : 
+            sys.exit('past_values must be int, list of int or'+
+                     ' nested list of int')
+        else :
+          if not isinstance(x, (float, int)):
+            sys.exit('past_values must be int, list of int or'+
+        ' nested list of int')
+          past_values = [past_values]
     # size_values
     if not isinstance(sizevalues, bool):
-        sys.exit('sizevalues must be a boolean')
-        
+      sys.exit('sizevalues must be a boolean')
     # check lengths
-    # TODO : check if changetime[1] same size as pastvalue[1] etc
+    if len(past_values) != len(changetime) or len(changetime) != len(init_size):
+      sys.exit('past_values, changetime and init_sizes must have the same'+
+      ' number of elements')
     
-    
-    # if len(changetime) != len(past_values) :
-    #     sys.exit('changetime and past_values list must be of same length')
-    # if len(set(changetime)) != len(changetime) :
-    #     sys.exit('Duplicated times in changetime are not possible')
-    
-    # TODO : check if sizevalue,  if past values are int !
-    
+    for i in range(len(past_values)):
+      if len(past_values[i]) != len(changetime[i]):
+        sys.exit('each element of past_values and changetime lists must be '
+        +'of same lenghts')
     
     is_rate = False
     for i in range(len(past_values)):

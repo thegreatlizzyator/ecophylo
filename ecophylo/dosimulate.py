@@ -54,8 +54,6 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     
     Examples
     --------
-    >>> print('test')
-    no
     """
 
     # TODO : doc !!!
@@ -329,8 +327,6 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
       File "/home/maxime/Bureau/BEE/ecophylo/ecophylo/dosimulate.py", line 289, in simulate
         sys.exit("Sample size should not exceed community size")
     SystemExit: Sample size should not exceed community size
-    >>> print('test')
-    no
     """
     
     if not isinstance(seed, (int,float)):
@@ -549,8 +545,6 @@ def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
 
     Examples
     --------
-    >>> print('test')
-    no
     """
     random.seed(seed)
     if upper == lower :
@@ -594,8 +588,6 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
 
     Examples
     --------
-    >>> print('test')
-    no
     """
     # TODO : idiotproof
     # TODO : more examples

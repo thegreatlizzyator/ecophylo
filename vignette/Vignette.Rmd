@@ -84,7 +84,7 @@ n <- as.integer(10) # the sample size
 Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
 mu <- as.numeric(0.01) # the point mutation rate
 
-tree <- ecophylo$simulate(n, Jm, mu, seed = as.integer(42))
+tree <- ecophylo$simulate(n, Jm, mu, seed = 42)
 ```
 
 We can then compute summary statistics on the resulting phylogeny 
@@ -136,10 +136,32 @@ Let us assume that the Jm has fluctuated in the past.
 pastsizes <- list(as.integer(1000), as.integer(5000)) # the size of the metacommunity in the past 
 changetime <- list(as.integer(100),as.integer(200)) # the time (in generations) at which metacommunity size has changed
 
-tree1 <- ecophylo$simulate(n, Jm, mu, 
-                          past_sizes = pastsizes, 
-                          changetime = changetime, 
-                          seed = as.integer(42))
+
+verb = py_capture_output( # capture the verbose
+  tree1 <- ecophylo$simulate(n, Jm, mu, 
+                             past_sizes = pastsizes, 
+                             changetime = changetime, 
+                             seed = 42, verbose = TRUE), 
+  type = "stderr") # verbose is eported as an error
+cat(verb) # read this precious verbose
+
+abund1 <- ecophylo$getAbund(tree1, n)
+phylo1 <- read.tree(text = tree1$write())
+```
+
+```{r}
+# chunk to check if Maxime don't break the function !
+pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
+changetime <- list(100) # the time (in generations) at which metacommunity size has changed
+
+
+cat(py_capture_output( # capture the verbose
+  tree1b <- ecophylo$simulate_dolly(n, Jm, mu,
+                             past_sizes = pastsizes,
+                             changetime = changetime,
+                             seed = 42, verbose = TRUE),
+  type = "stderr")) # verbose is eported as an error
+# cat(verb) # read this precious verbose
 
 abund1 <- ecophylo$getAbund(tree1, n)
 phylo1 <- read.tree(text = tree1$write())

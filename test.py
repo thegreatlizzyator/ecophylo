@@ -21,6 +21,7 @@ if __name__ == "__main__":
     print('\nislmodel error tests')
     print('sizes2rates :', doctest.testfile("tests/test-sizes2rates.txt"))
     print('mergesizes2rates :', doctest.testfile("tests/test-mergesizes2rates.txt"))
+    print('population_configurations_stripe :', doctest.testfile("tests/test-population_configurations_stripe.txt"))
 
 
     print('\n==================')
