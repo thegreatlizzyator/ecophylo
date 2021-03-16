@@ -1,0 +1,268 @@
+---
+title: "run_utils"
+author: "Maxime Jaunatre"
+date: "18/02/2021"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(reticulate)
+knitr::knit_engines$set(python = reticulate::eng_python)
+```
+
+Small bit of code to help debug. Objective is to regroup here all examples of the python code.
+
+### Population configurations
+
+#### Define function
+```{python}
+def population_configurations(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
+  
+  # need to check :
+  # sample is uniq, then duplicate
+  # same with stable_pop, 
+  
+  # need to provide empty list for 
+  # len init_sizes = len past_sizes = len_changetime (= len stable_pop) = len samples
+  # if rates, len rates = npop
+  if rates != None :
+    stable_pop = False
+  npop = len(init_sizes)
+  
+  pastdemo = []
+  sizes = eco.mergesizes2rates(past_sizes, changetime, init_sizes, False)
+  times = sizes[0]
+  print(sizes)
+  # working on rates
+  if stable_pop: # no rates
+    rates = [ [0]*len(times) for _ in range(npop)]
+    rates = [times] + rates
+    
+  elif rates != None : # if rates are provided, fixed rates for all the epochs
+    if len(rates) == npop and all(isinstance(x, (int,float)) for x in rates):
+      tmp_rates = [times]
+      for i in range(npop):
+        tmp_rates = tmp_rates + [[rates[i]]*len(times)]
+      rates = tmp_rates
+  #   else : # not homogenous rates in time...too difficult to code right now
+  #     rates = eco.mergesizes2rates(rates, changetime, init_sizes, True)
+  else : # no rates provided so computed them from past_sizes and changetime
+    rates = eco.mergesizes2rates(past_sizes, changetime, init_sizes, True)
+  print(rates) # TODO : remove this
+  print(init_sizes) # TODO : remove this
+  
+  pc = [] # initial population configurations
+  for i in range(npop): # initiate every pop
+    pc = pc + [msprime.PopulationConfiguration(sample_size = samples[i], growth_rate= rates[i+1][0],  initial_size = init_sizes[i] )]
+    
+    if not stable_pop and npop == 1 :# case where one pop and need to set 1st rate. Sioux to set it as pastdemo and pop_config
+      pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[i+1][0], population_id= 0) ]
+    print('hello there')
+    rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
+    rates[i + 1].remove(rates[i+1][0]) # remove first rate
+    print('general kenobi')
+  print(rates)
+  
+  for i in range(len(times)): # later populations parameter changes
+    for ii in range(npop):
+      pastdemo = pastdemo +  [msprime.PopulationParametersChange( time=times[i], initial_size = sizes[ii+1][i], growth_rate = rates[ii+1][i], population_id= ii) ]
+  
+  # if not stable_pop and npop == 1 : # case where one pop and need to set 1st rate
+  #   pastdemo = [msprime.PopulationParametersChange( time=0, initial_size = init_sizes[0], growth_rate = rates[0], population_id= 0) ] + pastdemo
+  return pc, pastdemo
+
+```
+
+
+
+```{python, include = FALSE, eval = FALSE}
+import msprime
+import ecophylo as eco
+# cas 0
+init_sizes = [500]
+past_sizes = [[1000]]
+changetime = [[100]]
+samples = [1]
+rates = None #[0.02]
+stable_pop = True
+
+  
+pc, pastdemo = population_configurations(init_sizes, past_sizes, changetime, stable_pop, rates, samples)
+
+dd = msprime.DemographyDebugger(
+  Ne = init_sizes[0], 
+  demographic_events=pastdemo)
+dd.print_history()
+
+# cas 1
+init_sizes = [2, 3]
+past_sizes = [[4, 3, 7], [1, 2, 5]]
+changetime = [[10, 20, 30], [10, 15, 60]]
+samples = [1, 1]
+rates = [0.02, 0.05]
+stable_pop = True
+if rates != None :
+  stable_pop = False
+
+# if rates == None :
+#   rates = []
+
+migration_matrix = [ [ 0, 1], [ 1, 0] ]
+
+dd = msprime.DemographyDebugger(
+  population_configurations=pc, 
+  demographic_events=pastdemo)
+dd.print_history()
+
+treeseq = msprime.simulate(
+  random_seed= 42,
+  population_configurations = pc,
+  migration_matrix = migration_matrix,
+  demographic_events = pastdemo)
+  
+tree = treeseq.first()
+print(tree.draw(format = 'unicode'))
+```
+
+### getAbund examples
+```{python}
+from ete3 import Tree
+tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+print(tree)
+import ecophylo as eco
+phylo = eco.toPhylo(tree, 0.5, seed = 42)
+print(phylo)
+eco.getAbund(phylo)
+```
+
+
+### Writing simulate_dolly
+```{python}
+import msprime
+sample_size = 10 # the sample size
+com_size = 500 # the size of the metacommunity (sensu Hubbell, 2001)
+mu = 0.01
+init_rates = None
+past_sizes = None
+changetime = None
+mrca = None
+m = 0
+verbose = True
+seed = 42
+
+# def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
+#              past_sizes = None, changetime = None, mrca = None, 
+#              m = 0, verbose = False, seed = None):
+
+
+# parameters that will be used later
+split_dates = None # won't be used
+migrfrom = None # won't be used
+migrto = None # won't be used
+
+migration = None
+popconfig = None # TODO here !
+
+# Idiotproof
+if not isinstance(seed, (int,float)):
+  sys.exit('seed must be an integer')
+if isinstance(seed, float):
+  seed = int(seed)
+# TODO : idiotproof
+# do dummy checks here --> try to make code stupid-proof
+if sample_size >= com_size:
+  sys.exit("Sample size should not exceed community size")
+
+if isinstance(sample_size, int): # cas a une pop !
+  print('here')
+  demography = None
+  # make past demographic changes between different time frames
+  if past_sizes is not None and changetime is not None:
+    if len(past_sizes) != len(changetime):
+      sys.exit("There should be as many sizes as there are past epochs")
+    demography = pastdemo.demographic_events(changetime, past_sizes)
+    # simulatation
+  treeseq = msprime.simulate(sample_size= sample_size,
+                             Ne = com_size,
+                             random_seed= seed,
+                             demographic_events = demography)
+
+tree = treeseq.first()
+if verbose: print(tree.draw(format = 'unicode'))
+
+
+else : # make island model
+  npop = len(sample_size)
+  init_sizes = sample_size
+  
+  # TODO : doc !!!
+  popchange = []
+  massmigration = []
+  
+  # TODO : init the populations
+  
+  if init_sizes is None or init_rates is None:
+    sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
+    
+    # subpops =  npop
+    migration = islmodel.migration_matrix(npop, m)
+    
+    samples = np.ones(npop, dtype=int)*sample_size
+    # TODO : allow differential sampling in pop (provide sample list same length as npop)
+    popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
+    
+    # possible mass migration between populations
+    if split_dates is not None:
+        # implement option later for limited mass dispersal
+        massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+  
+  demography = popchange + massmigration
+  if len(demography) == 0:
+    demography = None
+  
+  treeseq = msprime.simulate(Ne = com_size,
+                             random_seed= seed,
+                             population_configurations = popconfig,
+                             migration_matrix = migration,
+                             demographic_events = demography)
+
+# if verbose should print the demography debugger - only for debugging purposes!!! 
+if verbose: 
+    dd = msprime.DemographyDebugger(Ne = com_size, 
+                                    demographic_events= demography, 
+                                    migration_matrix= migration, 
+                                    population_configurations= popconfig)
+        # dd.print_history()
+        dd.print_history(output=sys.stderr)
+
+tree = treeseq.first()
+if verbose: print(tree.draw(format = 'unicode'))
+if mrca is not None:
+  if tree.time(tree.root) > mrca : 
+    raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
+  " fixed limit ({mrca})")
+#print(tree.draw(format="unicode"))
+node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
+tree = Tree(tree.newick(node_labels = node_labels))
+phylo = phylogen.toPhylo(tree, mu, seed = seed)
+
+# return phylo
+```
+
+```{python testing mergesizes2rates}
+from ecophylo import mergesizes2rates
+from ecophylo import sizes2rates
+init_size = [2, 3]
+past_values = [[0.2, 0.1, -0.09, 0.009], [0.42, -0.4, 0.07, 0.42,0.01]]
+changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
+mergesizes2rates(past_values, changetime, init_size, False)
+    [[10, 15, 20, 21, 30, 40, 60, 70], [0.2, 0.1, 0.1, -0.09, -0.09, 0.009, 0.009, 0.009], [0.42, -0.4, 0.07, 0.07, 0.42, 0.42, 0.42, 0.01]]
+    
+```
+
+

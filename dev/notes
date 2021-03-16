@@ -24,13 +24,11 @@ pip install [your-package]
 
 # TODO @p:1 Planning
 # plan de vignette et article avant le 25
-# donc article avec resultat = extraits de vignette
 #
 # vignette : 2 parties : changement de tailles; migration/vicariance
 # partie 1 : utiliser les Abund (R) et comparer a log serie (attendus de la theorie neutre d'hubbel)
 # partie 2 : gros check de code sur la partie 2
 #
-# donc vignette en R avec reticulate ou alors jupyter
 #
 # TODO @p:2
 # test sur le format plutot que contenu

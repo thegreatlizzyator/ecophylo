@@ -1,0 +1,71 @@
+The ``ecophylo`` module
+======================
+
+Using ``toPhylo``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``toPhylo`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import toPhylo
+
+Now use it:
+
+    >>> from ete3 import Tree
+    >>> tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+    >>> print(tree)
+    <BLANKLINE>
+             /-A
+          /-|
+         |  |   /-B
+         |   \-|
+       /-|      \-C
+      |  |
+      |  |   /-D
+    --|   \-|
+      |      \-E
+      |
+      |   /-F
+       \-|
+          \-G
+    >>> import ecophylo as eco
+    
+    >>> toPhylo(tree = 'bamboo', mu = 0.5, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: tree must have a class TreeNode
+    
+    >>> toPhylo(tree = tree, mu = -1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: mu must be a float between 0 and 1
+    
+    >>> toPhylo(tree = tree, mu = 0.5, spmodel = 'creationism', seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
+    
+    >>> toPhylo(tree = tree, mu = 0.5, force_ultrametric = 'ça fait plaisir', seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: force_ultrametric must be a boolean
+    
+    >>> tree_er = Tree('((A:4,(B:4,C:3)1:4)1:5, Err:1, (D:1,E:1)1:1);')
+    >>> print(tree_er)
+    <BLANKLINE>
+          /-A
+       /-|
+      |  |   /-B
+      |   \-|
+      |      \-C
+    --|
+      |--Err
+      |
+      |   /-D
+       \-|
+          \-E
+    >>> toPhylo(tree_er, 0.5, seed = 42)
+    Traceback (most recent call last):
+      ...
+    SystemExit: The algorithm does not know how to deal with non dichotomic trees!

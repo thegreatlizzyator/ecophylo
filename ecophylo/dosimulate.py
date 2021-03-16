@@ -249,6 +249,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     sample_size : int
       number of individual in the community
         Sample size should not exceed community size
+        # TODO : renommer init_size
     com_size : int
         taille de la meta-communauté sensu hubbel 2001
     mu : float
@@ -262,7 +263,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
         DESCRIPTION
     m = 0 : float
         DESCRIPTION
-        # TODO : rename migr: float
+        # TODO : rename migr: float taux de migration
         # TODO : test between 0 and 1
         overall symetric migration rate. Default is 0. 
     init_rates = None : list of float$
@@ -331,6 +332,11 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     >>> print('test')
     no
     """
+    
+    if not isinstance(seed, (int,float)):
+        sys.exit('seed must be an integer')
+    if isinstance(seed, float):
+      seed = int(seed)
 
     # TODO : doc !!!
     # TODO : idiotproof
@@ -378,7 +384,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
                                         demographic_events= demography, 
                                         migration_matrix= migration, 
                                         population_configurations= popconfig)
-        dd.print_history()
+        dd.print_history(output=sys.stderr) # this will get deprecated with msprime 1.0
     
     if npop > 1:
          treeseq = msprime.simulate(Ne = com_size,
@@ -393,6 +399,118 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
                                    demographic_events = demography)
 
     tree = treeseq.first()
+    # if verbose: print(tree.draw(format = 'unicode'))
+    if mrca is not None:
+        if tree.time(tree.root) > mrca : 
+            raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
+                             " fixed limit ({mrca})")
+    #print(tree.draw(format="unicode"))
+    node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
+    tree = Tree(tree.newick(node_labels = node_labels))
+    phylo = phylogen.toPhylo(tree, mu, seed = seed)
+
+    return phylo
+
+
+def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
+             past_sizes = None, changetime = None, mrca = None, 
+             m = 0, verbose = False, seed = None):
+               
+    # # parameters that will be used later when mass migration will be coded
+    # split_dates = None # won't be used
+    # migrfrom = None # won't be used
+    # migrto = None # won't be used
+    
+    # Idiotproof
+    if not isinstance(seed, (int,float)):
+        sys.exit('seed must be an integer')
+    if isinstance(seed, float):
+        seed = int(seed)
+    # TODO : idiotproof
+    # do dummy checks here --> try to make code stupid-proof
+    if sample_size >= com_size:
+        sys.exit("Sample size should not exceed community size")
+    
+    if isinstance(sample_size, int): # One population case
+        demography = None
+        # make past demographic changes between different time frames
+        if past_sizes is not None and changetime is not None:
+            if len(past_sizes) != len(changetime):
+                sys.exit("There should be as many sizes as there are past epochs")
+            # demography = pastdemo.demographic_events(changetime, past_sizes)
+            
+            stable_pop = True
+            tmp, demography = islmodel.population_configurations_stripe(
+              [com_size],
+              [past_sizes], 
+              [changetime], stable_pop, init_rates, samples = [sample_size])
+              # tmp is not to be used
+        
+        # if verbose should print the demography debugger - only for debugging purposes!!! 
+        if verbose: 
+            dd = msprime.DemographyDebugger(Ne = com_size, 
+                                            demographic_events= demography)
+            # dd.print_history()
+            dd.print_history(output=sys.stderr)
+        
+        # simulatation
+        treeseq = msprime.simulate(sample_size= sample_size,
+                                   Ne = com_size,
+                                   random_seed= seed,
+                                   demographic_events = demography)
+        
+    else : # make island model
+        migration = None
+        popconfig = None # TODO : this weel
+        
+        npop = len(sample_size)
+        init_sizes = sample_size
+      
+        # TODO : doc !!!
+        popchange = []
+        massmigration = []
+      
+        # TODO : init the populations
+        popconfig, demography = islmodel.population_configurations_stripe(
+              com_size, past_sizes, changetime, stable_pop, 
+              init_rates, samples = sample_size)
+      
+        # if init_sizes is None or init_rates is None:
+        #     sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
+        #     # subpops =  npop
+        #     migration = islmodel.migration_matrix(npop, m)
+        #     samples = np.ones(npop, dtype=int)*sample_size
+        #     # TODO : allow differential sampling in pop (provide sample list same length as npop)
+        #     popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
+        # 
+            # # possible mass migration between populations
+            # if split_dates is not None:
+            #     # implement option later for limited mass dispersal
+            #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+      
+        # demography = popchange + massmigration
+        if len(demography) == 0:
+            demography = None
+        
+        # if verbose should print the demography debugger - only for debugging purposes!!! 
+        if verbose: 
+            dd = msprime.DemographyDebugger(
+              Ne = com_size,
+              population_configurations=population_configurations,
+              migration_matrix=migration,
+              demographic_events= demography)
+            # dd.print_history()
+            dd.print_history(output=sys.stderr)
+        
+        treeseq = msprime.simulate(Ne = com_size,
+                                   random_seed= seed,
+                                   population_configurations = popconfig,
+                                   migration_matrix = migration,
+                                   demographic_events = demography)
+        
+    
+    # Work on the result tree
+    tree = treeseq.first()
     if verbose: print(tree.draw(format = 'unicode'))
     if mrca is not None:
         if tree.time(tree.root) > mrca : 
@@ -403,7 +521,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     tree = Tree(tree.newick(node_labels = node_labels))
     phylo = phylogen.toPhylo(tree, mu, seed = seed)
 
-    return phylo   
+    return phylo  
 
 
 def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
@@ -496,16 +614,17 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     return p
 
 
-def getAbund(tree, samp_size):
+def getAbund(tree, sample_size = None):
     """
     
-
     Parameters
     ----------
-    tree : Tree Node (ete3 class)
-        # TODO : DESCRIPTION.
-        Is a phylogeny
-    samp_size : int
+    tree : (ete3 class)
+        Phylogeny with attributes on leafs. This attributes is a character 
+        string containing all names of the species individual (mean to use 
+        topPhylo result). Names is formated like this :
+          " name1 name2 name3"
+    sample_size : int
       number of individual in the community
       # TODO : rename sample_size
       # TODO : set this check as optionnal
@@ -517,25 +636,42 @@ def getAbund(tree, samp_size):
 
     Examples
     --------
-    >>> print('test')
-    no
+    >>> from ete3 import Tree
+    >>> tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+    >>> import ecophylo as eco
+    >>> phylo = eco.toPhylo(tree, 0.5, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+          /-A
+       /-|
+    --|   \-D
+      |
+       \-F
+    >>> getAbund(phylo, 7)
+    [3, 2, 2]
     """
-    # TODO : idiotproof
-    # TODO : more examples
+    # Idiot proof
+    if tree.__class__.__name__ != 'TreeNode' :
+        sys.exit('tree must have a class TreeNode')
+    if sample_size != None:
+      if not isinstance(sample_size, int):
+          sys.exit('sample_size must be an integer')
+
     sfs = list()
     abund = list()
     for leaf in tree.iter_leaves():
         try:
-            inds = leaf.mergedInd.lstrip(" ")
-            inds = list(inds.split(" "))
-            abund.append(len(inds))
+            inds = leaf.mergedInd.lstrip(" ") # remove 1st space
+            inds = list(inds.split(" ")) # strip on spaces
+            abund.append(len(inds)) # get length 
         except AttributeError:
             abund.append(1)
     sfs.extend(abund)
-    # thin about catching error when phylogeny has only 1 sp
-    if sum(sfs) != samp_size:
+    # think about catching error when phylogeny has only 1 sp
+    
+    if sample_size != None and sum(sfs) != sample_size:
         raise Exception(f"Simulated phylogeny has only one species!")
-        # TODO : modify error with a better check
+        # TODO : modify error with a better check here
     return sfs
 
 if __name__ == "__main__":
