@@ -507,7 +507,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     
     # Work on the result tree
     tree = treeseq.first()
-    if verbose: print(tree.draw(format = 'unicode'))
+    if verbose: print(tree.draw(format = 'ascii'))
     if mrca is not None:
         if tree.time(tree.root) > mrca : 
             raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
