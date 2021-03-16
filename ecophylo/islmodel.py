@@ -109,13 +109,13 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   # check init_sizes
   # check rates
   # check lenghts
-  if len(past_sizes) != len(changetime) or len(changetime) != len(init_sizes) or
-  len(rates != len(init_sizes) or len(samples) != len(init_sizes):
-      sys.exit('past_sizes, changetime and init_sizes must have the same'+
-      ' number of elements')
+  # if len(past_sizes) != len(changetime) or len(changetime) != len(init_sizes) or
+  # len(rates != len(init_sizes) or len(samples) != len(init_sizes):
+  #     sys.exit('past_sizes, changetime and init_sizes must have the same'+
+  #     ' number of elements')
       
-      init_sizes, past_sizes, changetime, stable_pop, rates, samples
-  
+      # init_sizes, past_sizes, changetime, stable_pop, rates, samples
+
   # need to check :
   # sample is uniq, then duplicate
   # same with stable_pop, 
