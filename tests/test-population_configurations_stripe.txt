@@ -1,0 +1,13 @@
+The ``ecophylo`` module
+======================
+
+Using ``population_configurations_stripe``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``population_configurations_stripe`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import population_configurations_stripe
+
+Now use it:

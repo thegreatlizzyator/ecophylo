@@ -51,7 +51,30 @@ Now use it:
       ...
     SystemExit: changetime must be positive values
     
+    >>> mergesizes2rates("42", 6000, 2, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_values must be int, list of int or nested list of int
+    >>> mergesizes2rates(["42"], 6000, 2, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_values must be int, list of int or nested list of int
+    >>> mergesizes2rates([["42"]], 6000, 2, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_values must be int, list of int or nested list of int
+
     >>> mergesizes2rates([[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], 2, "truc")
     Traceback (most recent call last):
       ...
     SystemExit: sizevalues must be a boolean
+    
+    >>> mergesizes2rates([[42], [6]], [[6000], [2000]], 21, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_values, changetime and init_sizes must have the same number of elements
+    
+    >>> mergesizes2rates([[42, 6]], [[6000]], 21, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: each element of past_values and changetime lists must be of same lenghts
