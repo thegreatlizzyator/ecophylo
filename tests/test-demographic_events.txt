@@ -1,0 +1,36 @@
+The ``ecophylo`` module
+======================
+
+Using ``timeframes``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``demographic_events`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import demographic_events
+
+Now use it:
+
+    >>> demographic_events([1, 2], [42])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime and past_sizes list must be of same length
+    
+    >>> demographic_events([1, '2'], [42, 9000])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime must be a list of int
+    >>> demographic_events([1, 2], [42, '9000'])
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_sizes must be a list of int
+    
+    >>> demographic_events([1, -2], [42, 9000])
+    Traceback (most recent call last):
+      ...
+    SystemExit: changetime must be strict positive values
+    >>> demographic_events([1, 2], [42, -9000])
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_sizes must be strict positive values

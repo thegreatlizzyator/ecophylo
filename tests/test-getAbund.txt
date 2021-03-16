@@ -1,0 +1,54 @@
+The ``ecophylo`` module
+======================
+
+Using ``getAbund``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``toPhylo`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import toPhylo
+    >>> from ecophylo import getAbund
+
+Now use it:
+
+    >>> from ete3 import Tree
+    >>> tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
+    >>> print(tree)
+    <BLANKLINE>
+             /-A
+          /-|
+         |  |   /-B
+         |   \-|
+       /-|      \-C
+      |  |
+      |  |   /-D
+    --|   \-|
+      |      \-E
+      |
+      |   /-F
+       \-|
+          \-G
+    >>> phylo = toPhylo(tree, 0.5, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+          /-A
+       /-|
+    --|   \-D
+      |
+       \-F
+    >>> getAbund('bamboo', 7)
+    Traceback (most recent call last):
+      ...
+    SystemExit: tree must have a class TreeNode
+    
+    >>> getAbund(phylo, "7")
+    Traceback (most recent call last):
+      ...
+    SystemExit: sample_size must be an integer
+    
+    >>> getAbund(phylo, 6)
+    Traceback (most recent call last):
+      ...
+    Exception: Simulated phylogeny has only one species!
