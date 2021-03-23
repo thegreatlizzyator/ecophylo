@@ -79,17 +79,26 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
       The initial community sizes at t0
   past_sizes : list of list of int
       positive values
-      The past community sizes. Must be a list with a list of past sizes for
-      evey community. 
+      The past community sizes. 
+      Must be a list with as many elements as populations each containing a list
+      of past sizes.
   changetime : list of list of int
-      Same format as past_sizes, but with times.
+      The times at which populations have changed sizes.
+      Must be a list with as many elements as populations each containing a list
+      of times.
   stable_pop : bool
-      indicate if the community size changement are brutal or progressive. 
-      This values is overwritten to False if a growth_rate is provided.
-  rates : list of float
+      Whether or not changes in population sizes are instantenous or progressive.
+      This parameter is deprecated if growth rates are provided.
+  rates : list of floats
       The initial community growth rates.
-  sample : int or list of int
-      the number of individual to follow in coalescent model
+      Must be a list with as many elements as populations containing the initial
+      growth rates.
+  samples : int or list of int
+      Positive values.
+      The number of individuals simulated in each population. 
+      Must be a list with as many elements as there are populations. If only one
+      value is provided, all populations are assumed to have the same sample size
+      and the value is duplicated npop times. 
         
   Notes
   -----
@@ -97,7 +106,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
 
   Returns
   -------
-    two list object that can be passed into msprime.simulate to indicate
+    two list objects that can be passed into msprime.simulate to indicate
     initial community states and past demographic changes.
     
   Examples
