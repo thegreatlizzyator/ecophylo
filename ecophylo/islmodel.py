@@ -68,7 +68,7 @@ def population_configurations(samples, init_sizes, rates) :
     return pc
 
 # TODO : stripe is the second mogwai born of Gizmo, be gentle with him
-def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop = True, rates = None, samples):
+def population_configurations_stripe(init_sizes, past_sizes, changetime, samples, stable_pop = True, rates = None):
   """
   Set up the initial population configurations and past demographic events.
 
@@ -86,6 +86,12 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
       The times at which populations have changed sizes.
       Must be a list with as many elements as populations each containing a list
       of times.
+  samples : int or list of int
+      Positive values.
+      The number of individuals simulated in each population. 
+      Must be a list with as many elements as there are populations. If only one
+      value is provided, all populations are assumed to have the same sample size
+      and the value is duplicated npop times. 
   stable_pop = True : bool
       Whether or not changes in population sizes are instantenous or progressive.
       This parameter is deprecated if growth rates are provided.
@@ -93,12 +99,6 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
       The initial community growth rates.
       Must be a list with as many elements as populations containing the initial
       growth rates.
-  samples : int or list of int
-      Positive values.
-      The number of individuals simulated in each population. 
-      Must be a list with as many elements as there are populations. If only one
-      value is provided, all populations are assumed to have the same sample size
-      and the value is duplicated npop times. 
         
   Notes
   -----
@@ -128,21 +128,21 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
     for x in range(len(init_sizes)) : 
       init_sizes[x] = int(init_sizes[x])
   # check past_sizes
-  if not isinstance(past_values, list):
-    if not isinstance(past_values, (int,float)) : 
-      sys.exit('past_values must be int, list of int or'+
+  if not isinstance(past_sizes, list):
+    if not isinstance(past_sizes, (int,float)) : 
+      sys.exit('past_sizes must be int, list of int or'+
       ' nested list of int')
   else :
-    for x in past_values:
+    for x in past_sizes:
       if isinstance(x, list):
         if not all(isinstance(y, (float, int)) for y in x) : 
-          sys.exit('past_values must be int, list of int or'+
+          sys.exit('past_sizes must be int, list of int or'+
                    ' nested list of int')
       else :
         if not isinstance(x, (float, int)):
-          sys.exit('past_values must be int, list of int or'+
+          sys.exit('past_sizes must be int, list of int or'+
           ' nested list of int')
-        past_values = [past_values]
+        past_sizes = [past_sizes]
   # check changetime
   if not isinstance(changetime, list):
     if isinstance(changetime, (int,float)) : 
@@ -172,8 +172,9 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   if not isinstance(stable_pop, bool):
     sys.exit('stable_pop must be a boolean')
   # check rates
-  if not isinstance(rates, list) or not all(isinstance(y, (float, int)) for y in rates):
-    sys.exit("rates must be a list of floats")
+  if rates != None :
+    if not isinstance(rates, list) or not all(isinstance(y, (float, int)) for y in rates):
+      sys.exit("rates must be a list of floats")
   # check samples
   if not isinstance(samples, list):
     if isinstance(samples, (int,float)) : 
@@ -189,11 +190,11 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
     for x in range(len(samples)) : 
       samples[x] = int(samples[x])
   # check lenghts
-  if len(past_sizes) != len(changetime) or len(changetime) != len(init_size):
-    sys.exit('past_values, changetime, rates and init_sizes must have the same'+
+  if len(past_sizes) != len(changetime) or len(changetime) != len(init_sizes):
+    sys.exit('past_sizes, changetime, rates and init_sizes must have the same'+
              ' number of elements')
   if rates != None and len(past_sizes) != len(rates):
-    sys.exit('past_values, changetime, rates and init_sizes must have the same'+
+    sys.exit('past_sizes, changetime, rates and init_sizes must have the same'+
              ' number of elements')
   if len(samples) == 1:
     samples = [samples]*len(init_sizes)
