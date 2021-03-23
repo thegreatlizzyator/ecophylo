@@ -68,25 +68,25 @@ def population_configurations(samples, init_sizes, rates) :
     return pc
 
 # TODO : stripe is the second mogwai born of Gizmo, be gentle with him
-def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop, rates, samples):
+def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_pop = True, rates = None, samples):
   """
   Set up the initial population configurations and past demographic events.
 
   Parameters
   ----------
-  init_sizes : list of int
+  init_size : list of int
       positive values
-      The initial community sizes at t0
+      the initial size of the population
   past_sizes : list of list of int
       positive values
       The past community sizes. Must be a list with a list of past sizes for
       evey community. 
   changetime : list of list of int
       Same format as past_sizes, but with times.
-  stable_pop : bool
+  stable_pop = True : bool
       indicate if the community size changement are brutal or progressive. 
       This values is overwritten to False if a growth_rate is provided.
-  rates : list of float
+  rates = None : list of float
       The initial community growth rates.
   sample : int or list of int
       the number of individual to follow in coalescent model
@@ -104,25 +104,99 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, stable_
   -------
   """
   # Idiot proof
-  # check past_sizes
-  # check changetime
   # check init_sizes
+  if not isinstance(init_sizes, list):
+      if isinstance(init_sizes, (int,float)) : 
+        init_sizes = [int(init_sizes)]
+      else :
+        sys.exit('init_sizes must be an int or a list of int. '+
+                 'Float will be rounded to int')
+  if not all(isinstance(x, (int, float)) for x in init_sizes) :
+       sys.exit('init_sizes must be a list of int')
+  if not all(x > 0 for x in init_sizes) :
+      sys.exit('init_sizes must be positive values')
+  else : 
+    for x in range(len(init_sizes)) : 
+      init_sizes[x] = int(init_sizes[x])
+  # check past_sizes
+  if not isinstance(past_values, list):
+    if not isinstance(past_values, (int,float)) : 
+      sys.exit('past_values must be int, list of int or'+
+      ' nested list of int')
+  else :
+    for x in past_values:
+      if isinstance(x, list):
+        if not all(isinstance(y, (float, int)) for y in x) : 
+          sys.exit('past_values must be int, list of int or'+
+                   ' nested list of int')
+      else :
+        if not isinstance(x, (float, int)):
+          sys.exit('past_values must be int, list of int or'+
+          ' nested list of int')
+        past_values = [past_values]
+  # check changetime
+  if not isinstance(changetime, list):
+    if isinstance(changetime, (int,float)) : 
+      if changetime >= 0 :
+        changetime = [[changetime]]
+      else :
+        sys.exit('changetime must be positive values')
+    else :
+      sys.exit('changetime must be int, list of int or'+
+      ' nested list of int')
+  else :
+    for x in changetime:
+      if isinstance(x, list):
+        if not all(isinstance(y, (float, int)) for y in x) : 
+          sys.exit('changetime must be int, list of int or'+
+                   ' nested list of int')
+        if any(y < 0 for y in x) : 
+          sys.exit('changetime must be positive values')
+      else :
+        if not isinstance(x, (float, int)):
+          sys.exit('changetime must be int, list of int or'+
+      ' nested list of int')
+        if x < 0:
+          sys.exit('changetime must be positive values')
+        changetime = [changetime]
+  # stable_pop
+  if not isinstance(stable_pop, bool):
+    sys.exit('stable_pop must be a boolean')
   # check rates
+  if not isinstance(rates, list) or not all(isinstance(y, (float, int)) for y in rates):
+    sys.exit("rates must be a list of floats")
+  # check samples
+  if not isinstance(samples, list):
+    if isinstance(samples, (int,float)) : 
+      samples = [int(samples)]
+    else :
+      sys.exit('samples must be an int or a list of int. '+
+               'Float will be rounded to int')
+  if not all(isinstance(x, (int, float)) for x in samples) :
+       sys.exit('samples must be a list of int')
+  if not all(x > 0 for x in samples) :
+      sys.exit('samples must be positive values')
+  else : 
+    for x in range(len(samples)) : 
+      samples[x] = int(samples[x])
   # check lenghts
-  # if len(past_sizes) != len(changetime) or len(changetime) != len(init_sizes) or
-  # len(rates != len(init_sizes) or len(samples) != len(init_sizes):
-  #     sys.exit('past_sizes, changetime and init_sizes must have the same'+
-  #     ' number of elements')
-      
-      # init_sizes, past_sizes, changetime, stable_pop, rates, samples
-
+  if len(past_sizes) != len(changetime) or len(changetime) != len(init_size):
+    sys.exit('past_values, changetime, rates and init_sizes must have the same'+
+             ' number of elements')
+  if rates != None and len(past_sizes) != len(rates):
+    sys.exit('past_values, changetime, rates and init_sizes must have the same'+
+             ' number of elements')
+  if len(samples) == 1:
+    samples = [samples]*len(init_sizes)
+    
   # need to check :
   # sample is uniq, then duplicate
   # same with stable_pop, 
-  
-  # need to provide empty list for 
-  # len init_sizes = len past_sizes = len_changetime (= len stable_pop) = len samples
-  # if rates, len rates = npop
+  # check insiders lengths
+  for i in range(len(past_sizes)):
+    if len(past_sizes[i]) != len(changetime[i]):
+      sys.exit('each element of past_sizes and changetime lists must be '
+        +'of same lenghts')
   if rates != None :
     stable_pop = False
   npop = len(init_sizes)
