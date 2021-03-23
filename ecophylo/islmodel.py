@@ -201,7 +201,8 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     
   # need to check :
   # sample is uniq, then duplicate
-  # same with stable_pop, 
+  # same with stable_pop
+
   # check insiders lengths
   for i in range(len(past_sizes)):
     if len(past_sizes[i]) != len(changetime[i]):

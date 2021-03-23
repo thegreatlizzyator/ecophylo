@@ -68,10 +68,33 @@ Now use it:
       ...
     SystemExit: stable_pop must be a boolean
 
-do the rates to here
-and samples
+    >>> population_configurations_stripe(2, [[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], 10, rates = "truc")
+    Traceback (most recent call last):
+      ...
+    SystemExit: rates must be a list of floats
+    >>> population_configurations_stripe(2, [[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], 10, rates = ["truc"])
+    Traceback (most recent call last):
+      ...
+    SystemExit: rates must be a list of floats
+
+    >>> population_configurations_stripe(2, [42], 6000, "10")
+    Traceback (most recent call last):
+      ...
+    SystemExit: samples must be an int or a list of int. Float will be rounded to int
+    >>> population_configurations_stripe(2, [42], 6000, ["10"])
+    Traceback (most recent call last):
+      ...
+    SystemExit: samples must be a list of int
+    >>> population_configurations_stripe(2, [42], 6000, -10)
+    Traceback (most recent call last):
+      ...
+    SystemExit: samples must be positive values
     
     >>> population_configurations_stripe(21, [[42], [6]], [[6000], [2000]], 10, True)
+    Traceback (most recent call last):
+      ...
+    SystemExit: past_sizes, changetime, rates and init_sizes must have the same number of elements
+    >>> population_configurations_stripe(21, [[42], [6]], [[6000], [2000]], 10, True, [0.042, 1])
     Traceback (most recent call last):
       ...
     SystemExit: past_sizes, changetime, rates and init_sizes must have the same number of elements
