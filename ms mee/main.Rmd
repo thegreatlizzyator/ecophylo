@@ -101,6 +101,7 @@ In the following example, an assemblage of species and their phylogenetic relati
 
 ```{r}
 library(reticulate)
+use_python(Sys.which("python3"))
 ecophylo <- import('ecophylo')
 
 n <- as.integer(10) # the number of simulated individuals
