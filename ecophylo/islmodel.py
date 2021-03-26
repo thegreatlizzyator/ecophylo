@@ -197,8 +197,8 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     sys.exit('past_sizes, changetime, rates and init_sizes must have the same'+
              ' number of elements')
   if len(samples) == 1:
-    samples = [samples]*len(init_sizes)
-    
+    samples = samples*len(init_sizes)
+  print(samples)
   # need to check :
   # sample is uniq, then duplicate
   # same with stable_pop
@@ -212,10 +212,11 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     stable_pop = False
   npop = len(init_sizes)
   
+  print(init_sizes, past_sizes, changetime, samples, rates)
+  
   pastdemo = []
   sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
   times = sizes[0]
-  print(sizes)
   # working on rates
   if stable_pop: # no rates
     rates = [ [0]*len(times) for _ in range(npop)]
@@ -613,3 +614,4 @@ def mass_migrations(times, sources, destinations, migr = 1):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
+        population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )

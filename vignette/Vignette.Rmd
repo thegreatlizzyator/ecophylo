@@ -154,12 +154,17 @@ phylo1 <- read.tree(text = tree1$write())
 pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
 changetime <- list(100) # the time (in generations) at which metacommunity size has changed
 
+n <- as.integer(10) # the sample size
+Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
+mu <- as.numeric(0.01) # the point mutation rate
 
 cat(py_capture_output( # capture the verbose
-  tree1b <- ecophylo$simulate_dolly(n, Jm, mu,
-                             past_sizes = pastsizes,
-                             changetime = changetime,
-                             seed = 42, verbose = TRUE),
+  tree1b <- ecophylo$simulate_dolly(sample_size = n, 
+                                    com_size = Jm, 
+                                    mu = mu,
+                                    past_sizes = pastsizes,
+                                    changetime = changetime,
+                                    seed = 42, verbose = TRUE),
   type = "stderr")) # verbose is eported as an error
 # cat(verb) # read this precious verbose
 
@@ -168,6 +173,7 @@ phylo1 <- read.tree(text = tree1$write())
 
 # TO DO: print demmography debuger here 
 ```
+
 
 ```{python eval=FALSE, include=FALSE}
 import ecophylo 
