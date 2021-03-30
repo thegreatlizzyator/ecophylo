@@ -423,12 +423,11 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     if isinstance(seed, float):
         seed = int(seed)
     # TODO : idiotproof
-    # do dummy checks here --> try to make code stupid-proof
     if sample_size >= com_size:
         sys.exit("Sample size should not exceed community size")
     
     if isinstance(sample_size, int): # One population case
-        demography = None
+        demography = None # TODO : remove this
         # make past demographic changes between different time frames
         if past_sizes is not None and changetime is not None:
             if len(past_sizes) != len(changetime):
@@ -439,7 +438,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             tmp, demography = islmodel.population_configurations_stripe(
               [com_size],
               [past_sizes], 
-              [changetime], stable_pop, init_rates, samples = [sample_size])
+              [changetime], sample_size, stable_pop, init_rates)
               # tmp is not to be used
         
         # if verbose should print the demography debugger - only for debugging purposes!!! 
@@ -456,29 +455,22 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                                    demographic_events = demography)
         
     else : # make island model
-        migration = None
-        popconfig = None # TODO : this weel
         
         npop = len(sample_size)
         init_sizes = sample_size
       
-        # TODO : doc !!!
-        popchange = []
-        massmigration = []
       
         # TODO : init the populations
         popconfig, demography = islmodel.population_configurations_stripe(
               com_size, past_sizes, changetime, stable_pop, 
               init_rates, samples = sample_size)
+              
+        # set the migration matrix
+        migration = None
+        massmigration = []
       
-        # if init_sizes is None or init_rates is None:
-        #     sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
-        #     # subpops =  npop
         #     migration = islmodel.migration_matrix(npop, m)
         #     samples = np.ones(npop, dtype=int)*sample_size
-        #     # TODO : allow differential sampling in pop (provide sample list same length as npop)
-        #     popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
-        # 
             # # possible mass migration between populations
             # if split_dates is not None:
             #     # implement option later for limited mass dispersal
