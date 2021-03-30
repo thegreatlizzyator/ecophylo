@@ -2,7 +2,9 @@
 title: "Vignette ecophylo"
 author: "E. Barthelemy, M. Jaunatre & F. Munoz"
 date: "09/03/2021"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 <style>
@@ -13,7 +15,7 @@ text-align: justify}
 ```{r setup, include=FALSE}
 library(reticulate)
 knitr::opts_chunk$set(echo = TRUE)
-use_python(Sys.which("python3"))
+use_python(Sys.which("python"))
 ```
 
 ## Introduction
@@ -48,13 +50,12 @@ python3 -m pip install ecophylo
 
 You will need to install `{reticulate}` package and python dependencies.
 
-```{r, eval=FALSE}
-# NOT RUN
-install.packages('reticulate') # answer yes
+```{r, eval=TRUE}
+if(!"reticulate"%in%installed.packages()[,1]) install.packages('reticulate') # answer yes
 library(reticulate)
 # python dependencies
-conda_install('r-reticulate', c('msprime','ete3','pandas'))
-py_install("ecophylo", envname = "r-reticulate", pip = TRUE)
+conda_install('r-reticulate', c('tskit', 'msprime','ete3','pandas',"Numpy"))
+py_install("ecophylo", envname = "r-reticulate", method = "conda", pip = TRUE)
 ```
 
 <!--
@@ -111,7 +112,7 @@ diversity(abund, "simpson")
 ```
 
 
-- phylogenetic diveristy metrics:
+- phylogenetic diversity metrics:
 
 ```{r}
 # Faith's phylogenetic diversity (PD)
@@ -149,31 +150,28 @@ abund1 <- ecophylo$getAbund(tree1, n)
 phylo1 <- read.tree(text = tree1$write())
 ```
 
-```{r}
-# chunk to check if Maxime doesn't break the function !
+```{r, eval=F}
+# chunk to check if Maxime don't break the function !
 pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
 changetime <- list(100) # the time (in generations) at which metacommunity size has changed
 
-n <- as.integer(10) # the sample size
-Jm <- as.integer(500) # the size of the metacommunity (sensu Hubbell, 2001)
-mu <- as.numeric(0.01) # the point mutation rate
 
 cat(py_capture_output( # capture the verbose
-  tree1b <- ecophylo$simulate_dolly(sample_size = n, 
-                                    com_size = Jm, 
-                                    mu = mu,
-                                    past_sizes = pastsizes,
-                                    changetime = changetime,
-                                    seed = 42, verbose = TRUE),
+  tree1b <- ecophylo$simulate_dolly(n, Jm, mu,
+                             past_sizes = pastsizes,
+                             changetime = changetime,
+                             seed = 42, verbose = TRUE),
   type = "stderr")) # verbose is eported as an error
-cat(verb) # read this precious verbose
+# cat(verb) # read this precious verbose
 
 abund1 <- ecophylo$getAbund(tree1, n)
 phylo1 <- read.tree(text = tree1$write())
+
+# TO DO: print demmography debuger here 
 ```
 
-
 ```{python eval=FALSE, include=FALSE}
+### Why import again here?
 import ecophylo 
 
 sample_size = 10
