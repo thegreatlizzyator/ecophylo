@@ -362,7 +362,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
         migration = islmodel.migration_matrix(npop, m)
         samples = np.ones(npop, dtype=int)*sample_size
         # TODO : allow differential sampling in pop (provide sample list same length as npop)
-        popconfig = islmodel.population_configurations(samples, init_sizes, init_rates)
+        popconfig = islmodel.population_configurations(init_sizes, samples, init_rates)
 
         # possible mass migration between populations
         if split_dates is not None:
@@ -440,7 +440,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
               [past_sizes], 
               [changetime], sample_size, stable_pop, init_rates)
               # tmp is not to be used
-        
+
         # if verbose should print the demography debugger - only for debugging purposes!!! 
         if verbose: 
             dd = msprime.DemographyDebugger(Ne = com_size, 
@@ -459,11 +459,14 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
         npop = len(sample_size)
         init_sizes = sample_size
       
-      
-        # TODO : init the populations
-        popconfig, demography = islmodel.population_configurations_stripe(
-              com_size, past_sizes, changetime, stable_pop, 
-              init_rates, samples = sample_size)
+        if past_sizes is not None and changetime is not None:
+            # TODO : init the populations
+            popconfig, demography = islmodel.population_configurations_stripe(
+                com_size, past_sizes, changetime, stable_pop, 
+                init_rates, samples = sample_size)
+        else :
+            popconfig = islmodel.population_configurations(com_size, sample_size, init_rates)
+            demography = None
               
         # set the migration matrix
         migration = None

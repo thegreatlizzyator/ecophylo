@@ -26,46 +26,78 @@ import sys
 import math
 
 
-def population_configurations(samples, init_sizes, rates) :
-    """
-    Set up the initial population configurations.
+def population_configurations(init_sizes, samples, rates = None) :
+  """
+  Set up the initial population configurations.
+  Parameters
+  ----------
+  init_sizes : list of int
+    positive values
+    the initial size of the population
+  samples : int or list of int
+    Positive values.
+    The number of individuals simulated in each population. 
+    Must be a list with as many elements as there are populations. If only one
+    value is provided, all populations are assumed to have the same sample size
+    and the value is duplicated npop times. 
+  rates = None : list of float
+    The initial community growth rates.
+    Must be a list with as many elements as populations containing the initial
+    growth rates.
 
-    Parameters
-    ----------
-    samples : list of int
-        positive values
-        The different population sample sizes
-    init_sizes : list of int
-        positive vlaues
-        The initial population sizes
-    rates : list of float
-        # TODO : test rates limites (real, -1:1 or -inf:inf)
-        The initial population growth rates
-
-    Returns
-    -------
-    a list object that can be passed into 
-    msprime.simulate to indicate initial 
-    population configurations
+  Returns
+  -------
+  a list object that can be passed into 
+  msprime.simulate to indicate initial 
+  population configurations
     
-    """
+  """
+  # TODO : examples
 
-    # TODO : examples
-    
-    if not isinstance(samples, list) :
-        sys.exit('samples must be a list')
-    if not isinstance(init_sizes, list) :
-        sys.exit('init_sizes must be a list')
-    if not isinstance(rates, list) :
-        sys.exit('rates must be a list')
-    if not len(samples) == len(init_sizes) == len(rates) :
-        sys.exit('all parameters must be list of same lengths')
-        
-    # if not all(isinstance(x, int) for x in past_sizes) :
-    #     sys.exit('past_sizes must be a list of int')
-
-    pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
-    return pc
+  # Idiot proof
+  # check init_sizes
+  if not isinstance(init_sizes, list):
+    if isinstance(init_sizes, (int,float)) : 
+      init_sizes = [int(init_sizes)]
+    else :
+      sys.exit('init_sizes must be an int or a list of int. '+
+               'Float will be rounded to int')
+  if not all(isinstance(x, (int, float)) for x in init_sizes) :
+    sys.exit('init_sizes must be a list of int')
+  if not all(x > 0 for x in init_sizes) :
+    sys.exit('init_sizes must be positive values')
+  else : 
+    for x in range(len(init_sizes)) : 
+      init_sizes[x] = int(init_sizes[x])
+  # check samples
+  if not isinstance(samples, list):
+    if isinstance(samples, (int,float)) : 
+      samples = [int(samples)]
+    else :
+      sys.exit('samples must be an int or a list of int. '+
+               'Float will be rounded to int')
+  if not all(isinstance(x, (int, float)) for x in samples) :
+       sys.exit('samples must be a list of int')
+  if not all(x > 0 for x in samples) :
+      sys.exit('samples must be positive values')
+  else : 
+    for x in range(len(samples)) : 
+      samples[x] = int(samples[x])
+  if len(samples) == 1:
+    samples = samples*len(init_sizes)
+  # check rates
+  if rates != None :
+    if not isinstance(rates, list) or not all(isinstance(y, (float, int)) for y in rates):
+      sys.exit("rates must be a list of floats")
+  else : 
+    rates = [None]
+  # check lenghts
+  if len(init_sizes) != len(samples) or ( rates != None and len(init_sizes) != len(rates) ):
+    sys.exit('init_sizes, samples and rates must have the same'+
+             ' number of elements')
+  
+  pc = [msprime.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip(samples, init_sizes, rates)]
+  return pc
 
 # TODO : stripe is the second mogwai born of Gizmo, be gentle with him
 def population_configurations_stripe(init_sizes, past_sizes, changetime, samples, stable_pop = True, rates = None):
@@ -74,7 +106,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
 
   Parameters
   ----------
-  init_size : list of int
+  init_sizes : list of int
       positive values
       the initial size of the population
   past_sizes : list of list of int
@@ -103,6 +135,9 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   Notes
   -----
     All parameters must have the same length, with an exception for stable_pop.
+    If a population change its size, you need to indicate at least one population 
+    change for other ones. For example a constant population should be coded with 
+    at least a past_size = init_size at changetime = 0.
 
   Returns
   -------
@@ -111,7 +146,22 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     
   Examples
   -------
+  >>> import msprime
+  >>> pc, config = population_configurations_stripe(init_sizes= 500, past_sizes= None, changetime= None, samples = 10 )
+  >>> pc, config = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
+  >>> config
+  [{'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}]
+  >>> pc, config = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [0]], samples = [10] )
+  >>> config
+  [{'type': 'population_parameters_change', 'time': 0, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 0, 'growth_rate': 0, 'initial_size': 500, 'population': 1}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 500, 'population': 1}]
+  >>> dd = msprime.DemographyDebugger(Ne = 500, population_configurations = pc, demographic_events= config)
+  >>> #dd.print_history(output=sys.stderr)
   """
+  # use a simplier function !
+  if past_sizes == None or changetime == None:
+    pc = population_configurations(init_sizes, samples, rates)
+    return pc, None
+
   # Idiot proof
   # check init_sizes
   if not isinstance(init_sizes, list):
@@ -198,7 +248,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
              ' number of elements')
   if len(samples) == 1:
     samples = samples*len(init_sizes)
-  print(samples)
+
   # need to check :
   # sample is uniq, then duplicate
   # same with stable_pop
@@ -211,8 +261,6 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   if rates != None :
     stable_pop = False
   npop = len(init_sizes)
-  
-  print(init_sizes, past_sizes, changetime, samples, rates)
   
   pastdemo = []
   sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
@@ -306,14 +354,18 @@ def sizes2rates(init_size, past_sizes, changetime):
         
     if not isinstance(init_size, int) or init_size <= 0 :
         sys.exit('init_size must be a single strict positive value')
-    
+
+    # TODO : merge init_size with past_size in parameters and all funciton calls
+    sizes = [init_size] + past_sizes
+    changetime = [0] + changetime
+    sprev = sizes[0]
     stime = 0
-    sprev = init_size
+    # sprev = init_size
     rates = []
-    for i in range(len(past_sizes)):
-        val = math.log(past_sizes[i]/sprev)/(changetime[i] - stime)
+    for i in range(1,len(sizes)):
+        val = math.log(sizes[i]/sprev)/(changetime[i] - stime)
         rates.append(round(val, 3))
-        sprev = past_sizes[i]
+        sprev = sizes[i]
         stime = changetime[i]
     return rates
 
@@ -409,7 +461,7 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
           if not all(isinstance(y, (float, int)) for y in x) : 
             sys.exit('changetime must be int, list of int or'+
                      ' nested list of int')
-          if any(y < 0for y in x) : 
+          if any(y < 0 for y in x) : 
             sys.exit('changetime must be positive values')
         else :
           if not isinstance(x, (float, int)):
@@ -478,8 +530,8 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
           if sizevalues and not is_rate : # compute directly the growrate
             tmp = val
             val = sizes2rates(first_size[i], 
-                                  past_sizes = [val], 
-                                  changetime = [ii])[0]
+                              past_sizes = [val], 
+                              changetime = [ii])[0]
             first_size[i] = tmp
           
           res.append(val) # add the value
@@ -614,4 +666,4 @@ def mass_migrations(times, sources, destinations, migr = 1):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
+        # population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
