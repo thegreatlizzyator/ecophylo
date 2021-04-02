@@ -150,7 +150,7 @@ phylo1 <- read.tree(text = tree1$write())
 ```
 
 ```{r}
-# chunk to check if Maxime don't break the function !
+# chunk to check if Maxime doesn't break the function !
 pastsizes <- list(as.integer(1000)) # the size of the metacommunity in the past 
 changetime <- list(100) # the time (in generations) at which metacommunity size has changed
 
@@ -166,12 +166,10 @@ cat(py_capture_output( # capture the verbose
                                     changetime = changetime,
                                     seed = 42, verbose = TRUE),
   type = "stderr")) # verbose is eported as an error
-# cat(verb) # read this precious verbose
+cat(verb) # read this precious verbose
 
 abund1 <- ecophylo$getAbund(tree1, n)
 phylo1 <- read.tree(text = tree1$write())
-
-# TO DO: print demmography debuger here 
 ```
 
 
