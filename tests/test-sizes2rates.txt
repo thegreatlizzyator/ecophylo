@@ -12,37 +12,28 @@ This is an example text file in reStructuredText format.  First import
 
 Now use it:
 
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 40])
+    >>> sizes2rates([2, 2, 4, 2, 5], [0, 10, 20, 40])
     Traceback (most recent call last):
       ...
-    SystemExit: changetime and past_sizes list must be of same length
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 20, 40])
+    SystemExit: changetime and sizes list must be of same length
+    >>> sizes2rates([2, 2, 4, 2, 5], [0, 10, 20, 20, 40])
     Traceback (most recent call last):
       ...
     SystemExit: Duplicated times in changetime are not possible
     
-    >>> sizes2rates(2, [2, 4, 2, '5'], [10, 20, 30, 40])
+    >>> sizes2rates([2, 2, 4, 2, '5'], [0, 10, 20, 30, 40])
     Traceback (most recent call last):
       ...
-    SystemExit: past_sizes must be a list of int
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, '30', 40])
+    SystemExit: sizes must be a list of int
+    >>> sizes2rates([2, 2, 4, 2, 5], [0, 10, 20, '30', 40])
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be a list of int
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, -30, 40])
+    >>> sizes2rates([2, 2, 4, 2, 5], [0, 10, 20, -30, 40])
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be strict positive values
-    >>> sizes2rates(2, [2, 4, 2, -5], [10, 20, 30, 40])
+    >>> sizes2rates([2, 2, 4, 2, -5], [0, 10, 20, 30, 40])
     Traceback (most recent call last):
       ...
-    SystemExit: past_sizes must be strict positive values
-    
-    >>> sizes2rates(0, [2, 4, 2, 5], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: init_size must be a single strict positive value
-    >>> sizes2rates(-5, [2, 4, 2, 5], [10, 20, 30, 40])
-    Traceback (most recent call last):
-      ...
-    SystemExit: init_size must be a single strict positive value
+    SystemExit: sizes must be strict positive values

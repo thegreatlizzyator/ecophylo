@@ -308,23 +308,22 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   return pc, pastdemo
 
 
-def sizes2rates(init_size, past_sizes, changetime):
+def sizes2rates(sizes, changetime):
     """
     Compute the growth rates corresponding to a set of past sizes at different 
     times for a single population with a given initial size
 
     Parameters
     ----------
-    init_size : int
-        positive value
-        the initial size of the population
-    past_sizes : list of int
+    sizes : list of int
         positive values
         the sizes of the population in the past
-        should have the same length as time 
+        should have the same length as time and
+        first one is the initial size of the population
     changetime : list of int
         times at which the population size changes
         should have the same length as t past_sizes
+        First one should be 0.
 
     Returns
     -------
@@ -333,34 +332,27 @@ def sizes2rates(init_size, past_sizes, changetime):
     
     Examples
     -------
-    >>> sizes2rates(2, [2, 4, 2, 5], [10, 20, 30, 40])
+    >>> sizes2rates([2, 2, 4, 2, 5], [0,10, 20, 30, 40])
     [0.0, 0.069, -0.069, 0.092]
     """
     
     # Idiot proof
-    if len(changetime) != len(past_sizes) :
-        sys.exit('changetime and past_sizes list must be of same length')
+    if len(changetime) != len(sizes) :
+        sys.exit('changetime and sizes list must be of same length')
     if len(set(changetime)) != len(changetime) :
         sys.exit('Duplicated times in changetime are not possible')
     
-    if not all(isinstance(x, int) for x in past_sizes) :
-        sys.exit('past_sizes must be a list of int')
+    if not all(isinstance(x, int) for x in sizes) :
+        sys.exit('sizes must be a list of int')
     if not all(isinstance(x, int) for x in changetime) :
         sys.exit('changetime must be a list of int')
-    if not all((x > 0) for x in changetime) :
+    if not all((x >= 0) for x in changetime) :
         sys.exit('changetime must be strict positive values')
-    if not all((x > 0) for x in past_sizes) :
-        sys.exit('past_sizes must be strict positive values')
-        
-    if not isinstance(init_size, int) or init_size <= 0 :
-        sys.exit('init_size must be a single strict positive value')
+    if not all((x > 0) for x in sizes) :
+        sys.exit('sizes must be strict positive values')
 
-    # TODO : merge init_size with past_size in parameters and all funciton calls
-    sizes = [init_size] + past_sizes
-    changetime = [0] + changetime
     sprev = sizes[0]
-    stime = 0
-    # sprev = init_size
+    stime = changetime[0]
     rates = []
     for i in range(1,len(sizes)):
         val = math.log(sizes[i]/sprev)/(changetime[i] - stime)
@@ -407,9 +399,9 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     Examples
     -------
     >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], [2], True)
-    [[10, 20, 30, 40], [0.041, 0.026, -0.017, 0.007]]
+    [[10, 20, 30, 40], [0.041, 0.051, -0.051, 0.029]]
     >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], 2, True)
-    [[10, 20, 30, 40], [0.041, 0.026, -0.017, 0.007]]
+    [[10, 20, 30, 40], [0.041, 0.051, -0.051, 0.029]]
     
     >>> mergesizes2rates([[0.2, 0.1, -0.09, 0.009]], [[10, 20, 30, 40]], [2], False)
     [[10, 20, 30, 40], [0.2, 0.1, -0.09, 0.009]]
@@ -418,7 +410,7 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     >>> past_values = [[4, 3, 10, 7], [1, 2, 5, 2,3]]
     >>> changetime = [[10, 20, 30, 40], [10, 15, 21, 60, 70]]
     >>> mergesizes2rates(past_values, changetime, init_size, True)
-    [[10, 15, 20, 21, 30, 40, 60, 70], [0.069, -0.014, -0.014, 0.04, 0.04, -0.009, -0.009, -0.009], [-0.11, 0.046, 0.044, 0.044, -0.015, -0.015, -0.015, 0.006]]
+    [[10, 15, 20, 21, 30, 40, 60, 70], [0.069, -0.029, -0.029, 0.12, 0.12, -0.036, -0.036, -0.036], [-0.11, 0.139, 0.153, 0.153, -0.023, -0.023, -0.023, 0.041]]
     >>> mergesizes2rates(past_values, changetime, init_size, False)
     [[10, 15, 20, 21, 30, 40, 60, 70], [4, 4, 3, 3, 10, 7, 7, 7], [1, 2, 2, 5, 5, 5, 2, 3]]
     
@@ -517,6 +509,7 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     for i in range(npop) :
       tmpsize = list(past_values[i])
       tmptime = list(changetime[i])
+      init_time = 0
       res = [] # init empty list
       for ii in  nrow:
         
@@ -529,10 +522,10 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
           tmptime.remove(tmptime[0])
           if sizevalues and not is_rate : # compute directly the growrate
             tmp = val
-            val = sizes2rates(first_size[i], 
-                              past_sizes = [val], 
-                              changetime = [ii])[0]
+            val = sizes2rates(sizes = [first_size[i], val], 
+                              changetime = [init_time,ii])[0]
             first_size[i] = tmp
+            init_time = ii
           
           res.append(val) # add the value
           # remove previous NA (only if its grates)
