@@ -265,4 +265,8 @@ mergesizes2rates(past_values, changetime, init_size, False)
     
 ```
 
+```{python}
+import msprime
+pop
+```
 

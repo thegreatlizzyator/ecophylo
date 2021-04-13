@@ -23,9 +23,9 @@ import pandas as pd
 #from loguniform import LogUniform
 from scipy.stats import loguniform
 
-from . import pastdemo
-from . import islmodel
-from . import phylogen
+from ecophylo import pastdemo
+from ecophylo import islmodel
+from ecophylo import phylogen
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
              prior_distrib = "uniform", npop=1, withmigr=False, init_ratesprior=None,
@@ -409,9 +409,27 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
 
 def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
-             past_sizes = None, changetime = None, mrca = None, 
-             m = 0, verbose = False, seed = None):
-               
+                   changetime = None, mrca = None, 
+                   m = 0, verbose = False, seed = None):
+    """
+
+    """         
+    init_sizes = list()
+    changetimen = list()
+    past_sizes = list()
+
+    for i in range(len(com_size)):
+    # extract init_values
+        init_sizes.append(com_size[i][0])
+        if len(com_size[i]) == 1:
+            past_sizes.append([com_size[i][0]])
+            changetimen.append([0])
+        else:
+            past_sizes.append(com_size[i][1:])
+            changetimen.append(changetime[i][1:])
+    com_size = list(init_sizes)
+    changetime = list(changetimen)
+
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
     # migrfrom = None # won't be used
@@ -426,7 +444,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     if sample_size >= com_size:
         sys.exit("Sample size should not exceed community size")
     
-    if isinstance(sample_size, int): # One population case
+    if isinstance(sample_size, int) or len(sample_size) == 1: # One population case
         demography = None # TODO : remove this
         # make past demographic changes between different time frames
         if past_sizes is not None and changetime is not None:
@@ -436,40 +454,42 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             
             stable_pop = True
             tmp, demography = islmodel.population_configurations_stripe(
-              [com_size],
-              [past_sizes], 
-              [changetime], sample_size, stable_pop, init_rates)
+              com_size,
+              past_sizes, 
+              changetime, sample_size, stable_pop, init_rates)
               # tmp is not to be used
 
         # if verbose should print the demography debugger - only for debugging purposes!!! 
         if verbose: 
-            dd = msprime.DemographyDebugger(Ne = com_size, 
+            dd = msprime.DemographyDebugger(Ne = com_size[0], 
                                             demographic_events= demography)
             # dd.print_history()
             dd.print_history(output=sys.stderr)
         
         # simulatation
-        treeseq = msprime.simulate(sample_size= sample_size,
-                                   Ne = com_size,
+        treeseq = msprime.simulate(sample_size= sample_size[0],
+                                   Ne = com_size[0],
                                    random_seed= seed,
                                    demographic_events = demography)
         
     else : # make island model
         
         npop = len(sample_size)
-        init_sizes = sample_size
+        stable_pop = True
       
         if past_sizes is not None and changetime is not None:
             # TODO : init the populations
             popconfig, demography = islmodel.population_configurations_stripe(
-                com_size, past_sizes, changetime, stable_pop, 
-                init_rates, samples = sample_size)
+                init_sizes = com_size, past_sizes = past_sizes, changetime = changetime, 
+                samples = sample_size, stable_pop = stable_pop, 
+                rates = init_rates)
         else :
             popconfig = islmodel.population_configurations(com_size, sample_size, init_rates)
             demography = None
               
         # set the migration matrix
-        migration = None
+        migration = islmodel.migration_matrix(npop, m)
+        migration = [[0, 1], [1, 0]]
         massmigration = []
       
         #     migration = islmodel.migration_matrix(npop, m)
@@ -480,21 +500,19 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
       
         # demography = popchange + massmigration
-        if len(demography) == 0:
+        if demography is None or len(demography) == 0:
             demography = None
         
         # if verbose should print the demography debugger - only for debugging purposes!!! 
         if verbose: 
             dd = msprime.DemographyDebugger(
-              Ne = com_size,
-              population_configurations=population_configurations,
+              population_configurations=popconfig,
               migration_matrix=migration,
-              demographic_events= demography)
+              demographic_events = demography)
             # dd.print_history()
             dd.print_history(output=sys.stderr)
         
-        treeseq = msprime.simulate(Ne = com_size,
-                                   random_seed= seed,
+        treeseq = msprime.simulate(random_seed= seed,
                                    population_configurations = popconfig,
                                    migration_matrix = migration,
                                    demographic_events = demography)
@@ -664,3 +682,6 @@ def getAbund(tree, sample_size = None):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
+        #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, m = 1, verbose = True, seed = 42)
+        simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
+

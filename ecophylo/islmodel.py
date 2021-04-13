@@ -90,9 +90,9 @@ def population_configurations(init_sizes, samples, rates = None) :
     if not isinstance(rates, list) or not all(isinstance(y, (float, int)) for y in rates):
       sys.exit("rates must be a list of floats")
   else : 
-    rates = [None]
+    rates = [0]*len(init_sizes)
   # check lenghts
-  if len(init_sizes) != len(samples) or ( rates != None and len(init_sizes) != len(rates) ):
+  if len(init_sizes) != len(samples) or ( rates is not None and len(init_sizes) != len(rates) ):
     sys.exit('init_sizes, samples and rates must have the same'+
              ' number of elements')
   
@@ -158,7 +158,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   >>> #dd.print_history(output=sys.stderr)
   """
   # use a simplier function !
-  if past_sizes == None or changetime == None:
+  if past_sizes is None or changetime is None:
     pc = population_configurations(init_sizes, samples, rates)
     return pc, None
 
@@ -253,11 +253,30 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   # sample is uniq, then duplicate
   # same with stable_pop
 
+  sizes = list()
+  changetimen = list()
+  tmp_past_sizes = list()
+  tmp_init_sizes = list()
+  tmp_changetime = list()
+  for i in range(len(past_sizes)):
+    sizes.append( [init_sizes[i]] + past_sizes[i] )
+    changetimen.append([0] + changetime[i])
+
   # check insiders lengths
   for i in range(len(past_sizes)):
     if len(past_sizes[i]) != len(changetime[i]):
       sys.exit('each element of past_sizes and changetime lists must be '
         +'of same lenghts')
+    # extract init_values
+    tmp_init_sizes.append(sizes[i][0])
+    if len(sizes[i]) == 1:
+      tmp_past_sizes.append(sizes[i][0])
+      tmp_changetime.append([0])
+    else:
+      tmp_past_sizes.append(sizes[i][1:])
+      tmp_changetime.append(changetimen[i][1:])
+
+
   if rates != None :
     stable_pop = False
   npop = len(init_sizes)
@@ -659,4 +678,5 @@ def mass_migrations(times, sources, destinations, migr = 1):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
+        # pc, config = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [0]], samples = [10] )
         # population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
