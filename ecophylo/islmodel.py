@@ -580,11 +580,11 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     return matrix
 
 
-# def migration_configuration(npop, migr = 1, migr_time = None):
-        #if isinstance(migr, (int, float)) :
-         #   migration = islmodel.migration_matrix(npop = npop, migr = migr)
-        # else : migration 
-        #   migration = [[0., 0.5], [0.5, 0.]]
+def migration_configuration(npop, migr = 1, migr_time = None):
+        if isinstance(migr, (int, float)) :
+           migration = islmodel.migration_matrix(npop = npop, migr = migr)
+        else : migration 
+          migration = [[0., 0.5], [0.5, 0.]]
 
 
 def migration_matrix(npop, migr = 1):

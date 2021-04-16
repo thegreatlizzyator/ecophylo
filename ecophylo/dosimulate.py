@@ -302,7 +302,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
     Examples
     --------
-    >>> t = simulate(10, 1e5, 0.03, seed = 42, verbose = True)
+    >>> t = simulate(10, 1e5, 0.03, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-1
@@ -414,7 +414,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     """
     Examples
     --------
-    >>> t = simulate_dolly(sample_size = [10], com_size = [[1e5]], mu = 0.03, seed = 42, verbose = True)
+    >>> t = simulate_dolly(sample_size = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-1
@@ -430,7 +430,8 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
           \-|   \-3
             |
              \-6
-
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
     """         
     init_sizes = list()
     tmp = list()
@@ -704,5 +705,5 @@ if __name__ == "__main__":
         import doctest
         doctest.testmod()
         #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
-        simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
+        # simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
 
