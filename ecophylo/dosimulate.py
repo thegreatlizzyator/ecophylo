@@ -36,9 +36,9 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
   
     nsim : int
     comprior : list of int 
-      lenght = 2
+        lenght = 2
     muprior : list of float
-      length = 2
+        length = 2
     sstype : str
     prior_distrib
     withmigr : bool
@@ -245,7 +245,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
     Parameters
     ----------
     sample_size : int
-      number of individual in the community
+        number of individual in the community
         Sample size should not exceed community size
         # TODO : renommer init_size
     com_size : int
@@ -567,9 +567,9 @@ def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
     upper : int or float
         number of replicates.
     distr : str
-      distribution law choice are uniform and log_unif
+        distribution law choice are uniform and log_unif
     typ : str
-      float or int, typ of lim elements.
+        float or int, typ of lim elements.
     seed : int
         None by default, set the seed for mutation random events.
 
@@ -612,7 +612,7 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
         the type of prior distribution. The default is "uniform".
         choice are uniform, logunif
     typ : str
-      float or int, typ of lim elements.
+        float or int, typ of lim elements.
     seed : int
         None by default, set the seed for mutation random events.
 
@@ -652,9 +652,9 @@ def getAbund(tree, sample_size = None):
         topPhylo result). Names is formated like this :
           " name1 name2 name3"
     sample_size : int
-      number of individual in the community
-      # TODO : rename sample_size
-      # TODO : set this check as optionnal
+        number of individual in the community
+        # TODO : rename sample_size
+        # TODO : set this check as optionnal
 
     Returns
     -------
