@@ -302,7 +302,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
     Examples
     --------
-    >>> t = simulate(10, 1e5, 0.03, seed = 42)
+    >>> t = simulate(10, 1e5, 0.03, seed = 42, verbose = True)
     >>> print(t)
     <BLANKLINE>
           /-1
@@ -410,12 +410,30 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
 def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
                    changetime = None, mrca = None, 
-                   m = 0, verbose = False, seed = None):
+                   migr = 1, migr_time = None, verbose = False, seed = None):
     """
+    Examples
+    --------
+    >>> t = simulate_dolly(sample_size = [10], com_size = [[1e5]], mu = 0.03, seed = 42, verbose = True)
+    >>> print(t)
+    <BLANKLINE>
+          /-1
+       /-|
+      |  |   /-8
+      |   \-|
+    --|      \-0
+      |
+      |   /-7
+      |  |
+       \-|      /-5
+         |   /-|
+          \-|   \-3
+            |
+             \-6
 
     """         
     init_sizes = list()
-    changetimen = list()
+    tmp = list()
     past_sizes = list()
 
     for i in range(len(com_size)):
@@ -423,12 +441,12 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
         init_sizes.append(com_size[i][0])
         if len(com_size[i]) == 1:
             past_sizes.append([com_size[i][0]])
-            changetimen.append([0])
+            tmp.append([0])
         else:
             past_sizes.append(com_size[i][1:])
-            changetimen.append(changetime[i][1:])
+            tmp.append(changetime[i][1:])
     com_size = list(init_sizes)
-    changetime = list(changetimen)
+    changetime = list(tmp)
 
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
@@ -441,11 +459,11 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     if isinstance(seed, float):
         seed = int(seed)
     # TODO : idiotproof
-    if sample_size >= com_size:
-        sys.exit("Sample size should not exceed community size")
+    #if sample_size >= com_size:
+    #    sys.exit("Sample size should not exceed community size")
     
     if isinstance(sample_size, int) or len(sample_size) == 1: # One population case
-        demography = None # TODO : remove this
+        demography = None
         # make past demographic changes between different time frames
         if past_sizes is not None and changetime is not None:
             if len(past_sizes) != len(changetime):
@@ -454,10 +472,11 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             
             stable_pop = True
             tmp, demography = islmodel.population_configurations_stripe(
-              com_size,
-              past_sizes, 
-              changetime, sample_size, stable_pop, init_rates)
+              com_size, past_sizes, changetime, sample_size, stable_pop, init_rates)
               # tmp is not to be used
+
+        if demography is None or len(demography) == 0:
+            demography = None
 
         # if verbose should print the demography debugger - only for debugging purposes!!! 
         if verbose: 
@@ -488,16 +507,18 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             demography = None
               
         # set the migration matrix
-        migration = islmodel.migration_matrix(npop, m)
-        migration = [[0, 1], [1, 0]]
+        # migration = migration_configuration(npop = npop, migr = migr, migr_time = None)
+        if isinstance(migr, (int, float)) :
+            migration = islmodel.migration_matrix(npop = npop, migr = migr)
+        else : 
+            migration = [[0., 0.5], [0.5, 0.]]
         massmigration = []
       
-        #     migration = islmodel.migration_matrix(npop, m)
         #     samples = np.ones(npop, dtype=int)*sample_size
-            # # possible mass migration between populations
-            # if split_dates is not None:
-            #     # implement option later for limited mass dispersal
-            #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+        # # possible mass migration between populations
+        # if split_dates is not None:
+        #     # implement option later for limited mass dispersal
+        #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
       
         # demography = popchange + massmigration
         if demography is None or len(demography) == 0:
@@ -682,6 +703,6 @@ def getAbund(tree, sample_size = None):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, m = 1, verbose = True, seed = 42)
+        #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
         simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
 
