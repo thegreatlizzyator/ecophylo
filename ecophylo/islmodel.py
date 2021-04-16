@@ -148,12 +148,18 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   -------
   >>> import msprime
   >>> pc, config = population_configurations_stripe(init_sizes= 500, past_sizes= None, changetime= None, samples = 10 )
+  >>> pc, config = population_configurations_stripe(init_sizes= 500, past_sizes= [[500]], changetime= [[0]], samples = 10 )
+  >>> config
+  []
   >>> pc, config = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
   >>> config
   [{'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}]
-  >>> pc, config = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [0]], samples = [10] )
+  >>> pc, config = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], stable_pop = False, samples = [10] )
   >>> config
-  [{'type': 'population_parameters_change', 'time': 0, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 0, 'growth_rate': 0, 'initial_size': 500, 'population': 1}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 500, 'population': 1}]
+  [{'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0.007, 'initial_size': 1000, 'population': 0}]
+  >>> pc, config = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [40]], samples = [10] )
+  >>> config
+  [{'type': 'population_parameters_change', 'time': 40, 'growth_rate': 0, 'initial_size': 500, 'population': 0}, {'type': 'population_parameters_change', 'time': 40, 'growth_rate': 0, 'initial_size': 500, 'population': 1}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 500, 'population': 1}]
   >>> dd = msprime.DemographyDebugger(Ne = 500, population_configurations = pc, demographic_events= config)
   >>> #dd.print_history(output=sys.stderr)
   """
@@ -253,28 +259,28 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   # sample is uniq, then duplicate
   # same with stable_pop
 
-  sizes = list()
-  changetimen = list()
-  tmp_past_sizes = list()
-  tmp_init_sizes = list()
-  tmp_changetime = list()
-  for i in range(len(past_sizes)):
-    sizes.append( [init_sizes[i]] + past_sizes[i] )
-    changetimen.append([0] + changetime[i])
+  # sizes = list()
+  # changetimen = list()
+  # tmp_past_sizes = list()
+  # tmp_init_sizes = list()
+  # tmp_changetime = list()
+  # for i in range(len(past_sizes)):
+  #   sizes.append( [init_sizes[i]] + past_sizes[i] )
+  #   changetimen.append([0] + changetime[i])
 
   # check insiders lengths
   for i in range(len(past_sizes)):
     if len(past_sizes[i]) != len(changetime[i]):
       sys.exit('each element of past_sizes and changetime lists must be '
         +'of same lenghts')
-    # extract init_values
-    tmp_init_sizes.append(sizes[i][0])
-    if len(sizes[i]) == 1:
-      tmp_past_sizes.append(sizes[i][0])
-      tmp_changetime.append([0])
-    else:
-      tmp_past_sizes.append(sizes[i][1:])
-      tmp_changetime.append(changetimen[i][1:])
+    # # extract init_values
+    # tmp_init_sizes.append(sizes[i][0])
+    # if len(sizes[i]) == 1:
+    #   tmp_past_sizes.append(sizes[i][0])
+    #   tmp_changetime.append([0])
+    # else:
+    #   tmp_past_sizes.append(sizes[i][1:])
+    #   tmp_changetime.append(changetimen[i][1:])
 
 
   if rates != None :
@@ -284,6 +290,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
   pastdemo = []
   sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
   times = sizes[0]
+
   # working on rates
   if stable_pop: # no rates
     rates = [ [0]*len(times) for _ in range(npop)]
@@ -307,19 +314,14 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
       growth_rate= rates[i+1][0],  
       initial_size = init_sizes[i] )]
     
-    if not stable_pop and npop == 1 :
-      # case where one pop and need to set 1st rate. 
-      #Sioux to set it as pastdemo and pop_config
-      pastdemo = [msprime.PopulationParametersChange(
-        time=0, initial_size = init_sizes[0], 
-        growth_rate = rates[i+1][0], population_id= 0) ]
-    
     rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
     rates[i + 1].remove(rates[i+1][0]) # remove first rate
   
-  
   for i in range(len(times)): # later populations parameter changes
     for ii in range(npop):
+      if times[i] == 0:
+        # print('error', ii)
+        continue
       pastdemo = pastdemo +  [msprime.PopulationParametersChange(
         time=times[i], initial_size = sizes[ii+1][i], 
         growth_rate = rates[ii+1][i], population_id= ii) ]
@@ -417,6 +419,8 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     
     Examples
     -------
+    >>> mergesizes2rates([[1000], [500]], [[100], [40]], [500, 300], False)
+    [[40, 100], [500, 1000], [500, 500]]
     >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], [2], True)
     [[10, 20, 30, 40], [0.041, 0.051, -0.051, 0.029]]
     >>> mergesizes2rates([[3, 5, 3, 4]], [[10, 20, 30, 40]], 2, True)
@@ -553,8 +557,12 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
             place-=1
           
           if not sizevalues : # if it is sizes, get last sizes and apply it
-            for iii in range(place, len(res)-1):
-              res[iii] = res[place - 1]
+            if place == 0:
+              for iii in range(len(res)-1):
+                res[iii] = first_size[i]
+            else :  
+              for iii in range(place, len(res)-1):
+                res[iii] = res[place - 1]
           else: # apply NA with lateest rates
             for iii in range(place, len(res)) :
               res[iii] = val
@@ -572,7 +580,14 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
     return matrix
 
 
-def migration_matrix(npop, m = 0):
+# def migration_configuration(npop, migr = 1, migr_time = None):
+        #if isinstance(migr, (int, float)) :
+         #   migration = islmodel.migration_matrix(npop = npop, migr = migr)
+        # else : migration 
+        #   migration = [[0., 0.5], [0.5, 0.]]
+
+
+def migration_matrix(npop, migr = 1):
     """
     Set up the migration matrix between sub-populations.
     
@@ -583,7 +598,7 @@ def migration_matrix(npop, m = 0):
     ----------
     npop: int
         Number of sub-populations. Should be at least 2.
-    m: float
+    migr: float
         overall symetric migration rate. Default is 0, maximum is 1.
         Is the percentage of the population to be immigrants.
 
@@ -594,17 +609,17 @@ def migration_matrix(npop, m = 0):
     
     Examples
     --------
-    >>> migration_matrix(npop=2, m=0.5)
+    >>> migration_matrix(npop=2, migr=0.5)
     array([[0.  , 0.25],
            [0.25, 0.  ]])
     >>> migration_matrix(npop=2)
-    array([[0., 0.],
-           [0., 0.]])
+    array([[0. , 0.5],
+           [0.5, 0. ]])
     >>> migration_matrix(npop=1)
     Traceback (most recent call last):
       ...
     SystemExit: npop must be an integer, with a minimum value of 2
-    >>> migration_matrix(npop=3, m=1.2)
+    >>> migration_matrix(npop=3, migr=1.2)
     Traceback (most recent call last):
       ...
     SystemExit: migr must be a float between 0 and 1 (both included
@@ -613,13 +628,13 @@ def migration_matrix(npop, m = 0):
     if not isinstance(npop, int) or npop < 2 :
         sys.exit('npop must be an integer, with a minimum value of 2')
     
-    if not isinstance(m, (int,float)) or m < 0 or m > 1 :
+    if not isinstance(migr, (int,float)) or migr < 0 or migr > 1 :
         sys.exit('migr must be a float between 0 and 1 (both included')
         
-    m = m / (2 * (npop - 1))
+    migr = migr / (2 * (npop - 1))
 
     # symmetric island model (later - implement other types of models)
-    migration_matrix = np.ones((npop,npop))*m
+    migration_matrix = np.ones((npop,npop))*migr
     np.fill_diagonal(migration_matrix, 0)
 
     return migration_matrix
