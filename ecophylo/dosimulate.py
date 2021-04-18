@@ -432,6 +432,20 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
              \-6
     >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 2, seed = 42)
     >>> print(t)
+    <BLANKLINE>
+       /-8
+      |
+    --|      /-7
+      |   /-|
+      |  |   \-4
+       \-|
+         |   /-3
+         |  |
+          \-|      /-6
+            |   /-|
+             \-|   \-0
+               |
+                \-1
     """         
     init_sizes = list()
     tmp = list()
