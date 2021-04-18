@@ -11,6 +11,7 @@ Functions :
     sample
     params
     getAbund
+    getDeme
 
 """
     # TODO : doc !!!
@@ -714,6 +715,50 @@ def getAbund(tree, sample_size = None):
         raise Exception(f"Simulated phylogeny has only one species!")
         # TODO : modify error with a better check here
     return sfs
+
+def getDeme(tree):
+    """
+    
+    Parameters
+    ----------
+    tree : (ete3 class)
+        Phylogeny with attributes on leafs. This attributes is a character 
+        string containing all names of the species individual (mean to use 
+        topPhylo result). Names is formated like this :
+          " name1 name2 name3"
+
+    Returns
+    -------
+    indiv : nest list of int
+        site/species matrix of the tree
+
+    Examples
+    --------
+    >>> from ete3 import Tree
+    >>> tree = Tree('(((A_0:5,(B_0:3, C_1:3))1:2,(D_1:2, E_1:2)1:5)1:2, (F_2:3, G_2:3)1:6);')
+    >>> import ecophylo as eco
+    >>> phylo = eco.toPhylo(tree, 0.5, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+          /-A
+       /-|
+    --|   \-D
+      |
+       \-F
+    >>> getDeme(phylo)
+    [[2, 1, 0], [0, 2, 0], [0, 0, 2]]
+    """
+    # Idiot proof
+    if tree.__class__.__name__ != 'TreeNode' :
+        sys.exit('tree must have a class TreeNode')
+    
+    indiv = list()
+    for leaf in tree.iter_leaves():
+        try:
+            indiv.append(leaf.popInd)
+        except AttribueError :
+            indiv.append(1)
+    return indiv
 
 if __name__ == "__main__":
         import doctest
