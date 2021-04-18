@@ -90,6 +90,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     innerNodeIndex = 0
     nIndsORI = 0
     spID = 0
+    demeID = 0
+    ndeme = 0
     
     # mutation model on branches
     for node in tree.traverse("preorder"): # traverse les noeuds
@@ -97,12 +99,23 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
             node.sp
         except AttributeError:
             node.add_features(sp=1)
+        try:
+            node.deme
+        except AttributeError:
+            node.add_features(deme=1)
 
         if not node.is_leaf():
             node.name = "n%d" % innerNodeIndex
             innerNodeIndex += 1
         else:
             nIndsORI += 1
+            name_deme = node.name.split("_")
+            if len(name_deme) == 1: # if no population added, only one deme
+                name_deme.append('0')
+            if(int(name_deme[1]) > ndeme):
+                ndeme += 1
+            node.deme = int(name_deme[1])
+            node.name = name_deme[0]
 
         if not node.is_leaf():
             umut = ubranch_mutation(node, mu, seed = seed)
@@ -126,13 +139,20 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                 csp = [i.sp for i in children]
                 if csp.count(csp[0]) == len(csp):
                     mergedLeaves = ""
+                    popInd = [0] * (ndeme + 1)
                     for childnode in node.traverse():
                         traversedNodes.add(childnode)
                         if childnode.is_leaf():
                             mergedLeaves = mergedLeaves+ " "+ childnode.name
+                            popInd = [a+b for a, b in zip(childnode.popInd, popInd)]
 
                     children[1].mergedInd = mergedLeaves
                     children[0].delete()
+            else :
+                popInd = [0] * (ndeme + 1)
+                popInd[node.deme] += 1
+                node.popInd = popInd
+
         
         
         
@@ -158,20 +178,25 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                             newDist = newLeaf[1] + node.dist
 
                             mergedLeaves = ""
+                            popInd = [0] * (ndeme + 1)
 
                             for childnode in node.traverse():
                                 traversedNodes.add(childnode)
                                 if childnode.is_leaf():
                                     mergedLeaves = mergedLeaves+" "+childnode.name
+                                    popInd[childnode.deme] += 1
                             node.detach()
                             upNode.add_child(newLeaf[0], newLeaf[0].name, newDist)
                             newLeaf[0].mergedInd = mergedLeaves
+                            newLeaf[0].popInd = popInd
                     
                         else:
                             # populate "mergedInd" feature for future SFS
                             mergedLeaves = ""
+                            popInd = [0] * (ndeme + 1)
                             for l in node.iter_leaves():
                                 mergedLeaves = mergedLeaves+" "+l.name
+                                popInd = [a+b for a, b in zip(l.popInd, popInd)]
                             # collapse the subtree
                             newLeaf = tree.get_farthest_leaf()
                             for child in tree.get_children():
@@ -180,6 +205,11 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     
                             # actualize "mergedInd" feature of new leaf
                             newLeaf[0].mergedInd = mergedLeaves
+                            newLeaf[0].popInd = popInd
+                else :
+                    popInd = [0] * (ndeme + 1)
+                    popInd[node.deme] += 1
+                    node.popInd = popInd
     
     if force_ultrametric: # TODO : add is.ultramtric from ete3
         tree_dist = tree.get_farthest_leaf()[1]
