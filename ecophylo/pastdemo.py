@@ -87,10 +87,10 @@ def demographic_events(changetime, past_sizes):
     Examples
     --------
     >>> demographic_events([1, 2], [42, 9000])
-    [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}, {'type': 'population_parameters_change', 'time': 2, 'growth_rate': None, 'initial_size': 9000, 'population': -1}]
+    [PopulationParametersChange(time=1, initial_size=42, growth_rate=None, population=-1), PopulationParametersChange(time=2, initial_size=9000, growth_rate=None, population=-1)]
     
     >>> demographic_events([1], [42])
-    [{'type': 'population_parameters_change', 'time': 1, 'growth_rate': None, 'initial_size': 42, 'population': -1}]
+    [PopulationParametersChange(time=1, initial_size=42, growth_rate=None, population=-1)]
     """
     # Idiot proof
     if len(changetime) != len(past_sizes) :
