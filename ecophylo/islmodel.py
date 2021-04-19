@@ -288,7 +288,6 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     
     if demo is None:
         demo = msprime.Demography()
-    pastdemo = []
     sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
     times = sizes[0]
     
@@ -308,12 +307,7 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     else : # no rates provided so computed them from past_sizes and changetime
         rates = mergesizes2rates(past_sizes, changetime, init_sizes, True)
     
-    pc = [] # initial population configurations
     for i in range(npop): # initiate every pop
-        # pc = pc + [msprime.PopulationConfiguration(
-        #     sample_size = samples[i], 
-        #     growth_rate= rates[i+1][0],
-        #     initial_size = init_sizes[i] )]
         demo.add_population(name="pop_"+str(i), 
                             initial_size=init_sizes[i], 
                             growth_rate=rates[i+1][0])
@@ -325,9 +319,6 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
         for ii in range(npop):
             if times[i] == 0:
                 continue
-            # pastdemo = pastdemo + [msprime.PopulationParametersChange(
-            #     time=times[i], initial_size = sizes[ii+1][i], 
-            #     growth_rate = rates[ii+1][i], population_id= ii) ]
             demo.add_population_parameters_change(
                 time = times[i], initial_size = sizes[ii+1][i], 
                 growth_rate = rates[ii+1][i], population = ii
