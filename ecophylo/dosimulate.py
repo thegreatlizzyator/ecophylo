@@ -410,7 +410,7 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
 
 def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
-                   changetime = None, mrca = None, 
+                   changetime = None, stable_pop = True, mrca = None, 
                    migr = 1, migr_time = None, verbose = False, seed = None):
     """
     Examples
@@ -478,51 +478,45 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     #if sample_size >= com_size:
     #    sys.exit("Sample size should not exceed community size")
     
+    samples = {"pop_"+str(i):sample_size[i] for i in range(len(sample_size))}
+    
+    demo = msprime.Demography()
+
     if isinstance(sample_size, int) or len(sample_size) == 1: # One population case
-        demography = None
         # make past demographic changes between different time frames
         if past_sizes is not None and changetime is not None:
             if len(past_sizes) != len(changetime):
                 sys.exit("There should be as many sizes as there are past epochs")
             # demography = pastdemo.demographic_events(changetime, past_sizes)
             
-            stable_pop = True
-            tmp, demography = islmodel.population_configurations_stripe(
+            # stable_pop = True
+            demo = islmodel.population_configurations_stripe(
               com_size, past_sizes, changetime, 
-              sample_size, stable_pop, init_rates)
+              sample_size, stable_pop, init_rates, demo = demo)
               # tmp is not to be used
-
-        if demography is None or len(demography) == 0:
-            demography = None
 
         # if verbose should print the demography debugger - only for debugging purposes!!! 
         if verbose: 
-            dd = msprime.DemographyDebugger(Ne = com_size[0], 
-                                            demographic_events= demography)
-            # dd.print_history()
-            dd.print_history(output=sys.stderr)
+            print(demo.debug())
         
-        # simulatation
-        treeseq = msprime.simulate(sample_size= sample_size[0],
-                                   Ne = com_size[0],
-                                   random_seed= seed,
-                                   demographic_events = demography)
+        # simulation
+        treeseq = msprime.sim_ancestry(samples = samples, 
+            demography=demo, random_seed=seed, ploidy = 1)
         
     else : # make island model
         
         npop = len(sample_size)
-        stable_pop = True
+        # stable_pop = True
       
         if past_sizes is not None and changetime is not None:
             # TODO : init the populations
-            popconfig, demography = islmodel.population_configurations_stripe(
+            demo = islmodel.population_configurations_stripe(
                 init_sizes = com_size, past_sizes = past_sizes, 
                 changetime = changetime, samples = sample_size, 
-                stable_pop = stable_pop, rates = init_rates)
+                stable_pop = stable_pop, rates = init_rates, demo = demo)
         else :
-            popconfig = islmodel.population_configurations(
-                com_size, sample_size, init_rates)
-            demography = None
+            popconfig, demo = islmodel.population_configurations(
+                com_size, sample_size, init_rates, demo)
               
         # set the migration matrix
         # migration = migration_configuration(npop = npop, migr = migr, migr_time = None)
@@ -530,31 +524,21 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             migration = islmodel.migration_matrix(npop = npop, migr = migr)
         else : 
             migration = [[0., 0.5], [0.5, 0.]]
-        massmigration = []
+        
+        demo.set_symmetric_migration_rate(populations = range(npop),rate = migr)
       
         #     samples = np.ones(npop, dtype=int)*sample_size
         # # possible mass migration between populations
         # if split_dates is not None:
         #     # implement option later for limited mass dispersal
         #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
-      
-        # demography = popchange + massmigration
-        if demography is None or len(demography) == 0:
-            demography = None
-        
+
         # if verbose should print the demography debugger - only for debugging purposes!!! 
-        if verbose: 
-            dd = msprime.DemographyDebugger(
-              population_configurations=popconfig,
-              migration_matrix=migration,
-              demographic_events = demography)
-            # dd.print_history()
-            dd.print_history(output=sys.stderr)
+        if verbose:
+            print(demo.debug())
         
-        treeseq = msprime.simulate(random_seed= seed,
-                                   population_configurations = popconfig,
-                                   migration_matrix = migration,
-                                   demographic_events = demography)
+        treeseq = msprime.sim_ancestry(samples = samples, 
+            demography=demo, random_seed=seed, ploidy = 1)
         
     
     # Work on the result tree
@@ -767,4 +751,32 @@ if __name__ == "__main__":
         doctest.testmod()
         #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
         # simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+
+        ## SINGLE POP
+        # stat discret
+        # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # stat continue # TODO : ne marche pas dans merge2sizes !
+        # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        
+        # fluct discret
+        # t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # fluct continue # TODO : ne marche pas dans merge2sizes !
+        t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        
+        ## MULT POP
+
+        # stat discret
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # stat continue # TODO : ne marche pas dans merge2sizes !
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+
+        # fluct discret
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # fluct continue # TODO : marche bizarrement
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+
+        
+        print(t)
+
 

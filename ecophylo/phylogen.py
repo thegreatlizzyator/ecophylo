@@ -157,6 +157,12 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
         
         
     if spmodel == "SGD" : 
+
+        for leaf in tree.iter_leaves():
+            popInd = [0] * (ndeme + 1)
+            popInd[leaf.deme] += 1
+            leaf.popInd = popInd
+
         traversedNodes = set()
         for node in tree.traverse("preorder"):
             if node not in traversedNodes:
@@ -206,10 +212,6 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                             # actualize "mergedInd" feature of new leaf
                             newLeaf[0].mergedInd = mergedLeaves
                             newLeaf[0].popInd = popInd
-                else :
-                    popInd = [0] * (ndeme + 1)
-                    popInd[node.deme] += 1
-                    node.popInd = popInd
     
     if force_ultrametric: # TODO : add is.ultramtric from ete3
         tree_dist = tree.get_farthest_leaf()[1]
