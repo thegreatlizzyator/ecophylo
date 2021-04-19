@@ -488,7 +488,8 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             
             stable_pop = True
             tmp, demography = islmodel.population_configurations_stripe(
-              com_size, past_sizes, changetime, sample_size, stable_pop, init_rates)
+              com_size, past_sizes, changetime, 
+              sample_size, stable_pop, init_rates)
               # tmp is not to be used
 
         if demography is None or len(demography) == 0:
@@ -515,11 +516,12 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
         if past_sizes is not None and changetime is not None:
             # TODO : init the populations
             popconfig, demography = islmodel.population_configurations_stripe(
-                init_sizes = com_size, past_sizes = past_sizes, changetime = changetime, 
-                samples = sample_size, stable_pop = stable_pop, 
-                rates = init_rates)
+                init_sizes = com_size, past_sizes = past_sizes, 
+                changetime = changetime, samples = sample_size, 
+                stable_pop = stable_pop, rates = init_rates)
         else :
-            popconfig = islmodel.population_configurations(com_size, sample_size, init_rates)
+            popconfig = islmodel.population_configurations(
+                com_size, sample_size, init_rates)
             demography = None
               
         # set the migration matrix
