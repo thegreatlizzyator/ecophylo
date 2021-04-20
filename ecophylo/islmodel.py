@@ -284,6 +284,8 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     
     if rates != None :
         stable_pop = False
+    if sum([sum(i) for i in changetime]) == 0 : 
+        stable_pop = True
     npop = len(init_sizes)
     
     if demo is None:
@@ -543,7 +545,7 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
                     tmp = val
                     # print("sizes :",[first_size[i], val])
                     # print("changetime :", [init_time,ii])
-                    val = sizes2rates(sizes = [first_size[i], val], 
+                    val = -sizes2rates(sizes = [first_size[i], val], 
                                       changetime = [init_time,ii])[0]
                     first_size[i] = tmp
                     init_time = ii

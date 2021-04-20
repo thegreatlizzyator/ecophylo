@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.7
 
 from ecophylo import phylogen
 from ecophylo import islmodel
