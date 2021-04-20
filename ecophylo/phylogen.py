@@ -83,7 +83,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                 'spmodel must be either "SGD" or "NTD" string')
     if not isinstance(force_ultrametric, bool):
         sys.exit('force_ultrametric must be a boolean')
-    if not isinstance(seed, int):
+    if seed is not None and not isinstance(seed, int):
         sys.exit('seed must be an integer')
 
     # init some parameters
@@ -263,7 +263,7 @@ def ubranch_mutation(node, mu, seed = None):
         sys.exit('node must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
         sys.exit('mu must be a float between 0 and 1')
-    if not isinstance(seed, int):
+    if seed is not None and not isinstance(seed, int):
         sys.exit('seed must be an integer')
     
     lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)

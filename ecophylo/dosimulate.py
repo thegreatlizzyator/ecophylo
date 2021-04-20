@@ -19,6 +19,7 @@ import msprime
 import random
 import numpy as np
 import sys
+import warnings
 from ete3 import Tree
 import pandas as pd
 #from loguniform import LogUniform
@@ -431,23 +432,21 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
           \-|   \-3
             |
              \-6
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 2, seed = 42)
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
-       /-8
+          /-7
+         |
+       /-|      /-4
+      |  |   /-|
+      |   \-|   \-8
+    --|     |
+      |      \-0
       |
-    --|      /-7
-      |   /-|
-      |  |   \-4
+      |   /-3
        \-|
-         |   /-3
-         |  |
-          \-|      /-6
-            |   /-|
-             \-|   \-0
-               |
-                \-1
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42)
+          \-1
+    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-4
@@ -455,15 +454,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     --|   \-0
       |
        \-2
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-4
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42)
+    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-3
@@ -471,112 +462,244 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     --|   \-0
       |
        \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42)
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
-             /-6
-          /-|
-         |   \-0
-       /-|
-      |  |   /-7
-      |   \-|
-    --|     |   /-1
-      |      \-|
-      |         \-3
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-             /-6
-          /-|
-         |   \-0
-       /-|
-      |  |   /-7
-      |   \-|
-    --|     |   /-1
-      |      \-|
-      |         \-3
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-                /-7
-             /-|
-          /-|   \-2
-         |  |
-       /-|   \-3
-      |  |
-      |  |   /-9
-    --|   \-|
+          /-7
+         |
+       /-|      /-4
+      |  |   /-|
+      |   \-|   \-8
+    --|     |
       |      \-0
       |
-       \-6
+      |   /-3
+       \-|
+          \-1
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-2
+       /-|
+      |   \-0
+      |
+    --|         /-6
+      |      /-|
+      |   /-|   \-3
+      |  |  |
+       \-|   \-1
+         |
+          \-7
     """         
-    init_sizes = list()
-    tmp = list()
-    past_sizes = list()
+    # init_sizes = list()
+    # tmp = list()
+    # past_sizes = list()
 
-    for i in range(len(com_size)):
-    # extract init_values
-        init_sizes.append(com_size[i][0])
-        if len(com_size[i]) == 1:
-            past_sizes.append([com_size[i][0]])
-            tmp.append([0])
-        else:
-            past_sizes.append(com_size[i][1:])
-            tmp.append(changetime[i][1:])
-    com_size = list(init_sizes)
-    changetime = list(tmp)
+    # for i in range(len(com_size)):
+    # # extract init_values
+    #     init_sizes.append(com_size[i][0])
+    #     if len(com_size[i]) == 1:
+    #         past_sizes.append([com_size[i][0]])
+    #         tmp.append([0])
+    #     else:
+    #         past_sizes.append(com_size[i][1:])
+    #         tmp.append(changetime[i][1:])
+    # com_size = list(init_sizes)
+    # changetime = list(tmp)
+
 
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
     # migrfrom = None # won't be used
     # migrto = None # won't be used
     
+    # compute number of populations
+    npop = len(sample_size)
+
     # Idiotproof
-    if not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer')
-    if isinstance(seed, float):
+    # check com_size
+    # TODO : do this
+    # check mu
+    if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
+        sys.exit('mu must be a float between 0 and 1')
+    # check init_rates
+    if init_rates is not None:
+        print('prout') # TODO : do this
+    else :
+        init_rates = [[None]] * npop
+        changerates = [[None]] * npop
+    # check changetime
+    if changetime is not None:
+        if not isinstance(changetime, list):
+            if isinstance(changetime, (int,float)) : 
+                if changetime >= 0 :
+                    changetime = [[changetime]]
+                else :
+                    sys.exit('changetime must be positive values')
+            else :
+                sys.exit('changetime must be int, list of int or'+
+                ' nested list of int')
+        else :
+            for x in changetime:
+                if isinstance(x, list):
+                    if not all(isinstance(y, (float, int)) for y in x) : 
+                        sys.exit('changetime must be int, list of int or'+
+                                 ' nested list of int')
+                    if any(y < 0 for y in x[1:]) : 
+                        sys.exit('changetime must be positive values')
+                    if x[0] != 0:
+                        sys.exit('first element of changetime for a Deme'+
+                        ' must be equal to 0')
+                    if len(set(x)) != len(x) :
+                        sys.exit('Duplicated times in changetime for a Deme' +
+                                 ' are not possible')
+                else :
+                    if len(set(changetime)) != len(changetime) :
+                        sys.exit('Duplicated times in changetime are not possible')
+                    if not isinstance(x, (float, int)):
+                        sys.exit('changetime must be int, list of int or'+
+                                 ' nested list of int')
+                    if x < 0:
+                        sys.exit('changetime must be positive values')
+                    changetime = [changetime]
+                    if changetime[0] != 0:
+                        sys.exit('first element of changetime'+
+                        ' must be equal to 0')
+    else :
+        changetime = [[0]] * npop
+    # check stable_pop
+    # check mrca
+    if mrca is not None :
+        print('prout') # TODO : do this
+    # check migr
+    if migr is not None :
+        if npop == 1 :
+            warnings.warn("no migration matrix is needed for a single deme")
+            migr = None
+    if migr is not None :
+        m = np.array(migr)
+        dim = m.shape
+
+        if np.sum(m) == 0 :
+            sys.exit("migration matrices cannot all be empty")
+
+        if len(dim) == 0:
+            migr = [migr]
+            m = np.array(migr)
+            dim = m.shape
+        if len(dim) > 1 :
+            if dim[1] != dim[2] or dim[1] != npop or dim[2] != npop:
+                sys.exit("custom migration matrices should be of size ndeme" +
+                " x ndeme")
+            for mat in migr:
+                isint_migr = [isinstance(i, (float,int)) for i in mat]
+                ispos_migr = [i>=0 and i<= 1 for i in mat]
+                if not all(isint_migr) :
+                    sys.exit("found custom migration matrix that is not made" +
+                    " of ints or floats")
+                if not all(ispos_migr):
+                    sys.exit("found custom migration matrix with negative" +
+                    " migration rates or greater than 1")
+        else :
+            isint_migr = [isinstance(i, (float,int)) for i in migr]
+            ispos_migr = [i>=0 and i<= 1 for i in migr]
+            if not all(isint_migr):
+                sys.exit("migration rates should be either ints or floats")
+            if not all(ispos_migr): 
+                sys.exit("migration rate should be positive (or zero) and" + 
+                " not exceed 1")
+    
+    # check migr_time
+    if migr is not None and len(migr) > 1 :
+        if len(migr) != len(migr_time):
+            sys.exit("there should be as many migration rates or matrices as" +
+            " there are times in migr_time")
+        print('lizzy is working on it') # TODO : do this
+    # check verbose
+    if not isinstance(verbose, bool):
+        sys.exit('verbose must be a boolean') # TODO : do this
+    # check seed
+    if seed is not None and not isinstance(seed, (int,float)):
+        sys.exit('seed must be an integer  prout')
+    if seed is not None and isinstance(seed, float):
         seed = int(seed)
-    # TODO : idiotproof
+
+    # check npop lengths
+    # TODO : do this
+   
+    
     #if sample_size >= com_size:
     #    sys.exit("Sample size should not exceed community size")
     
-    samples = {"pop_"+str(i):sample_size[i] for i in range(len(sample_size))}
-    
-    demo = msprime.Demography()
+
+    # compute number of populations
     npop = len(sample_size)
 
-    demo = islmodel.population_configurations_stripe(
-        init_sizes = com_size, past_sizes = past_sizes, 
-        changetime = changetime, samples = sample_size, 
-        stable_pop = stable_pop, rates = init_rates, demo = demo)
+    # initialise demography object for msprime.sim_ancestry()
+    demography = msprime.Demography()
+    
+    # Build samples
+    samples = {"pop_"+str(i):sample_size[i] for i in range(len(sample_size))}
+    pop_ids = ["pop_" + str(p) for p in range(npop)]
 
-    if npop > 1:
+    # sizes and gr
+    # demography = islmodel.population_configurations_stripe(
+    #     init_sizes = com_size, past_sizes = past_sizes, 
+    #     changetime = changetime, samples = sample_size, 
+    #     stable_pop = stable_pop, rates = init_rates, demo = demography)
 
-        # set the migration matrix
-        # migration = migration_configuration(npop = npop, migr = migr, migr_time = None)
-        if isinstance(migr, (int, float)) :
-            migration = islmodel.migration_matrix(npop = npop, migr = migr)
-        else : 
-            migration = [[0., 0.5], [0.5, 0.]]
+    # initialize population configurations
+    for pop in range(npop):
+        demography.add_population(initial_size= com_size[pop][0], growth_rate=init_rates[pop][0])
         
-        demo.set_symmetric_migration_rate(populations = range(npop),rate = migr)
-      
-        #     samples = np.ones(npop, dtype=int)*sample_size
-        # # possible mass migration between populations
-        # if split_dates is not None:
-        #     # implement option later for limited mass dispersal
-        #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+        # if population sizes have fluctuated in the past:
+        if len(changetime[pop]) > 1:
+            for i in range(len(changetime[pop][1:])):
+                demography.add_population_parameters_change(time = changetime[pop][i+1] , initial_size=com_size[pop][i+1], population= pop_ids[pop])
+        
+        # if population growth rates have fluctuated in the past:
+        if len(changerates[pop]) > 1 :
+            for i in range(len(changerates[pop][1:])):
+                demography.add_population_parameters_change(time = changerates[pop][i+1] , growth_rate=init_rates[pop][i+1], population= pop_ids[pop])
+
+    ## MIGRATION
+    if migr is not None :
+        if len(dim) == 1 :
+            # symmetric migration matrix
+            demography.set_symmetric_migration_rate(populations = range(npop), rate = migr[0])
+
+            # if symmatric migration rate has changed in the past:
+            if len(migr) > 1:
+                for m in range(len(migr[1:])):
+                    demography.add_migration_rate_change(time = migr_time[m+1], rate = migr[m+1])
+
+        if len(dim) > 2 :
+            # custom migration matrix
+            for row in range(npop):
+                for col in range(npop):
+                    if migr[0][row][col] == 0 :
+                        continue
+                    demography.set_migration_rate(source = pop_ids[row], dest = pop_ids[col], rate = migr[0][row][col])
+
+            # if migration matrix has changed in the past
+            if len(migr)>1:
+                for t in range(len(migr_time)):
+                    for row in range(npop):
+                        for col in range(npop):
+                            if migr[t][row][col] == 0 :
+                                continue
+                            demography.add_migration_rate_change(time = migr_time[t], rate = migr[t][row][col], source=pop_ids[row], dest=pop_ids[col])
+
+    # sort events chronologically
+    demography.sort_events()
 
     # if verbose should print the demography debugger - only for debugging purposes!!! 
     if verbose:
-        print(demo.debug())
+        print(demography.debug())
         
+
     treeseq = msprime.sim_ancestry(samples = samples, 
-          demography=demo, random_seed=seed, ploidy = 1)
+          demography=demography, random_seed=seed, ploidy = 1)
     
     # Work on the result tree
     tree = treeseq.first()
@@ -795,7 +918,8 @@ if __name__ == "__main__":
         doctest.testmod()
         #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
         # simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
+        # print(t)
 
         ## SINGLE POP
         # stat discret
@@ -811,7 +935,7 @@ if __name__ == "__main__":
         ## MULT POP
 
         # stat discret
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # stat continue # 
         # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
