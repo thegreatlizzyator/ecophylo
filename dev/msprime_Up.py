@@ -2,6 +2,7 @@
 
 import msprime
 import ecophylo
+from ete3 import Tree
 
 # seed = 42
 # mu = 0.03
