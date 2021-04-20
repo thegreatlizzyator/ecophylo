@@ -99,7 +99,7 @@ def population_configurations(init_sizes, samples, rates = None) :
     return pc
 
 # TODO : stripe is the second mogwai born of Gizmo, be gentle with him
-def population_configurations_stripe(init_sizes, past_sizes, changetime, samples, stable_pop = True, rates = None):
+def population_configurations_stripe(init_sizes, past_sizes, changetime, samples, stable_pop = True, rates = None, demo = None):
     """
     Set up the initial population configurations and past demographic events.
 
@@ -146,21 +146,21 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     Examples
     -------
     >>> import msprime
-    >>> pc, config = population_configurations_stripe(init_sizes= 500, past_sizes= None, changetime= None, samples = 10 )
-    >>> pc, config = population_configurations_stripe(init_sizes= 500, past_sizes= [[500]], changetime= [[0]], samples = 10 )
-    >>> config
-    []
-    >>> pc, config = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
-    >>> config
-    [{'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}]
-    >>> pc, config = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], stable_pop = False, samples = [10] )
-    >>> config
-    [{'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0.007, 'initial_size': 1000, 'population': 0}]
-    >>> pc, config = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [40]], samples = [10] )
-    >>> config
-    [{'type': 'population_parameters_change', 'time': 40, 'growth_rate': 0, 'initial_size': 500, 'population': 0}, {'type': 'population_parameters_change', 'time': 40, 'growth_rate': 0, 'initial_size': 500, 'population': 1}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 1000, 'population': 0}, {'type': 'population_parameters_change', 'time': 100, 'growth_rate': 0, 'initial_size': 500, 'population': 1}]
-    >>> dd = msprime.DemographyDebugger(Ne = 500, population_configurations = pc, demographic_events= config)
-    >>> #dd.print_history(output=sys.stderr)
+    >>> demo = population_configurations_stripe(init_sizes= 500, past_sizes= None, changetime= None, samples = 10 )
+    >>> demo = population_configurations_stripe(init_sizes= 500, past_sizes= [[500]], changetime= [[0]], samples = 10 )
+    >>> demo
+    Demography(populations=[Population(initial_size=500, growth_rate=0, name='pop_0', description='', extra_metadata={}, default_sampling_time=None, initially_active=None, id=0)], events=[], migration_matrix=array([[0.]]))
+    >>> demo = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], samples = [10] )
+    >>> demo
+    Demography(populations=[Population(initial_size=500, growth_rate=0, name='pop_0', description='', extra_metadata={}, default_sampling_time=None, initially_active=None, id=0)], events=[PopulationParametersChange(time=100, initial_size=1000, growth_rate=0, population=0)], migration_matrix=array([[0.]]))
+    >>> demo = population_configurations_stripe(init_sizes= [500], past_sizes= [[1000]], changetime=[[100]], stable_pop = False, samples = [10] )
+    >>> demo
+    Demography(populations=[Population(initial_size=500, growth_rate=0.007, name='pop_0', description='', extra_metadata={}, default_sampling_time=None, initially_active=None, id=0)], events=[PopulationParametersChange(time=100, initial_size=1000, growth_rate=0.007, population=0)], migration_matrix=array([[0.]]))
+    >>> demo = population_configurations_stripe(init_sizes= [500, 300], past_sizes= [[1000], [500]], changetime=[[100], [40]], samples = [10] )
+    >>> demo
+    Demography(populations=[Population(initial_size=500, growth_rate=0, name='pop_0', description='', extra_metadata={}, default_sampling_time=None, initially_active=None, id=0), Population(initial_size=300, growth_rate=0, name='pop_1', description='', extra_metadata={}, default_sampling_time=None, initially_active=None, id=1)], events=[PopulationParametersChange(time=40, initial_size=500, growth_rate=0, population=0), PopulationParametersChange(time=40, initial_size=500, growth_rate=0, population=1), PopulationParametersChange(time=100, initial_size=1000, growth_rate=0, population=0), PopulationParametersChange(time=100, initial_size=500, growth_rate=0, population=1)], migration_matrix=array([[0., 0.],
+           [0., 0.]]))
+    >>> #print(demo.debug(), file=sys.stderr)
     """
     # use a simplier function !
     if past_sizes is None or changetime is None:
@@ -286,7 +286,8 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
         stable_pop = False
     npop = len(init_sizes)
     
-    pastdemo = []
+    if demo is None:
+        demo = msprime.Demography()
     sizes = mergesizes2rates(past_sizes, changetime, init_sizes, False)
     times = sizes[0]
     
@@ -306,12 +307,10 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
     else : # no rates provided so computed them from past_sizes and changetime
         rates = mergesizes2rates(past_sizes, changetime, init_sizes, True)
     
-    pc = [] # initial population configurations
     for i in range(npop): # initiate every pop
-        pc = pc + [msprime.PopulationConfiguration(
-            sample_size = samples[i], 
-            growth_rate= rates[i+1][0],
-            initial_size = init_sizes[i] )]
+        demo.add_population(name="pop_"+str(i), 
+                            initial_size=init_sizes[i], 
+                            growth_rate=rates[i+1][0])
         
         rates[i+1].append(rates[i+1][-1]) # duplicate late rate for infinity
         rates[i + 1].remove(rates[i+1][0]) # remove first rate
@@ -320,12 +319,12 @@ def population_configurations_stripe(init_sizes, past_sizes, changetime, samples
         for ii in range(npop):
             if times[i] == 0:
                 continue
-                # print('error', ii)
-            pastdemo = pastdemo + [msprime.PopulationParametersChange(
-                time=times[i], initial_size = sizes[ii+1][i], 
-                growth_rate = rates[ii+1][i], population_id= ii) ]
+            demo.add_population_parameters_change(
+                time = times[i], initial_size = sizes[ii+1][i], 
+                growth_rate = rates[ii+1][i], population = ii
+            )
     
-    return pc, pastdemo
+    return demo
 
 
 def sizes2rates(sizes, changetime):
@@ -362,9 +361,9 @@ def sizes2rates(sizes, changetime):
     if len(set(changetime)) != len(changetime) :
         sys.exit('Duplicated times in changetime are not possible')
     
-    if not all(isinstance(x, int) for x in sizes) :
+    if not all(isinstance(x, (int, float)) for x in sizes) :
         sys.exit('sizes must be a list of int')
-    if not all(isinstance(x, int) for x in changetime) :
+    if not all(isinstance(x, (int, float)) for x in changetime) :
         sys.exit('changetime must be a list of int')
     if not all((x >= 0) for x in changetime) :
         sys.exit('changetime must be strict positive values')
@@ -542,6 +541,8 @@ def mergesizes2rates(past_values, changetime, init_size = None , sizevalues = Tr
                 tmptime.remove(tmptime[0])
                 if sizevalues and not is_rate : # compute directly the growrate
                     tmp = val
+                    # print("sizes :",[first_size[i], val])
+                    # print("changetime :", [init_time,ii])
                     val = sizes2rates(sizes = [first_size[i], val], 
                                       changetime = [init_time,ii])[0]
                     first_size[i] = tmp
