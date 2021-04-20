@@ -447,6 +447,72 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
              \-|   \-0
                |
                 \-1
+    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-4
+       /-|
+    --|   \-0
+      |
+       \-2
+    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-4
+       /-|
+    --|   \-0
+      |
+       \-2
+    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+    --|   \-0
+      |
+       \-2
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+             /-6
+          /-|
+         |   \-0
+       /-|
+      |  |   /-7
+      |   \-|
+    --|     |   /-1
+      |      \-|
+      |         \-3
+      |
+       \-2
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+             /-6
+          /-|
+         |   \-0
+       /-|
+      |  |   /-7
+      |   \-|
+    --|     |   /-1
+      |      \-|
+      |         \-3
+      |
+       \-2
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+                /-7
+             /-|
+          /-|   \-2
+         |  |
+       /-|   \-3
+      |  |
+      |  |   /-9
+    --|   \-|
+      |      \-0
+      |
+       \-6
     """         
     init_sizes = list()
     tmp = list()
@@ -673,7 +739,7 @@ def getAbund(tree, sample_size = None):
         # TODO : modify error with a better check here
     return sfs
 
-def getDeme(tree):
+def getDeme(tree, div = False):
     """
     
     Parameters
@@ -683,6 +749,8 @@ def getDeme(tree):
         string containing all names of the species individual (mean to use 
         topPhylo result). Names is formated like this :
           " name1 name2 name3"
+    div : bool
+        Option to simplify the matrix to a simple list of Deme species diversity.
 
     Returns
     -------
@@ -704,6 +772,8 @@ def getDeme(tree):
        \-F
     >>> getDeme(phylo)
     [[2, 1, 0], [0, 2, 0], [0, 0, 2]]
+    >>> getDeme(phylo, div = True)
+    [1, 2, 1]
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
@@ -715,6 +785,9 @@ def getDeme(tree):
             indiv.append(leaf.popInd)
         except AttribueError :
             indiv.append(1)
+    if div:
+        indiv = np.array(indiv)
+        indiv = [sum(indiv[:,i] > 0) for i in range(indiv.shape[1])]
     return indiv
 
 if __name__ == "__main__":
@@ -727,19 +800,19 @@ if __name__ == "__main__":
         ## SINGLE POP
         # stat discret
         # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # stat continue # TODO : ne marche pas dans merge2sizes !
+        # stat continue 
         # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         # fluct discret
         # t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # fluct continue # TODO : ne marche pas dans merge2sizes !
-        t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # fluct continue # TODO : marche avec certaines valeurs cheloues
+        # t = simulate_dolly(sample_size = [5], com_size = [[10, 2e5]], changetime = [[0, 800]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         ## MULT POP
 
         # stat discret
         # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # stat continue # TODO : ne marche pas dans merge2sizes !
+        # stat continue # 
         # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         # fluct discret
@@ -748,6 +821,6 @@ if __name__ == "__main__":
         # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         
-        print(t)
+        # print(t)
 
 
