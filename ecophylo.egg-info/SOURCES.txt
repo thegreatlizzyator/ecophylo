@@ -4,6 +4,7 @@ setup.py
 ecophylo/__init__.py
 ecophylo/dosimulate.py
 ecophylo/islmodel.py
+ecophylo/islmodel_mugger.py
 ecophylo/pastdemo.py
 ecophylo/phylogen.py
 ecophylo.egg-info/PKG-INFO
