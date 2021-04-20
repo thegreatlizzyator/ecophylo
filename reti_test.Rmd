@@ -1,0 +1,124 @@
+---
+title: "Vignette ecophylo"
+author: "Team bouclé"
+date: "9 janvier 2021"
+output:
+  html_document: default
+  pdf_document: default
+  
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+```{r setup, include=FALSE}
+library(reticulate)
+knitr::opts_chunk$set(echo = TRUE)
+use_python(Sys.which("python3"))
+```
+
+## Rules for working in Rmarkdown with python.
+
+*we will need to check the setup chunk for location of python3 binary across different os (ubuntu work with this code)*
+
+### Python chunks calling R obj.
+
+R chunks works just fine as usual.
+
+```{r}
+py_config()
+a <- 42 # set a in R
+```
+
+This chunk only work when the markdown is knitted.
+See that we can call R object when looking for them in 'r' namespace.
+
+```{python}
+print(r.a)
+r.a += 1 # modify R variable in python
+print(r.a)
+b = 666 # set b in python
+```
+
+### R chunks calling Python obj.
+
+See that we can call python object when looking for them in 'py' list.
+
+```{r}
+print(a) # call a in R after modification in python
+print(py$b) # call b in R
+# Also possible to call directly python function in r
+rand <- import('numpy')$random # import python module numpy and submod random
+rand$randint(3) # call of function randint
+```
+
+You can run python code in interactive mod in the console using the following 
+function : *repl_python(quiet = T)*.
+It set the console in 'python mode' so you can type in python commands. 
+However you can't send lines from a chunk or a script.
+
+To exit the consol in python, just type *exit* and tadaa the consol is back 
+to R.
+
+### Using Python modules in R.
+
+```{r, eval=FALSE}
+# Be carefull for idiotproof of ecophylo and int class !
+eco <- import('ecophylo')
+eco$timeframes(I=as.integer(3), T=2, a=0.3)
+# make dataframes with pandas is same as R
+pd <- import('pandas')
+d <- list(col1 = c(1,2,3), col2 = c(4,5,6))
+pd$DataFrame(d)
+```
+
+### Simulating sub-populations linked by vicariance and migration events
+
+```{r}
+split_dates <- list(as.integer(100))
+
+npop <- as.integer(2)
+migrfrom <- as.integer(1.00)
+migrto <- as.integer(2.00)
+init_sizes <- list(rep(as.integer(500),2))
+init_rates <- list(rep(as.integer(1),2))
+m <- as.integer(0)
+
+tree2 <- ecophylo$simulate(n, Jm, mu, 
+                           split_dates,
+                           npop,
+                           init_rates,
+                           init_sizes,
+                           migrfrom,
+                           migrto,
+                           m,
+                          seed = as.integer(42))
+
+abund12 <- ecophylo$getAbund(tree2, n)
+phylo2 <- read.tree(text = tree2$write())
+```
+
+## Intensive simulations along priors
+
+
+
+
+```{r, eval=FALSE}
+# NOT RUN
+truc <- eco$dosimuls(nsim = 1, sample_size = 100, comprior = list(1000,10e9),
+             muprior = list(1e-3) , verbose = TRUE, seed = 42)
+```
+
+```{python, eval=FALSE}
+# NOT RUN
+eco.dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], 
+             muprior = [1e-3] , verbose = True, seed = 42)
+```
+
+
+<!--
+## Adding Migrations
+-->
+
