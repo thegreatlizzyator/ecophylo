@@ -596,77 +596,7 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     # compute number of populations
     npop = len(sample_size)
 
-    # check com_size # TODO : rework this !
-    # if changetime is not None :
-    #     if len(com_size) != npop:
-    #         sys.exit("there should be as many elements in com_size as there" + 
-    #         " are demes")
-    #     for sizes in com_size:
-    #         sizes = [ int(s) if isinstance(s, (float)) else s for s in sizes]
-    #         isint_sizes = [isinstance(s, int) for s in sizes]
-    #         if not all(isint_sizes) :
-    #             sys.exit("all past sizes should be ints")
-    #         ispos_sizes = [s>0 for s in sizes]
-    #         if not all(ispos_sizes):
-    #             sys.exit("all past sizes should be strictly positive")
-    #     for p in range(npop):
-    #         if len(com_size[p]) != len(changetime[p]):
-    #             sys.exit("there should be as many past sizes as there are epochs in changetime")
-    #         if not all([sample_size[p] < e for e in com_size[p]]) :
-    #             sys.exit("sample sizes cannot exceed community size")
-    # check mu
-    if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
-        sys.exit('mu must be a float between 0 and 1')
-    # check init_rates
-    # if init_rates is not None: 
-    #     if not isinstance(init_rates, list):
-    #         init_rates = [[init_rates]]
-    #     if len(init_rates) != npop:
-    #         sys.exit("there should be as many elements in init_rates as there are demes")
-    #     for p in range(npop):
-    #         if isinstance(init_rates[p], list) and len(init_rates[p]) != len(changetime[p]):
-    #             sys.exit("there should be as many past growth init_rates as there are epochs in changetime")
-    #     for gr in init_rates:
-    #         if isinstance(gr, list) :
-    #             isint_rates = [isinstance(r, (int, float)) for r in gr]
-    #             if not all(isint_rates) :
-    #                 sys.exit("all past growth init_rates should be ints or floats")
-    # else :
-    #     init_rates = [[0]] * npop
-
-    if init_rates is not None and changetime is not None:
-        isint_rates = True
-        if not isinstance(init_rates, list):
-            if isinstance(init_rates, (int,float)) : 
-                init_rates = [[init_rates]]
-            else :
-                isint_rates = False
-        else :
-            for i in range(len(init_rates)):
-            # for x in init_rates:
-                if isinstance(init_rates[i], list):
-                    if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
-                        isint_rates = False
-                    if len(init_rates[i]) !=  len(changetime[i]) :
-                        sys.exit("there should be as many past growth "+
-                        "init_rates as there are epochs in changetime")
-                else :
-                    if len(init_rates) != npop :
-                        sys.exit("there should be as many elements in"+
-                        " init_rates as there are demes")
-                    if not isinstance(init_rates[i], (float, int)):
-                        isint_rates = False 
-                    init_rates[i] <- [init_rates[i]]
-        if not isint_rates:
-            sys.exit('init_rates must be float, list of float or'+
-                                 ' nested list of float')
-        if len(init_rates) != npop :
-            sys.exit("there should be as many past sizes as there " + 
-            "are epochs in init_rates")
-    else :
-        init_rates = [[0]] * npop
-
-    # check changetime
+        # check changetime
     if changetime is not None:
         if not isinstance(changetime, list):
             if isinstance(changetime, (int,float)) : 
@@ -709,6 +639,87 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
             "are epochs in changetime")
     else :
         changetime = [[0]] * npop
+
+    # check com_size 
+    if changetime is not None  :
+        isint_com = True
+        sampl_com = True
+        if not isinstance(com_size, list) :
+            if isinstance(com_size, (int,float)) and com_size > 0 : 
+                if com_size < sample_size[0] : sampl_com = False
+                com_size = [[int(com_size)]] * npop
+            else :
+                isint_com = False
+        else :
+            for i in range(len(com_size)):
+                if isinstance(com_size[i], list):
+                    if not all(isinstance(y, (float, int)) for y in com_size[i]) :
+                        isint_com = False
+                    else :
+                        com_size[i] = [int(x) if isinstance(x, float) else x for x in com_size[i]]
+                    if len(com_size) != npop :
+                        sys.exit("there should be as many elements in"+
+                                 " com_size as there are demes")
+                    if len(com_size[i]) !=  len(changetime[i]) :
+                        sys.exit("there should be as many past "+
+                        "com_size as there are epochs in changetime")
+                    if isint_com and any([s <= 0 for s in com_size[i]]):
+                        sys.exit("all past sizes should be strictly positive")
+                    if isint_com and any([x < sample_size[i] for x in com_size[i]]):
+                        sampl_com = False 
+                else :
+                    if len(com_size) != npop :
+                        sys.exit("there should be as many elements in"+
+                                 " com_size as there are demes")
+                    if not isinstance(com_size[i], (float, int)):
+                        isint_com = False 
+                    if isint_com and com_size[i] <= 0 :
+                        sys.exit("all past sizes should be strictly positive")
+                    if isint_com and com_size[i] < sample_size[i] :
+                        sampl_com = False 
+                    com_size[i] = [com_size[i]]
+        if not isint_com:
+            sys.exit("community sizes should be strictly positive int")
+        if not sampl_com:
+            sys.exit('com_size must be superior to samples')
+        
+    # if isinstance(com_size, float) :
+    #     com_size = [[int(com_size)]] * npop
+    # check mu
+    if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
+        sys.exit('mu must be a float between 0 and 1')
+    # check init_rates
+    if init_rates is not None and changetime is not None:
+        isint_rates = True
+        if not isinstance(init_rates, list):
+            if isinstance(init_rates, (int,float)) : 
+                init_rates = [[init_rates]] * npop
+            else :
+                isint_rates = False
+        else :
+            for i in range(len(init_rates)):
+                if isinstance(init_rates[i], list):
+                    if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
+                        isint_rates = False
+                    if len(init_rates[i]) !=  len(changetime[i]) :
+                        sys.exit("there should be as many past growth "+
+                        "init_rates as there are epochs in changetime")
+                else :
+                    if len(init_rates) != npop :
+                        sys.exit("there should be as many elements in"+
+                        " init_rates as there are demes")
+                    if not isinstance(init_rates[i], (float, int)):
+                        isint_rates = False 
+                    init_rates[i] <- [init_rates[i]]
+        if not isint_rates:
+            sys.exit('init_rates must be float, list of float or'+
+                                 ' nested list of float')
+        if len(init_rates) != npop :
+            sys.exit("there should be as many past sizes as there " + 
+            "are epochs in init_rates")
+    else :
+        init_rates = [[0]] * npop
+
     # check mrca
     if mrca is not None :
         print('prout') # TODO : do this
@@ -776,28 +787,38 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
 
     # initialize population configurations
     for pop in range(npop):
-        demography.add_population(initial_size= com_size[pop][0], growth_rate=init_rates[pop][0])
+        demography.add_population(
+            initial_size= com_size[pop][0],       
+            growth_rate=init_rates[pop][0])
         
         # if population sizes have fluctuated in the past:
         if len(changetime[pop]) > 1 and len(com_size[pop]) > 1:
             for i in range(len(changetime[pop][1:])):
-                demography.add_population_parameters_change(time = changetime[pop][i+1] , initial_size=com_size[pop][i+1], population= pop_ids[pop])
+                demography.add_population_parameters_change(
+                    time = changetime[pop][i+1] , 
+                    initial_size=com_size[pop][i+1], 
+                    population= pop_ids[pop])
         
         # if population growth rates have fluctuated in the past:
         if len(changetime[pop]) > 1 and len(init_rates[pop]) > 1:
             for i in range(len(changetime[pop][1:])):
-                demography.add_population_parameters_change(time = changetime[pop][i+1] , growth_rate=init_rates[pop][i+1], population= pop_ids[pop])
+                demography.add_population_parameters_change(
+                    time = changetime[pop][i+1] , 
+                    growth_rate=init_rates[pop][i+1], 
+                    population= pop_ids[pop])
 
     ## MIGRATION
     if migr is not None :
         if len(dim) == 1 :
             # symmetric migration matrix
-            demography.set_symmetric_migration_rate(populations = range(npop), rate = migr[0])
+            demography.set_symmetric_migration_rate(
+                populations = range(npop), rate = migr[0])
 
             # if symmatric migration rate has changed in the past:
             if len(migr) > 1:
                 for m in range(len(migr[1:])):
-                    demography.add_migration_rate_change(time = migr_time[m+1], rate = migr[m+1])
+                    demography.add_migration_rate_change(
+                        time = migr_time[m+1], rate = migr[m+1])
 
         if len(dim) > 2 :
             # custom migration matrix
@@ -805,7 +826,9 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                 for col in range(npop):
                     if migr[0][row][col] == 0 :
                         continue
-                    demography.set_migration_rate(source = pop_ids[row], dest = pop_ids[col], rate = migr[0][row][col])
+                    demography.set_migration_rate(
+                        source = pop_ids[row], dest = pop_ids[col], 
+                        rate = migr[0][row][col])
 
             # if migration matrix has changed in the past
             if len(migr)>1:
@@ -814,7 +837,9 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                         for col in range(npop):
                             if migr[t][row][col] == 0 :
                                 continue
-                            demography.add_migration_rate_change(time = migr_time[t], rate = migr[t][row][col], source=pop_ids[row], dest=pop_ids[col])
+                            demography.add_migration_rate_change(
+                                time = migr_time[t], rate = migr[t][row][col], 
+                                source=pop_ids[row], dest=pop_ids[col])
 
     # sort events chronologically
     demography.sort_events()
