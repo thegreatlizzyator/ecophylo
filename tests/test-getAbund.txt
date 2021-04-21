@@ -46,7 +46,7 @@ Now use it:
     >>> getAbund(phylo, "7")
     Traceback (most recent call last):
       ...
-    SystemExit: sample_size must be an integer
+    SystemExit: samples must be an integer
     
     >>> getAbund(phylo, 6)
     Traceback (most recent call last):
