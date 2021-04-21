@@ -414,14 +414,78 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                    changetime = None, mrca = None, 
                    migr = 1, migr_time = None, verbose = False, seed = None):
     """
-    Simulate a phylogeny with msprime
-    
+    This function implements the simulation algorithm described in Barthelemy
+    et al. 2021 in which (i) the shared co-ancestry of present individuals is
+    simulated backward in time using coalescent theory (ii) speciation events
+    are sprinkled over the simulated genealogy conditionally to its topology
+    and branch lengths and (iii) the phylogenetic relationships amongst
+    individuals and their abundances are finally obtained by merging
+    paraphyletic clades into single species. Coalescent reconstruction of the
+    genealogy of individuals can be simulated to represent past demographic
+    fluctuations due to varying habitat availability, or include multiple demes
+    linked by migration events and/or vicariance.
+
+    Phylogenies are returned in Newick format given the desired parameter
+    combinations accounting for the demographic history of Jm
+
     Parameters
     ----------
-    sample_size : int
-        number of individual in the community
-        Sample size should not exceed community size
-        # TODO : renommer init_size
+    sample_size : int or list of int
+        number of sampled individuals in an assemblage for which the shared
+        co-ancestry should be reconstructed. If multiple demes are to be
+        simulated, this should be a list of sample sizes for each deme. These
+        should not exceed the present or past assemblage sizes.
+        # TODO : rename to samples
+    com_size : int or nested list of ints
+        the size of Jm for each deme at each given period. Should be a nested
+        list containing for each deme, a list of past Jm sizes in which the
+        first element is the current size of the assemblage and the nth element
+        is the size of Jm at epoch n 
+        # TODO: rename to Jm ?
+    mu : float
+        the point mutation rate must be comprised between between 0 and 1.
+    init_rates: float or nested list of floats
+        the growth rates for each deme at each given period. Should be a nested
+        list containing for each deme, a list of past growth rates in which the
+        first element is the current growth rate and the nth element is the
+        growth rate at epoch n. If no growth rates are given, then changes in
+        deme sizes occur instantenously following sizes provided in com_size at
+        the different times given in changetime
+        # TODO: rename to gr_rates ?
+    changetime: list of int or nested list of int
+        the times (in generation before present) at which either growth rates or
+        the size of the assemblages Jm have changed. If multiple demes are to be
+        simulated, should be a nested list containing for each deme, a list of
+        times at which changes occured in which the first element is 0.
+        # TODO: rename epochs? times?
+    mrca = None : int
+        # TODO : document this when it is implemented
+    migr = 1 : int, float or list of int,float or nested lists of int,float
+        the migration rates between pairs of demes at each given period. Can be
+        an int or float comprised between 0 and 1, in which case constant
+        symmetric migration is assumed between all demes for all epochs.
+
+        If migration rate are to change then migr should be a list of ints or
+        floats comprised between 0 and 1 containing the different symmetric
+        migration rates at each given time period in which the first element is
+        the current symmetric migration rate and the nth element is the migration
+        rate at epoch n.
+
+        For non-symmetric migration rates, migr should be a list of migration
+        matrices M of size dxd where d is the number of demes. Migr should then
+        contain as many matrices M as there are time periods in migr_time where
+        M[j,k] is the rate at which individuals move from deme j to deme k in
+        the coalescent process, backwards in time. Individuals that move from
+        deme j to k backwards in time actually correspond to individuals
+        migrating from deme k to j forwards in time.
+    migr_time = None: list of ints
+        the times (in generation before present) at which migration rates have
+        changed in which the first element is 0
+    verbose = False : bool
+        whether or not to print a summary of the demographic history and the
+        resulting genealogy to be passed to a phylogeny
+    seed = None : int
+        set seed for entire simulation
     
     Examples
     --------
@@ -554,21 +618,54 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
         sys.exit('mu must be a float between 0 and 1')
     # check init_rates
-    if init_rates is not None: 
+    # if init_rates is not None: 
+    #     if not isinstance(init_rates, list):
+    #         init_rates = [[init_rates]]
+    #     if len(init_rates) != npop:
+    #         sys.exit("there should be as many elements in init_rates as there are demes")
+    #     for p in range(npop):
+    #         if isinstance(init_rates[p], list) and len(init_rates[p]) != len(changetime[p]):
+    #             sys.exit("there should be as many past growth init_rates as there are epochs in changetime")
+    #     for gr in init_rates:
+    #         if isinstance(gr, list) :
+    #             isint_rates = [isinstance(r, (int, float)) for r in gr]
+    #             if not all(isint_rates) :
+    #                 sys.exit("all past growth init_rates should be ints or floats")
+    # else :
+    #     init_rates = [[0]] * npop
+
+    if init_rates is not None and changetime is not None:
+        isint_rates = True
         if not isinstance(init_rates, list):
-            init_rates = [[init_rates]]
-        if len(init_rates) != npop:
-            sys.exit("there should be as many elements in init_rates as there are demes")
-        for p in range(npop):
-            if isinstance(init_rates[p], list) and len(init_rates[p]) != len(changetime[p]):
-                sys.exit("there should be as many past growth init_rates as there are epochs in changetime")
-        for gr in init_rates:
-            if isinstance(gr, list) :
-                isint_rates = [isinstance(r, (int, float)) for r in gr]
-                if not all(isint_rates) :
-                    sys.exit("all past growth init_rates should be ints or floats")
+            if isinstance(init_rates, (int,float)) : 
+                init_rates = [[init_rates]]
+            else :
+                isint_rates = False
+        else :
+            for i in range(len(init_rates)):
+            # for x in init_rates:
+                if isinstance(init_rates[i], list):
+                    if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
+                        isint_rates = False
+                    if len(init_rates[i]) !=  len(changetime[i]) :
+                        sys.exit("there should be as many past growth "+
+                        "init_rates as there are epochs in changetime")
+                else :
+                    if len(init_rates) != npop :
+                        sys.exit("there should be as many elements in"+
+                        " init_rates as there are demes")
+                    if not isinstance(init_rates[i], (float, int)):
+                        isint_rates = False 
+                    init_rates[i] <- [init_rates[i]]
+        if not isint_rates:
+            sys.exit('init_rates must be float, list of float or'+
+                                 ' nested list of float')
+        if len(init_rates) != npop :
+            sys.exit("there should be as many past sizes as there " + 
+            "are epochs in init_rates")
     else :
         init_rates = [[0]] * npop
+
     # check changetime
     if changetime is not None:
         if not isinstance(changetime, list):

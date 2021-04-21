@@ -90,10 +90,10 @@ testing init_rates
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: all past growth init_rates should be ints or floats
+    SystemExit: init_rates must be float, list of float or nested list of float
     >>> t = simulate_dolly(sample_size = 2, com_size = [[500]], mu = 1, 
     ...  init_rates = [1, 2], 
-    ...  changetime = [[0]], mrca = None, 
+    ...  changetime = [[0, 20]], mrca = None, 
     ...  migr = 1, migr_time = None, 
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
