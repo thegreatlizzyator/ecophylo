@@ -6,8 +6,6 @@ samples= [5, 5]
 comsizes = [[10,20],[40,50,60]]
 changetimes = [[0,100], [0,300,400]]
 
-
-
 migr = [[[0,0.1],
         [0.2,0]]
         ,
@@ -22,21 +20,51 @@ migr = [[[0,0.1],
 
 migr = [1, 0.5, 0.8, 0.7]
 
-test = [isinstance(i, (float,int)) for i in migr]
-print(test)
-print(sum(test) == len(test))
-
-
 changemigr = [0, 100, 200, 300]
 
 rates = [[0,-0.002], [0,0]]
-changerates = [[0,100], [600, 80]]
 
 #def build_demography(samples, comsizes, changetimes, rates = None, changerates = None, migr = None, changemigr = None):
 if True :
     """
     """
     npop = len(samples)
+
+    #sample idiot proof
+    isint_samp = [isinstance(s, int) for s in samples]
+    ispos_samp = [s>0 for s in samples]
+    if not all(isint_samp):
+        sys.exit("sample sizes should all be ints")
+    if not all(ispos_samp):
+        sys.exit("sample sizes should all be positive")
+    
+    # past sizes idiot proof
+    if changetimes is not None:
+        if len(comsizes) != npop:
+            sys.exit("there should be as many elements in comsizes as there are demes")
+        for p in range(npop):
+            if len(comsizes[p]) != len(changetimes[p]):
+                sys.exit("there should be as many past sizes as there are epochs in changetime")
+        for sizes in comsizes:
+                isint_sizes = [isinstance(s, int) for s in sizes]
+                ispos_sizes = [s>0 for s in sizes]
+                if not all(isint_sizes) :
+                    sys.exit("all past sizes should be ints")
+                if not all(ispos_sizes):
+                    sys.exit("all past sizes should be strictly positive")
+
+    # growth rates idiot proof
+    if rates is not None: 
+        if len(rates) != npop:
+            sys.exit("there should be as many elements in rates as there are demes")
+        for p in range(npop):
+            if len(rates[p]) != len(changetimes[p]):
+                sys.exit("there should be as many past growth rates as there are epochs in changetime")
+        for gr in rates:
+                isint_rates = [isinstance(r, (int, float)) for r in gr]
+                if not all(isint_sizes) :
+                    sys.exit("all past growth rates should be ints or floats")
+        
 
     # migration idiot proof
     if migr is not None:
@@ -86,9 +114,9 @@ if True :
                 demography.add_population_parameters_change(time = changetimes[pop][i+1] , initial_size=comsizes[pop][i+1], population= pop_ids[pop])
         
         # if population growth rates have fluctuated in the past:
-        if len(changerates[pop]) > 1:
-            for i in range(len(changerates[pop][1:])):
-                demography.add_population_parameters_change(time = changerates[pop][i+1] , growth_rate=rates[pop][i+1], population= pop_ids[pop])
+        if len(changetimes[pop]) > 1:
+            for i in range(len(changetimes[pop][1:])):
+                demography.add_population_parameters_change(time = changetimes[pop][i+1] , growth_rate=rates[pop][i+1], population= pop_ids[pop])
 
     # initialize migration matrix    
     if migr is not None:
