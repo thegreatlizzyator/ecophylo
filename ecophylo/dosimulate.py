@@ -411,9 +411,18 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
 
 
 def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
-                   changetime = None, stable_pop = True, mrca = None, 
+                   changetime = None, mrca = None, 
                    migr = 1, migr_time = None, verbose = False, seed = None):
     """
+    Simulate a phylogeny with msprime
+    
+    Parameters
+    ----------
+    sample_size : int
+        number of individual in the community
+        Sample size should not exceed community size
+        # TODO : renommer init_size
+    
     Examples
     --------
     >>> t = simulate_dolly(sample_size = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
@@ -490,44 +499,76 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
        \-|   \-1
          |
           \-7
+    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+      |  |   /-1
+      |   \-|
+    --|      \-0
+      |
+      |      /-6
+      |   /-|
+       \-|   \-2
+         |
+          \-5
     """         
-    # init_sizes = list()
-    # tmp = list()
-    # past_sizes = list()
-
-    # for i in range(len(com_size)):
-    # # extract init_values
-    #     init_sizes.append(com_size[i][0])
-    #     if len(com_size[i]) == 1:
-    #         past_sizes.append([com_size[i][0]])
-    #         tmp.append([0])
-    #     else:
-    #         past_sizes.append(com_size[i][1:])
-    #         tmp.append(changetime[i][1:])
-    # com_size = list(init_sizes)
-    # changetime = list(tmp)
-
-
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
     # migrfrom = None # won't be used
     # migrto = None # won't be used
     
+    # Idiotproof
+    # check sample_size
+    if not isinstance(sample_size, list):
+        sample_size = [sample_size]
+    isint_samp = [isinstance(s, int) for s in sample_size]
+    if not all(isint_samp):
+        sys.exit("sample_size should all be ints")
+    ispos_samp = [s>0 for s in sample_size]
+    if not all(ispos_samp):
+        sys.exit("sample_size should all be positive")
     # compute number of populations
     npop = len(sample_size)
 
-    # Idiotproof
-    # check com_size
-    # TODO : do this
+    # check com_size # TODO : rework this !
+    # if changetime is not None :
+    #     if len(com_size) != npop:
+    #         sys.exit("there should be as many elements in com_size as there" + 
+    #         " are demes")
+    #     for sizes in com_size:
+    #         sizes = [ int(s) if isinstance(s, (float)) else s for s in sizes]
+    #         isint_sizes = [isinstance(s, int) for s in sizes]
+    #         if not all(isint_sizes) :
+    #             sys.exit("all past sizes should be ints")
+    #         ispos_sizes = [s>0 for s in sizes]
+    #         if not all(ispos_sizes):
+    #             sys.exit("all past sizes should be strictly positive")
+    #     for p in range(npop):
+    #         if len(com_size[p]) != len(changetime[p]):
+    #             sys.exit("there should be as many past sizes as there are epochs in changetime")
+    #         if not all([sample_size[p] < e for e in com_size[p]]) :
+    #             sys.exit("sample sizes cannot exceed community size")
     # check mu
-    if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
+    if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
         sys.exit('mu must be a float between 0 and 1')
     # check init_rates
-    if init_rates is not None:
-        print('prout') # TODO : do this
+    if init_rates is not None: 
+        if not isinstance(init_rates, list):
+            init_rates = [[init_rates]]
+        if len(init_rates) != npop:
+            sys.exit("there should be as many elements in init_rates as there are demes")
+        for p in range(npop):
+            if isinstance(init_rates[p], list) and len(init_rates[p]) != len(changetime[p]):
+                sys.exit("there should be as many past growth init_rates as there are epochs in changetime")
+        for gr in init_rates:
+            if isinstance(gr, list) :
+                isint_rates = [isinstance(r, (int, float)) for r in gr]
+                if not all(isint_rates) :
+                    sys.exit("all past growth init_rates should be ints or floats")
     else :
-        init_rates = [[None]] * npop
-        changerates = [[None]] * npop
+        init_rates = [[0]] * npop
     # check changetime
     if changetime is not None:
         if not isinstance(changetime, list):
@@ -559,22 +600,25 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                     if not isinstance(x, (float, int)):
                         sys.exit('changetime must be int, list of int or'+
                                  ' nested list of int')
-                    if x < 0:
+                    if x < 0 :
                         sys.exit('changetime must be positive values')
-                    changetime = [changetime]
                     if changetime[0] != 0:
                         sys.exit('first element of changetime'+
                         ' must be equal to 0')
+            if not isinstance(x, list):
+                changetime = [changetime]
+        if len(changetime) != npop :
+            sys.exit("there should be as many past sizes as there " + 
+            "are epochs in changetime")
     else :
         changetime = [[0]] * npop
-    # check stable_pop
     # check mrca
     if mrca is not None :
         print('prout') # TODO : do this
     # check migr
     if migr is not None :
         if npop == 1 :
-            warnings.warn("no migration matrix is needed for a single deme")
+            # warnings.warn("no migration matrix is needed for a single deme")
             migr = None
     if migr is not None :
         m = np.array(migr)
@@ -593,18 +637,18 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
                 " x ndeme")
             for mat in migr:
                 isint_migr = [isinstance(i, (float,int)) for i in mat]
-                ispos_migr = [i>=0 and i<= 1 for i in mat]
                 if not all(isint_migr) :
                     sys.exit("found custom migration matrix that is not made" +
                     " of ints or floats")
+                ispos_migr = [i>=0 and i<= 1 for i in mat]
                 if not all(ispos_migr):
                     sys.exit("found custom migration matrix with negative" +
                     " migration rates or greater than 1")
         else :
             isint_migr = [isinstance(i, (float,int)) for i in migr]
-            ispos_migr = [i>=0 and i<= 1 for i in migr]
             if not all(isint_migr):
                 sys.exit("migration rates should be either ints or floats")
+            ispos_migr = [i>=0 and i<= 1 for i in migr]
             if not all(ispos_migr): 
                 sys.exit("migration rate should be positive (or zero) and" + 
                 " not exceed 1")
@@ -614,24 +658,15 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
         if len(migr) != len(migr_time):
             sys.exit("there should be as many migration rates or matrices as" +
             " there are times in migr_time")
-        print('lizzy is working on it') # TODO : do this
     # check verbose
     if not isinstance(verbose, bool):
-        sys.exit('verbose must be a boolean') # TODO : do this
+        sys.exit('verbose must be a boolean') 
     # check seed
     if seed is not None and not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer  prout')
+        sys.exit('seed must be an integer')
     if seed is not None and isinstance(seed, float):
         seed = int(seed)
-
-    # check npop lengths
-    # TODO : do this
-   
-    
-    #if sample_size >= com_size:
-    #    sys.exit("Sample size should not exceed community size")
-    
-
+  
     # compute number of populations
     npop = len(sample_size)
 
@@ -642,25 +677,19 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     samples = {"pop_"+str(i):sample_size[i] for i in range(len(sample_size))}
     pop_ids = ["pop_" + str(p) for p in range(npop)]
 
-    # sizes and gr
-    # demography = islmodel.population_configurations_stripe(
-    #     init_sizes = com_size, past_sizes = past_sizes, 
-    #     changetime = changetime, samples = sample_size, 
-    #     stable_pop = stable_pop, rates = init_rates, demo = demography)
-
     # initialize population configurations
     for pop in range(npop):
         demography.add_population(initial_size= com_size[pop][0], growth_rate=init_rates[pop][0])
         
         # if population sizes have fluctuated in the past:
-        if len(changetime[pop]) > 1:
+        if len(changetime[pop]) > 1 and len(com_size[pop]) > 1:
             for i in range(len(changetime[pop][1:])):
                 demography.add_population_parameters_change(time = changetime[pop][i+1] , initial_size=com_size[pop][i+1], population= pop_ids[pop])
         
         # if population growth rates have fluctuated in the past:
-        if len(changerates[pop]) > 1 :
-            for i in range(len(changerates[pop][1:])):
-                demography.add_population_parameters_change(time = changerates[pop][i+1] , growth_rate=init_rates[pop][i+1], population= pop_ids[pop])
+        if len(changetime[pop]) > 1 and len(init_rates[pop]) > 1:
+            for i in range(len(changetime[pop][1:])):
+                demography.add_population_parameters_change(time = changetime[pop][i+1] , growth_rate=init_rates[pop][i+1], population= pop_ids[pop])
 
     ## MIGRATION
     if migr is not None :
@@ -697,7 +726,6 @@ def simulate_dolly(sample_size, com_size, mu, init_rates = None,
     if verbose:
         print(demography.debug())
         
-
     treeseq = msprime.sim_ancestry(samples = samples, 
           demography=demography, random_seed=seed, ploidy = 1)
     
@@ -944,7 +972,7 @@ if __name__ == "__main__":
         # fluct continue # TODO : marche bizarrement
         # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
-        
+        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
         # print(t)
 
 
