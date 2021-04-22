@@ -158,7 +158,7 @@ testing init_rates
 
 
 testing changetime
-  single value
+# single value
     >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = "KT", mrca = None, 
@@ -176,7 +176,7 @@ testing changetime
       ...
     SystemExit: changetime must be positive values
 
-  list of val
+# list of val
     >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, 0, 20] , mrca = None, 
@@ -210,8 +210,7 @@ testing changetime
       ...
     SystemExit: first element of changetime must be equal to 0
 
-  nested list of int
-
+# nested list of int
     >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 0, 20]] , mrca = None, 
@@ -257,8 +256,126 @@ testing changetime
 testing mrca
 
 testing migr
+# one rate
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = 0, migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration matrices cannot all be empty
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = -1, migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration rate should be positive (or zero) and not exceed 1
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = "0", migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration rate must be a float or an int.
 
-testing migr_time
+# mult rates
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [0, 1], migr_time = [30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: there should be as many migration rates or matrices as there are times in migr_time
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = ["0", 1], migr_time = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration rate must be a float or an int.
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [-0.5, 1], migr_time = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration rate should be positive (or zero) and not exceed 1
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [0, 0], migr_time = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration matrices cannot all be empty
+
+# matrix
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0,0],[0,0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: migration matrices cannot all be empty
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0,0, 0],[0,0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0, 1],[1, 0, 0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0, 1],["1", 0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0, "1"],[1, 0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0, 1],[-1, 0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix with negative migration rates or greater than 1
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[0, -1],[1, 0]], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix with negative migration rates or greater than 1
+
+# matrix list
+
 
 testing verbose
     >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
