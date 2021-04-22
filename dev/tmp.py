@@ -79,7 +79,7 @@
 
 # print(eco.getDeme(phylo))
 
-import numpy
+import numpy as np
 migr = [[[0,0.1],
         [0.2,0]]
         ,
@@ -95,5 +95,80 @@ migr = [[[0,0.1],
         [[0,0.5],
         [0.6,0]]]
 
-m = numpy.array(migr)
+m = np.array(migr)
 print(m.shape)
+
+npop = 2
+migr = 0.4
+print(np.ones((npop,npop))*migr)
+
+migr = [[0, 1],[1, 0, 0]]
+migr_time = [0]
+npop = 2
+
+migr = 1
+
+import sys
+
+if True :
+    # check migr
+    if migr is not None :
+        if npop == 1 :
+            # warnings.warn("no migration matrix is needed for a single deme")
+            migr = None
+    if migr is not None :
+        if not isinstance(migr, list) : # case 'a
+            if not isinstance(migr, (int,float)) :
+                sys.exit("migration rate must be a float or an int.")
+            if migr < 0 or migr > 1 :
+                sys.exit("migration rate should be positive (or zero) and" + 
+                " not exceed 1")
+            # migr = np.ones((npop,npop))*migr
+            # np.fill_diagonal(migr, 0)
+        else :
+            for i in range(len(migr)):
+                if not isinstance(migr[i], list): # case ['a, ... ,'b]
+                    if len(migr) != len(migr_time):
+                        sys.exit("there should be as many migration rates" + 
+                            " or matrices as there are times in migr_time")
+                    if not isinstance(migr[i], (int,float)) :
+                        sys.exit("migration rate must be a float or an int.")
+                    if migr[i] < 0 or migr[i] > 1 :
+                        sys.exit("migration rate should be positive (or zero)" + 
+                                 " and not exceed 1")
+                    # check len of migr is done with migr_time
+                    migr[i] = np.ones((npop,npop))*migr[i]
+                    np.fill_diagonal(migr[i], 0)
+                else :
+                    if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
+                        if len(migr[i]) != len(migr) or len(migr) != npop:
+                            sys.exit("custom migration matrices should be of" + 
+                                     " size ndeme x ndeme")
+                        if not all([ isinstance(r, (float,int)) for r in migr[i]]) :
+                            sys.exit("found custom migration matrix that is" + 
+                                     " not made of ints or floats")
+                        if any([r<0 or r> 1 for r in migr[i]]):
+                            sys.exit("found custom migration matrix with" + 
+                                " negative migration rates or greater than 1")
+                    else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
+                        if len(migr) != len(migr_time):
+                            sys.exit("there should be as many migration rates" + 
+                                " or matrices as there are times in migr_time")
+                        for j in range(len(migr[i])) :
+                            if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
+                                sys.exit("custom migration matrices should be" + 
+                                    " of size ndeme x ndeme")
+                            if any ([not isinstance(r, (float,int)) for r in migr[i][j]]) :
+                                sys.exit("found custom migration matrix that" + 
+                                    " is not made of ints or floats")
+                            if any ([r<0 or r> 1 for r in migr[i][j]]):
+                                sys.exit("found custom migration matrix with" + 
+                                 " negative migration rates or greater than 1")
+
+    m = np.array(migr)
+    dim = m.shape
+    if np.sum(m) == 0 :
+        sys.exit("migration matrices cannot all be empty")
+
+print(dim)
+print(len(dim))

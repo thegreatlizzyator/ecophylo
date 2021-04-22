@@ -720,51 +720,68 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
         init_rates = [[0]] * npop
 
     # check mrca
-    if mrca is not None :
-        print('prout') # TODO : do this
-    # check migr
+    # if mrca is not None :
+    #     # TODO : do this
+    # check migr & migr_time
     if migr is not None :
         if npop == 1 :
             # warnings.warn("no migration matrix is needed for a single deme")
             migr = None
     if migr is not None :
-        m = np.array(migr)
-        dim = m.shape
-
-        if np.sum(m) == 0 :
-            sys.exit("migration matrices cannot all be empty")
-
-        if len(dim) == 0:
-            migr = [migr]
-            m = np.array(migr)
-            dim = m.shape
-        if len(dim) > 1 :
-            if dim[1] != dim[2] or dim[1] != npop or dim[2] != npop:
-                sys.exit("custom migration matrices should be of size ndeme" +
-                " x ndeme")
-            for mat in migr:
-                isint_migr = [isinstance(i, (float,int)) for i in mat]
-                if not all(isint_migr) :
-                    sys.exit("found custom migration matrix that is not made" +
-                    " of ints or floats")
-                ispos_migr = [i>=0 and i<= 1 for i in mat]
-                if not all(ispos_migr):
-                    sys.exit("found custom migration matrix with negative" +
-                    " migration rates or greater than 1")
-        else :
-            isint_migr = [isinstance(i, (float,int)) for i in migr]
-            if not all(isint_migr):
-                sys.exit("migration rates should be either ints or floats")
-            ispos_migr = [i>=0 and i<= 1 for i in migr]
-            if not all(ispos_migr): 
+        if not isinstance(migr, list) : # case 'a
+            if not isinstance(migr, (int,float)) :
+                sys.exit("migration rate must be a float or an int.")
+            if migr < 0 or migr > 1 :
                 sys.exit("migration rate should be positive (or zero) and" + 
                 " not exceed 1")
+            # migr = np.ones((npop,npop))*migr
+            # np.fill_diagonal(migr, 0)
+            migr = [migr]
+        else :
+            for i in range(len(migr)):
+                if not isinstance(migr[i], list): # case ['a, ... ,'b]
+                    if len(migr) != len(migr_time):
+                        sys.exit("there should be as many migration rates" + 
+                            " or matrices as there are times in migr_time")
+                    if not isinstance(migr[i], (int,float)) :
+                        sys.exit("migration rate must be a float or an int.")
+                    if migr[i] < 0 or migr[i] > 1 :
+                        sys.exit("migration rate should be positive (or zero)" + 
+                                 " and not exceed 1")
+                    # check len of migr is done with migr_time
+                    migr[i] = np.ones((npop,npop))*migr[i]
+                    np.fill_diagonal(migr[i], 0)
+                else :
+                    if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
+                        if len(migr[i]) != len(migr) or len(migr) != npop:
+                            sys.exit("custom migration matrices should be of" + 
+                                     " size ndeme x ndeme")
+                        if not all([ isinstance(r, (float,int)) for r in migr[i]]) :
+                            sys.exit("found custom migration matrix that is" + 
+                                     " not made of ints or floats")
+                        if any([r<0 or r> 1 for r in migr[i]]):
+                            sys.exit("found custom migration matrix with" + 
+                                " negative migration rates or greater than 1")
+                    else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
+                        if len(migr) != len(migr_time):
+                            sys.exit("there should be as many migration rates" + 
+                                " or matrices as there are times in migr_time")
+                        for j in range(len(migr[i])) :
+                            if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
+                                sys.exit("custom migration matrices should be" + 
+                                    " of size ndeme x ndeme")
+                            if any ([not isinstance(r, (float,int)) for r in migr[i][j]]) :
+                                sys.exit("found custom migration matrix that" + 
+                                    " is not made of ints or floats")
+                            if any ([r<0 or r> 1 for r in migr[i][j]]):
+                                sys.exit("found custom migration matrix with" + 
+                                 " negative migration rates or greater than 1")
+
+    m = np.array(migr)
+    dim = m.shape
+    if np.sum(m) == 0 :
+        sys.exit("migration matrices cannot all be empty")
     
-    # check migr_time
-    if migr is not None and len(migr) > 1 :
-        if len(migr) != len(migr_time):
-            sys.exit("there should be as many migration rates or matrices as" +
-            " there are times in migr_time")
     # check verbose
     if not isinstance(verbose, bool):
         sys.exit('verbose must be a boolean') 
@@ -1098,4 +1115,6 @@ if __name__ == "__main__":
         # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
         # print(t)
 
+        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # print(t)
 
