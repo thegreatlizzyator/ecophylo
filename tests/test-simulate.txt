@@ -375,7 +375,38 @@ testing migr
     SystemExit: found custom migration matrix with negative migration rates or greater than 1
 
 # matrix list
-
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[[0, -1],[1, 0]], [[0, -1],[1, 0]]], migr_time = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: there should be as many migration rates or matrices as there are times in migr_time
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[[0, 1, 1],[1, 0]]], migr_time = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[[0, '1'],[1, 0]]], migr_time = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [[[0, -1],[1, 0]]], migr_time = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    SystemExit: found custom migration matrix with negative migration rates or greater than 1
 
 testing verbose
     >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
