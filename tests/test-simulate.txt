@@ -8,12 +8,12 @@ Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 This is an example text file in reStructuredText format.  First import
 ``simulate`` from the ``ecophylo`` module:
 
-    >>> from ecophylo import simulate_dolly
+    >>> from ecophylo import simulate
 
 Now use it:
 
 testing samples
-    >>> t = simulate_dolly(samples = "2", com_size = 1, mu = 1, 
+    >>> t = simulate(samples = "2", com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -21,7 +21,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: samples should all be ints
-    >>> t = simulate_dolly(samples = ["2", 1], com_size = 1, mu = 1, 
+    >>> t = simulate(samples = ["2", 1], com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -29,7 +29,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: samples should all be ints
-    >>> t = simulate_dolly(samples = -1, com_size = 1, mu = 1, 
+    >>> t = simulate(samples = -1, com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -37,7 +37,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: samples should all be positive
-    >>> t = simulate_dolly(samples = [2, -1], com_size = 1, mu = 1, 
+    >>> t = simulate(samples = [2, -1], com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -47,7 +47,7 @@ testing samples
     SystemExit: samples should all be positive
 
 # testing com_size
-    >>> t = simulate_dolly(samples = 5, com_size = [10, 30], mu = 1, 
+    >>> t = simulate(samples = 5, com_size = [10, 30], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -55,7 +55,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: there should be as many elements in com_size as there are demes
-    >>> t = simulate_dolly(samples = 5, com_size = [1], mu = 1, 
+    >>> t = simulate(samples = 5, com_size = [1], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -63,7 +63,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: com_size must be superior to samples
-    >>> t = simulate_dolly(samples = 5, com_size = -1, mu = 1, 
+    >>> t = simulate(samples = 5, com_size = -1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -71,7 +71,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: community sizes should be strictly positive int
-    >>> t = simulate_dolly(samples = 5, com_size = "many", mu = 1, 
+    >>> t = simulate(samples = 5, com_size = "many", mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -79,7 +79,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: community sizes should be strictly positive int
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [10, -30], mu = 1, 
+    >>> t = simulate(samples = [5, 5], com_size = [10, -30], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0], [0]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -87,7 +87,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: all past sizes should be strictly positive
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[10], [30]], mu = 1, 
+    >>> t = simulate(samples = [5, 5], com_size = [[10], [30]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 20], [0]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -95,7 +95,7 @@ testing samples
     Traceback (most recent call last):
       ...
     SystemExit: there should be as many past com_size as there are epochs in changetime
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[10], [-30]], mu = 1, 
+    >>> t = simulate(samples = [5, 5], com_size = [[10], [-30]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0], [0]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -105,7 +105,7 @@ testing samples
     SystemExit: all past sizes should be strictly positive
 
 testing mu
-    >>> t = simulate_dolly(samples = 2, com_size = [[500]], mu = -1, 
+    >>> t = simulate(samples = 2, com_size = [[500]], mu = -1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -113,7 +113,7 @@ testing mu
     Traceback (most recent call last):
       ...
     SystemExit: mu must be a float between 0 and 1
-    >>> t = simulate_dolly(samples = 2, com_size = [[500]], mu = 10, 
+    >>> t = simulate(samples = 2, com_size = [[500]], mu = 10, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -121,7 +121,7 @@ testing mu
     Traceback (most recent call last):
       ...
     SystemExit: mu must be a float between 0 and 1
-    >>> t = simulate_dolly(samples = 2, com_size = [[500]], mu = "0.5", 
+    >>> t = simulate(samples = 2, com_size = [[500]], mu = "0.5", 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -131,7 +131,7 @@ testing mu
     SystemExit: mu must be a float between 0 and 1
 
 testing init_rates
-    >>> t = simulate_dolly(samples = 2, com_size = [[500]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[500]], mu = 1, 
     ...  init_rates = "make babies", 
     ...  changetime = [[0]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -139,7 +139,7 @@ testing init_rates
     Traceback (most recent call last):
       ...
     SystemExit: init_rates must be float, list of float or nested list of float
-    >>> t = simulate_dolly(samples = 2, com_size = [[500, 200]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[500, 200]], mu = 1, 
     ...  init_rates = [1, 2], 
     ...  changetime = [[0, 20]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -147,7 +147,7 @@ testing init_rates
     Traceback (most recent call last):
       ...
     SystemExit: there should be as many elements in init_rates as there are demes
-    >>> t = simulate_dolly(samples = 2, com_size = [[500]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[500]], mu = 1, 
     ...  init_rates = [[1, 2]], 
     ...  changetime = [[0]], mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -159,7 +159,7 @@ testing init_rates
 
 testing changetime
 # single value
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = "KT", mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -167,7 +167,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be int, list of int or nested list of int
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = -66, mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -177,7 +177,7 @@ testing changetime
     SystemExit: changetime must be positive values
 
 # list of val
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, 0, 20] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -185,7 +185,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: Duplicated times in changetime are not possible
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, "KT", 20] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -193,7 +193,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be int, list of int or nested list of int
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, -66, 20] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -201,7 +201,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be positive values
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [66, 0, 20] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -211,7 +211,7 @@ testing changetime
     SystemExit: first element of changetime must be equal to 0
 
 # nested list of int
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 0, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -219,7 +219,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: Duplicated times in changetime for a Deme are not possible
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, "KT", 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -227,7 +227,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be int, list of int or nested list of int
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, -66, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -235,7 +235,7 @@ testing changetime
     Traceback (most recent call last):
       ...
     SystemExit: changetime must be positive values
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[66, 0, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -244,7 +244,7 @@ testing changetime
       ...
     SystemExit: first element of changetime for a Deme must be equal to 0
 
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 20], [0, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -257,7 +257,7 @@ testing mrca
 
 testing migr
 # one rate
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = 0, migr_time = None, 
@@ -265,7 +265,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: migration matrices cannot all be empty
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = -1, migr_time = None, 
@@ -273,7 +273,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: migration rate should be positive (or zero) and not exceed 1
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = "0", migr_time = None, 
@@ -283,7 +283,7 @@ testing migr
     SystemExit: migration rate must be a float or an int.
 
 # mult rates
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [0, 1], migr_time = [30], 
@@ -291,7 +291,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: there should be as many migration rates or matrices as there are times in migr_time
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = ["0", 1], migr_time = [0, 30], 
@@ -299,7 +299,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: migration rate must be a float or an int.
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [-0.5, 1], migr_time = [0, 30], 
@@ -307,7 +307,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: migration rate should be positive (or zero) and not exceed 1
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [0, 0], migr_time = [0, 30], 
@@ -317,7 +317,7 @@ testing migr
     SystemExit: migration matrices cannot all be empty
 
 # matrix
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0,0],[0,0]], migr_time = None, 
@@ -325,7 +325,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: migration matrices cannot all be empty
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0,0, 0],[0,0]], migr_time = None, 
@@ -333,7 +333,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: custom migration matrices should be of size ndeme x ndeme
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0, 1],[1, 0, 0]], migr_time = None, 
@@ -341,7 +341,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: custom migration matrices should be of size ndeme x ndeme
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0, 1],["1", 0]], migr_time = None, 
@@ -349,7 +349,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: found custom migration matrix that is not made of ints or floats
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0, "1"],[1, 0]], migr_time = None, 
@@ -357,7 +357,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: found custom migration matrix that is not made of ints or floats
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0, 1],[-1, 0]], migr_time = None, 
@@ -365,7 +365,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: found custom migration matrix with negative migration rates or greater than 1
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[0, -1],[1, 0]], migr_time = None, 
@@ -375,7 +375,7 @@ testing migr
     SystemExit: found custom migration matrix with negative migration rates or greater than 1
 
 # matrix list
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[[0, -1],[1, 0]], [[0, -1],[1, 0]]], migr_time = [0], 
@@ -383,7 +383,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: there should be as many migration rates or matrices as there are times in migr_time
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[[0, 1, 1],[1, 0]]], migr_time = [0], 
@@ -391,7 +391,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: custom migration matrices should be of size ndeme x ndeme
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[[0, '1'],[1, 0]]], migr_time = [0], 
@@ -399,7 +399,7 @@ testing migr
     Traceback (most recent call last):
       ...
     SystemExit: found custom migration matrix that is not made of ints or floats
-    >>> t = simulate_dolly(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
     ...  migr = [[[0, -1],[1, 0]]], migr_time = [0], 
@@ -409,7 +409,7 @@ testing migr
     SystemExit: found custom migration matrix with negative migration rates or greater than 1
 
 testing verbose
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -419,7 +419,7 @@ testing verbose
     SystemExit: verbose must be a boolean
 
 testing seed
-    >>> t = simulate_dolly(samples = 2, com_size = [[20, 50]], mu = 1, 
+    >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_time = None, 
@@ -427,3 +427,163 @@ testing seed
     Traceback (most recent call last):
       ...
     SystemExit: seed must be an integer
+
+
+## Testing outputs
+
+# one population test
+## discret
+### const
+    >>> t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03,
+    ... seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-4
+       /-|
+    --|   \-0
+      |
+       \-2
+
+### fluct
+    >>> t = simulate(samples = [5], com_size = [[1e3, 2e3]], 
+    ... changetime = [[0, 50]], mu = 0.03, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+    --|   \-0
+      |
+       \-2
+
+## gr
+### const
+### fluct
+
+
+# npop with K migr
+## discret
+### const
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-7
+         |
+       /-|      /-4
+      |  |   /-|
+      |   \-|   \-8
+    --|     |
+      |      \-0
+      |
+      |   /-3
+       \-|
+          \-1
+
+### fluct
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-2
+       /-|
+      |   \-0
+      |
+    --|         /-6
+      |      /-|
+      |   /-|   \-3
+      |  |  |
+       \-|   \-1
+         |
+          \-7
+
+## gr
+### const
+### fluct
+
+
+# npop with diff migr
+## discret
+### const
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]],
+    ... changetime = [[0],[0]], mu = 0.03, migr = [0, 1], 
+    ... migr_time = [0, 200], seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-9
+       /-|
+      |   \-5
+      |
+    --|      /-3
+      |   /-|
+      |  |  |   /-1
+      |  |   \-|
+       \-|      \-0
+         |
+         |   /-2
+          \-|
+             \-6
+
+### fluct
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], 
+    ... migr_time = [0, 200], seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+      |  |   /-1
+      |   \-|
+    --|      \-0
+      |
+      |      /-6
+      |   /-|
+       \-|   \-2
+         |
+          \-5
+
+## gr
+### const
+### fluct
+
+
+# npop with vic
+## discret
+### const
+### fluct
+
+## gr
+### const
+### fluct
+
+
+### Vignette cases ! # TODO : move this to code doc !
+    >>> t = simulate(samples = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-1
+       /-|
+      |  |   /-8
+      |   \-|
+    --|      \-0
+      |
+      |   /-7
+      |  |
+       \-|      /-5
+         |   /-|
+          \-|   \-3
+            |
+             \-6
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-7
+         |
+       /-|      /-4
+      |  |   /-|
+      |   \-|   \-8
+    --|     |
+      |      \-0
+      |
+      |   /-3
+       \-|
+          \-1
