@@ -1,5 +1,9 @@
 # EcoPhylo
 
+[![Lifecycle:                                                           
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![](https://img.shields.io/badge/devel%20version-0.0.9-blue.svg)](https://github.com/thegreatlizzyator/ecophylo)
+
 project description
 
 The source for this project is available [here][src].
@@ -12,9 +16,19 @@ Publications using this package here.
 
 [src]: https://github.com/thegreatlizzyator/ecophylo
 
-## Installation ##
+## Dependencies
 
-To install this package, you can either download the tar.gz file in the dist directory of the repository :
+This package depend on **python 3.7**.
+
+There are multiple dependencies to other python packages. This will be done when installing ecophylo tool in most cases. 
+
+You can experiment difficulties for installing msprime, check the help [here][msprime]
+
+[msprime]: https://tskit.dev/msprime/docs/stable/installation.html
+
+## Installation (with pip)
+
+To install this package, you can either download the tar.gz file in the *dist* directory of the repository :
 ```shell
 python3 -m pip install <path_to>/ecophylo-<VERSION>.tar.gz
 ``` 
@@ -30,26 +44,6 @@ or install from github (it does not work for private repository):
 ```shell
 python3 -m pip install git+https://github.com/thegreatlizzyator/ecophylo/tree/packaging/dist/ecophylo-0.0.5.tar.gz
 ```
-<!---
-TODO : check if better way to check on dependencies
--->
-To end the installation please check for the dependencies. In python you can check the dependencies like this :
-```python
-# dependencies
-import msprime
-import numpy as np
-import sys
-from ete3 import Tree
-import pandas as pd
-```
-
-You can install them by running (numpy is an example):
-```shell
-python3 -m pip install numpy
-```
-You can experiment difficulties for installing msprime, check the help [here][msprime]
-
-[msprime]: https://msprime.readthedocs.io/en/stable/installation.html
 
 ### Installation and usage in R (on Windows aka the painfull way)
 
@@ -69,7 +63,7 @@ conda_install('r-reticulate', c('msprime','ete3','pandas'))
 
 ### In python
 
-In python ( version >= 3.6) you can simulate trees using this package main function in python. 
+In python (version >= 3.7) you can simulate trees using this package main function in python. 
 ```python
 from ecophylo import dosimuls
 dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
