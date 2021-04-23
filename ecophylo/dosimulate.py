@@ -22,11 +22,9 @@ import sys
 import warnings
 from ete3 import Tree
 import pandas as pd
-#from loguniform import LogUniform
 from scipy.stats import loguniform
 
 from ecophylo import pastdemo
-from ecophylo import islmodel
 from ecophylo import phylogen
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
@@ -237,180 +235,8 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         f.close()
     return df, ssdf
 
-def simulate(sample_size, com_size, mu, mrca = None, npop = 1, 
-             m = 0, init_rates = None, init_sizes = None, 
-             past_sizes = None, changetime = None, split_dates = None, 
-             migrfrom = None, migrto = None, verbose = False, seed = None):
-    """
-    Simulate a phylogeny with msprime
-    
-    Parameters
-    ----------
-    sample_size : int
-        number of individual in the community
-        Sample size should not exceed community size
-        # TODO : renommer init_size
-    com_size : int
-        taille de la meta-communauté sensu hubbel 2001
-    mu : float
-        mutation rate, must be comprised between between 0 and 1.
-    mrca = None : int
-        number of generation
-        # TODO : test if it is not a float
-        DESCRIPTION
-    npop = 1 : int
-        > 0
-        DESCRIPTION
-    m = 0 : float
-        DESCRIPTION
-        # TODO : rename migr: float taux de migration
-        # TODO : test between 0 and 1
-        overall symetric migration rate. Default is 0. 
-    init_rates = None : list of float$
-        list of length = npop
-        DESCRIPTION
-        # TODO : rename with ilsmodel rates : list of float
-        # TODO : test rates limites (real, -1:1 or -inf:inf)
-        The initial population growth rates
-    init_sizes = None : list of int
-        DESCRIPTION
-        # TODO : same as in islmodels init_sizes : list of int
-        positive values
-        The initial population sizes
-    past_sizes = None : list of int
-        Population past_sizes at the different time periods. Must be > 0.
-        Must be of same length as npop and same length as changetime.
-    changetime = None : list of int
-        When the demographic changes have occured. Must be >= 0.
-        Must be of same length as past_sizes
-    split_dates = None : list of int
-        # TODO : check if it work with list length == 1
-        DESCRIPTION
-    migrfrom = None : TYPE
-        DESCRIPTION
-        # TODO : rename accordingly to sources in islmodel
-    migrto = None : TYPE
-        DESCRIPTION
-        # TODO : rename accordingly to destinations in islmodel
-    verbose = False : bool
-        DESCRIPTION
-    seed = None : int
-        An integer used to set the seed in all the random events in msprime
-        and in the mutation on the phylogeny.
 
-    Returns
-    -------
-    None.
-
-    Examples
-    --------
-    >>> t = simulate(10, 1e5, 0.03, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-1
-       /-|
-      |  |   /-8
-      |   \-|
-    --|      \-0
-      |
-      |   /-7
-      |  |
-       \-|      /-5
-         |   /-|
-          \-|   \-3
-            |
-             \-6
-    >>> simulate(1e5, 1e5, 0.03, seed = 42)
-    Traceback (most recent call last):
-      File "/usr/lib/python3.6/doctest.py", line 1330, in __run
-        compileflags, 1), test.globs)
-      File "<doctest ecophylo.dosimulate.simulate[2]>", line 1, in <module>
-        simulate(1e5, 1e5, 0.03, seed = 42)
-      File "/home/maxime/Bureau/BEE/ecophylo/ecophylo/dosimulate.py", line 289, in simulate
-        sys.exit("Sample size should not exceed community size")
-    SystemExit: Sample size should not exceed community size
-    """
-    
-    if not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer')
-    if isinstance(seed, float):
-      seed = int(seed)
-
-    # TODO : doc !!!
-    # TODO : idiotproof
-    # TODO : more examples
-    # do dummy checks here --> try to make code stupid-proof
-    if sample_size >= com_size:
-        sys.exit("Sample size should not exceed community size")
-    
-    popchange = []
-    massmigration = []
-    popconfig = None
-    migration = None
-
-    # make past demographic changes between different time frames
-    if past_sizes is not None and changetime is not None:
-        if len(past_sizes) != len(changetime):
-            sys.exit("There should be as many sizes as there are past epochs")
-        popchange = pastdemo.demographic_events(changetime, past_sizes)
-
-    # make island model
-    if npop > 1:
-        if init_sizes is None or init_rates is None:
-            sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
-        
-        # subpops =  npop
-        
-        migration = islmodel.migration_matrix(npop, m)
-        samples = np.ones(npop, dtype=int)*sample_size
-        # TODO : allow differential sampling in pop (provide sample list same length as npop)
-        popconfig = islmodel.population_configurations(init_sizes, samples, init_rates)
-
-        # possible mass migration between populations
-        if split_dates is not None:
-            # implement option later for limited mass dispersal
-            M = 1
-            massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, M)
-
-    demography = popchange + massmigration
-    if len(demography) == 0:
-        demography = None
-
-    # if verbose should print the demography debugger - only for debugging purposes!!! 
-    if verbose: 
-        dd = msprime.DemographyDebugger(Ne = com_size, 
-                                        demographic_events= demography, 
-                                        migration_matrix= migration, 
-                                        population_configurations= popconfig)
-        dd.print_history(output=sys.stderr) # this will get deprecated with msprime 1.0
-    
-    if npop > 1:
-         treeseq = msprime.simulate(Ne = com_size,
-                                    random_seed= seed,
-                                    population_configurations = popconfig,
-                                    migration_matrix = migration,
-                                    demographic_events = demography)
-    else: 
-        treeseq = msprime.simulate(sample_size= sample_size,
-                                   Ne = com_size,
-                                   random_seed= seed,
-                                   demographic_events = demography)
-
-    tree = treeseq.first()
-    # if verbose: print(tree.draw(format = 'unicode'))
-    if mrca is not None:
-        if tree.time(tree.root) > mrca : 
-            raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
-                             " fixed limit ({mrca})")
-    #print(tree.draw(format="unicode"))
-    node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
-    tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = phylogen.toPhylo(tree, mu, seed = seed)
-
-    return phylo
-
-
-def simulate_dolly(samples, com_size, mu, init_rates = None, 
+def simulate(samples, com_size, mu, init_rates = None, 
                    changetime = None, mrca = None, 
                    migr = 1, migr_time = None, verbose = False, seed = None):
     """
@@ -488,7 +314,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
     
     Examples
     --------
-    >>> t = simulate_dolly(samples = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
+    >>> t = simulate(samples = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-1
@@ -504,7 +330,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
           \-|   \-3
             |
              \-6
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-7
@@ -518,7 +344,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
       |   /-3
        \-|
           \-1
-    >>> t = simulate_dolly(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-4
@@ -526,7 +352,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
     --|   \-0
       |
        \-2
-    >>> t = simulate_dolly(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-3
@@ -534,7 +360,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
     --|   \-0
       |
        \-2
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-7
@@ -548,7 +374,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
       |   /-3
        \-|
           \-1
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-2
@@ -562,7 +388,7 @@ def simulate_dolly(samples, com_size, mu, init_rates = None,
        \-|   \-1
          |
           \-7
-    >>> t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-3
@@ -1084,37 +910,37 @@ def getDeme(tree, div = False):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        #simulate_dolly(samples = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
-        # simulate_dolly(samples = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
+        #simulate(samples = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
+        # simulate(samples = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
         # print(t)
 
         ## SINGLE POP
         # stat discret
-        # t = simulate_dolly(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
         # stat continue 
-        # t = simulate_dolly(samples = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         # fluct discret
-        # t = simulate_dolly(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
         # fluct continue # TODO : marche avec certaines valeurs cheloues
-        # t = simulate_dolly(samples = [5], com_size = [[10, 2e5]], changetime = [[0, 800]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[10, 2e5]], changetime = [[0, 800]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         ## MULT POP
 
         # stat discret
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # stat continue # 
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         # fluct discret
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
         # fluct continue # TODO : marche bizarrement
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
         # print(t)
 
-        # t = simulate_dolly(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # print(t)
 
