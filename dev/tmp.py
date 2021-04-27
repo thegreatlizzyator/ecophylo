@@ -1,174 +1,177 @@
 # -*- coding: utf-8 -*-
 
+# import numpy as np
+# migr = [[[0,0.1],
+#         [0.2,0]]
+#         ,
+#         [[0,0.3],
+#         [0.4,0]]
+#         ,
+#         [[0,0.3],
+#         [0.4,0]]
+#         ,
+#         [[0,0.3],
+#         [0.4,0]]
+#         ,
+#         [[0,0.5],
+#         [0.6,0]]]
+
+
+
+# -*- coding: utf-8 -*-
+# """
+# Created on Wed Apr 21 14:36:39 2021
+
+# @author: barthele
+# """
 # import msprime
-# from ete3 import Tree
-# import ecophylo
+# import collections
 
-# sample_size = [10]
-# com_size = [[1e5]]
-# seed = 42
+# samples = [3,3,3]
+# com_size = [[200], [200, 300, 400], [200]]
+# changetime = [[0], [0, 1000, 2000], [0]]
+# vic_events = [[1000, [0,1], 1],
+#               [2000, [1,2], 1]]
 
-# #demography = None
+# catch = [[1000, [0,1], 1],
+#          [2000, [1,2], 2]] #TODO: try and catch this
 
-# ecophylo.mergesizes2rates([[1000], [500]], [[100], [40]]; [500, 300], False)
+# def flatten(x):
+#     if isinstance(x, collections.Iterable):
+#         return [a for i in x for a in flatten(i)]
+#     else:
+#         return [x]
 
-# demography = [msprime.PopulationParametersChange(time=0, initial_size = com_size[0][0], growth_rate = 0, population_id= 0)]
+#  #def vic(samples, com_size, changetime, vic_events):
+# if True:
+#     npop = len(samples)
+#     demography_test = msprime.Demography()
+#     #pop_ids = ["pop_" + str(p) for p in range(npop)]
+    
+#     # initialize population configurations
+#     for pop in range(npop):
+#         demography_test.add_population(initial_size= com_size[pop][0])
 
-# treeseq = msprime.simulate(sample_size= sample_size[0],
-#                  Ne = com_size[0][0],
-#                  random_seed= seed,
-#                  demographic_events = demography)
+#     if vic_events is not None:
+#         # idiot proof 
+#         if any([len(v)!=3 for v in vic_events]) :
+#             raise ValueError('all elements in vic_events should be  lists of lenght 3 ')
+        
+#         if any([len(v[1])!=2 for v in vic_events]):
+#             raise ValueError('second element of vic_events should be a list of 2 deme ids')
+        
+#         if not all([isinstance(v, (int)) for v in flatten(vic_events)]):
+#             raise ValueError("all elements of vic_events should be ints")
+        
+#         if any([t<0 for t in [v[0] for v in vic_events]]):
+#             raise ValueError("all times in _vic_events should be strictly positive")
+        
+#         if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
+#             raise ValueError("split times in vic_events should also appear in changetime")
 
-# tree = treeseq.first()
-# print(tree.draw(format = 'ascii'))
+#         if set([p for p in range(len(samples))]) != set(sum([flatten(v[1:]) for v in vic_events],[])):
+#             raise ValueError("Split events do not match provided deme information")
+        
+#         vic_dates = [v[0] for v in vic_events]
+#         if vic_dates != sorted(vic_dates):
+#             raise ValueError("Split dates should be provided in chronological order")
+        
+#         if any([v[2] not in v[1] for v in vic_events]):
+#             raise ValueError("Splits events of two demes should be defined relative to one of the demes' id ")
+        
+#         for i in range(len(vic_events)) :
+#             if i == 0 :
+#                 continue
+#             if vic_events[i][2] in vic_events[i-1][1] and vic_events[i][2] != vic_events[i-1][2]:
+#                 raise ValueError("Trying to merge with inactive deme")
+            
+            
+#         # initialize ancestral populations
+#         nvic = len(vic_events)
+#         ancestrals = [str(vic_events[i][2]) for i in range(nvic)] 
+#         count = {}
+#         for i, anc in enumerate(ancestrals):
+#             cnt = count.get(anc, 0)
+#             count[anc] = cnt + 1
+#             ancestrals[i] += chr(ord('a') + cnt)
 
-# import ecophylo
-# from ete3 import Tree
-# tree = Tree('(((A:5,(B:3, C:3))1:2,(D:2, E:2)1:5)1:2, (F:3, G:3)1:6);')
-# print(tree)
-    # <BLANKLINE>
-    #          /-A
-    #       /-|
-    #      |  |   /-B
-    #      |   \-|
-    #    /-|      \-C
-    #   |  |
-    #   |  |   /-D
-    # --|   \-|
-    #   |      \-E
-    #   |
-    #   |   /-F
-    #    \-|
-    #       \-G
-# phylo = ecophylo.toPhylo(tree, 0.5, seed = 42)
-# print(phylo)
-    # <BLANKLINE>
-    #       /-A
-    #    /-|
-    # --|   \-D
-    #   |
-    #    \-F
-# ecophylo.getAbund(phylo, 7)
+#         ancestrals = ["pop_" + a for a in ancestrals]
+#         derived = []
+        
+        
+#         for v in range(nvic):
+#             demography_test.add_population(name = ancestrals[v],
+#                                            initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])])
+#             tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
+#             an_changetime = changetime[vic_events[v][2]][tmp:]
+#             an_com_size = com_size[vic_events[v][2]][tmp:]
+#             for i in range(len(an_changetime)):
+#                 demography_test.add_population_parameters_change(population=ancestrals[v],
+#                                                                  time = an_changetime[i],
+#                                                                  initial_size= an_com_size[i])
+#             derived.extend(vic_events[v][1])
 
-# import msprime as ms
-# from ete3 import Tree
-# import ecophylo as eco
-# seed = 42
-# # pc = [ms.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip([5], [500], [0])]
-# # cas avec très petit taux de migr
-# # treeseq=ms.simulate(population_configurations = pc, random_seed= seed)
+#         #set up split events
+#         derived = [str(o) for o in derived]
+#         count = {}
+#         for i, o in enumerate(derived):
+#             cnt = count.get(o, 0)
+#             count[o] = cnt + 1
+#             if cnt > 0:
+#                 derived[i] += chr(ord('a') + cnt - 1) 
+#         derived = ["pop_" + d for d in derived]
+#         derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)]
+        
+#         for v in range(nvic):
+#             demography_test.add_population_split(time = vic_events[v][0], 
+#                                                  derived = derived[v], 
+#                                                  ancestral = ancestrals[v])
+#     demography_test.sort_events()
+#     #print(demography_test.debug())
 
-# pc = [ms.PopulationConfiguration(sample_size = s, initial_size = i, growth_rate = g) for s, i, g in zip([5, 3, 4], [500, 500, 500], [0,0, 0])]
-# # cas avec taux de migr
-# treeseq=ms.simulate(population_configurations = pc, random_seed= seed, migration_matrix = [[0, 0.0001, 0.0001], [0.0001, 0, 0.0001], [0.0001, 0.0001, 0]])
 
-# tree = treeseq.first()
-# print(tree.draw(format = 'ascii'))
+# from collections import Iterable
+# def flatten(foo):
+#     for x in foo:
+#         if hasattr(x, '__iter__') and not isinstance(x, str):
+#             for y in flatten(x):
+#                 yield y
+#         else:
+#             yield x
 
-# # tree.population(18)
-# # print( [tree.population(i) for i in range(10)] )
-# node_labels = {u: str(u)+'_'+str(tree.population(u)) for u in tree.nodes() if tree.is_sample(u)}
-# tree = Tree(tree.newick(node_labels = node_labels))
-# print(tree)
+import collections
+def flatten(x):
+    """
+    lizzy need to document this because thx SO
+    """
+    if isinstance(x, collections.Iterable) and not isinstance(x, str):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
 
-# phylo = eco.toPhylo(tree, 0.5, seed = 42)
+catch = [[1000, [0,1], 1],
+          [2000, [1,2], 2]]
 
-# print(phylo)
 
-# print(eco.getAbund(phylo))
+flat_list = flatten(catch)
+print(flat_list)
 
-# print(eco.getDeme(phylo))
+print(all([isinstance(x, int) for x in flat_list]))
 
-import numpy as np
-migr = [[[0,0.1],
-        [0.2,0]]
-        ,
-        [[0,0.3],
-        [0.4,0]]
-        ,
-        [[0,0.3],
-        [0.4,0]]
-        ,
-        [[0,0.3],
-        [0.4,0]]
-        ,
-        [[0,0.5],
-        [0.6,0]]]
+catch = [["1000", [0,1], 1],
+          [2000, [1,2], 2]]
 
-m = np.array(migr)
-print(m.shape)
+flat_list = flatten(catch)
+print(all([isinstance(x, int) for x in flat_list]))
 
-npop = 2
-migr = 0.4
-print(np.ones((npop,npop))*migr)
+catch = [[1000, [0,1], 1],
+          [2000, ["1",2], 2]]
 
-migr = [[0, 1],[1, 0, 0]]
-migr_time = [0]
-npop = 2
+flat_list = flatten(catch)
+print(all([isinstance(x, int) for x in flat_list]))
 
-migr = 1
+catch = [[1000, [0,1], "1"],
+          [2000, [1,2], 2]]
 
-import sys
-
-if True :
-    # check migr
-    if migr is not None :
-        if npop == 1 :
-            # warnings.warn("no migration matrix is needed for a single deme")
-            migr = None
-    if migr is not None :
-        if not isinstance(migr, list) : # case 'a
-            if not isinstance(migr, (int,float)) :
-                sys.exit("migration rate must be a float or an int.")
-            if migr < 0 or migr > 1 :
-                sys.exit("migration rate should be positive (or zero) and" + 
-                " not exceed 1")
-            # migr = np.ones((npop,npop))*migr
-            # np.fill_diagonal(migr, 0)
-        else :
-            for i in range(len(migr)):
-                if not isinstance(migr[i], list): # case ['a, ... ,'b]
-                    if len(migr) != len(migr_time):
-                        sys.exit("there should be as many migration rates" + 
-                            " or matrices as there are times in migr_time")
-                    if not isinstance(migr[i], (int,float)) :
-                        sys.exit("migration rate must be a float or an int.")
-                    if migr[i] < 0 or migr[i] > 1 :
-                        sys.exit("migration rate should be positive (or zero)" + 
-                                 " and not exceed 1")
-                    # check len of migr is done with migr_time
-                    migr[i] = np.ones((npop,npop))*migr[i]
-                    np.fill_diagonal(migr[i], 0)
-                else :
-                    if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
-                        if len(migr[i]) != len(migr) or len(migr) != npop:
-                            sys.exit("custom migration matrices should be of" + 
-                                     " size ndeme x ndeme")
-                        if not all([ isinstance(r, (float,int)) for r in migr[i]]) :
-                            sys.exit("found custom migration matrix that is" + 
-                                     " not made of ints or floats")
-                        if any([r<0 or r> 1 for r in migr[i]]):
-                            sys.exit("found custom migration matrix with" + 
-                                " negative migration rates or greater than 1")
-                    else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
-                        if len(migr) != len(migr_time):
-                            sys.exit("there should be as many migration rates" + 
-                                " or matrices as there are times in migr_time")
-                        for j in range(len(migr[i])) :
-                            if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
-                                sys.exit("custom migration matrices should be" + 
-                                    " of size ndeme x ndeme")
-                            if any ([not isinstance(r, (float,int)) for r in migr[i][j]]) :
-                                sys.exit("found custom migration matrix that" + 
-                                    " is not made of ints or floats")
-                            if any ([r<0 or r> 1 for r in migr[i][j]]):
-                                sys.exit("found custom migration matrix with" + 
-                                 " negative migration rates or greater than 1")
-
-    m = np.array(migr)
-    dim = m.shape
-    if np.sum(m) == 0 :
-        sys.exit("migration matrices cannot all be empty")
-
-print(dim)
-print(len(dim))
+flat_list = flatten(catch)
+print(all([isinstance(x, int) for x in flat_list]))
