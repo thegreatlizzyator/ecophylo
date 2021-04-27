@@ -20,7 +20,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: samples should all be ints
+    ValueError: samples should all be ints
     >>> t = simulate(samples = ["2", 1], com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -28,7 +28,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: samples should all be ints
+    ValueError: samples should all be ints
     >>> t = simulate(samples = -1, com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -36,7 +36,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: samples should all be positive
+    ValueError: samples should all be positive
     >>> t = simulate(samples = [2, -1], com_size = 1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -44,7 +44,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: samples should all be positive
+    ValueError: samples should all be positive
 
 # testing com_size
     >>> t = simulate(samples = 5, com_size = [10, 30], mu = 1, 
@@ -54,7 +54,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many elements in com_size as there are demes
+    ValueError: there should be as many elements in com_size as there are demes
     >>> t = simulate(samples = 5, com_size = [1], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -62,7 +62,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: com_size must be superior to samples
+    ValueError: com_size must be superior to samples
     >>> t = simulate(samples = 5, com_size = -1, mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -70,7 +70,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: community sizes should be strictly positive int
+    ValueError: community sizes should be strictly positive int
     >>> t = simulate(samples = 5, com_size = "many", mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -78,7 +78,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: community sizes should be strictly positive int
+    ValueError: community sizes should be strictly positive int
     >>> t = simulate(samples = [5, 5], com_size = [10, -30], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0], [0]], mrca = None, 
@@ -86,7 +86,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: all past sizes should be strictly positive
+    ValueError: all past sizes should be strictly positive
     >>> t = simulate(samples = [5, 5], com_size = [[10], [30]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, 20], [0]], mrca = None, 
@@ -94,7 +94,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many past com_size as there are epochs in changetime
+    ValueError: there should be as many past com_size as there are epochs in changetime
     >>> t = simulate(samples = [5, 5], com_size = [[10], [-30]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0], [0]], mrca = None, 
@@ -102,7 +102,7 @@ testing samples
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: all past sizes should be strictly positive
+    ValueError: all past sizes should be strictly positive
 
 testing mu
     >>> t = simulate(samples = 2, com_size = [[500]], mu = -1, 
@@ -112,7 +112,7 @@ testing mu
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: mu must be a float between 0 and 1
+    ValueError: mu must be a float between 0 and 1
     >>> t = simulate(samples = 2, com_size = [[500]], mu = 10, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -120,7 +120,7 @@ testing mu
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: mu must be a float between 0 and 1
+    ValueError: mu must be a float between 0 and 1
     >>> t = simulate(samples = 2, com_size = [[500]], mu = "0.5", 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -128,7 +128,7 @@ testing mu
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: mu must be a float between 0 and 1
+    ValueError: mu must be a float between 0 and 1
 
 testing init_rates
     >>> t = simulate(samples = 2, com_size = [[500]], mu = 1, 
@@ -138,7 +138,7 @@ testing init_rates
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: init_rates must be float, list of float or nested list of float
+    ValueError: init_rates must be float, list of float or nested list of float
     >>> t = simulate(samples = 2, com_size = [[500, 200]], mu = 1, 
     ...  init_rates = [1, 2], 
     ...  changetime = [[0, 20]], mrca = None, 
@@ -146,7 +146,7 @@ testing init_rates
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many elements in init_rates as there are demes
+    ValueError: there should be as many elements in init_rates as there are demes
     >>> t = simulate(samples = 2, com_size = [[500]], mu = 1, 
     ...  init_rates = [[1, 2]], 
     ...  changetime = [[0]], mrca = None, 
@@ -154,7 +154,7 @@ testing init_rates
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many past growth init_rates as there are epochs in changetime
+    ValueError: there should be as many past growth init_rates as there are epochs in changetime
 
 
 testing changetime
@@ -166,7 +166,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be int, list of int or nested list of int
+    ValueError: changetime must be int, list of int or nested list of int
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = -66, mrca = None, 
@@ -174,7 +174,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be positive values
+    ValueError: changetime must be positive values
 
 # list of val
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
@@ -184,7 +184,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: Duplicated times in changetime are not possible
+    ValueError: Duplicated times in changetime are not possible
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, "KT", 20] , mrca = None, 
@@ -192,7 +192,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be int, list of int or nested list of int
+    ValueError: changetime must be int, list of int or nested list of int
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [0, -66, 20] , mrca = None, 
@@ -200,7 +200,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be positive values
+    ValueError: changetime must be positive values
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [66, 0, 20] , mrca = None, 
@@ -208,7 +208,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: first element of changetime must be equal to 0
+    ValueError: first element of changetime must be equal to 0
 
 # nested list of int
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
@@ -218,7 +218,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: Duplicated times in changetime for a Deme are not possible
+    ValueError: Duplicated times in changetime for a Deme are not possible
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, "KT", 20]] , mrca = None, 
@@ -226,7 +226,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be int, list of int or nested list of int
+    ValueError: changetime must be int, list of int or nested list of int
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[0, -66, 20]] , mrca = None, 
@@ -234,7 +234,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: changetime must be positive values
+    ValueError: changetime must be positive values
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = [[66, 0, 20]] , mrca = None, 
@@ -242,7 +242,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: first element of changetime for a Deme must be equal to 0
+    ValueError: first element of changetime for a Deme must be equal to 0
 
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
@@ -251,7 +251,7 @@ testing changetime
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many past sizes as there are epochs in changetime
+    ValueError: there should be as many past sizes as there are epochs in changetime
     
 testing mrca
 
@@ -264,7 +264,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration matrices cannot all be empty
+    ValueError: migration matrices cannot all be empty
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -272,7 +272,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration rate should be positive (or zero) and not exceed 1
+    ValueError: migration rate should be positive (or zero) and not exceed 1
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -280,7 +280,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration rate must be a float or an int.
+    ValueError: migration rate must be a float or an int.
 
 # mult rates
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
@@ -290,7 +290,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many migration rates or matrices as there are times in migr_time
+    ValueError: there should be as many migration rates or matrices as there are times in migr_time
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -298,7 +298,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration rate must be a float or an int.
+    ValueError: migration rate must be a float or an int.
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -306,7 +306,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration rate should be positive (or zero) and not exceed 1
+    ValueError: migration rate should be positive (or zero) and not exceed 1
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -314,7 +314,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration matrices cannot all be empty
+    ValueError: migration matrices cannot all be empty
 
 # matrix
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
@@ -324,7 +324,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: migration matrices cannot all be empty
+    ValueError: migration matrices cannot all be empty
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -332,7 +332,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    ValueError: custom migration matrices should be of size ndeme x ndeme
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -340,7 +340,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    ValueError: custom migration matrices should be of size ndeme x ndeme
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -348,7 +348,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix that is not made of ints or floats
+    ValueError: found custom migration matrix that is not made of ints or floats
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -356,7 +356,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix that is not made of ints or floats
+    ValueError: found custom migration matrix that is not made of ints or floats
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -364,7 +364,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix with negative migration rates or greater than 1
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -372,7 +372,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix with negative migration rates or greater than 1
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
 
 # matrix list
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
@@ -382,7 +382,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: there should be as many migration rates or matrices as there are times in migr_time
+    ValueError: there should be as many migration rates or matrices as there are times in migr_time
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -390,7 +390,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: custom migration matrices should be of size ndeme x ndeme
+    ValueError: custom migration matrices should be of size ndeme x ndeme
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -398,7 +398,7 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix that is not made of ints or floats
+    ValueError: found custom migration matrix that is not made of ints or floats
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
@@ -406,8 +406,108 @@ testing migr
     ...  verbose = False, seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: found custom migration matrix with negative migration rates or greater than 1
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
 
+testing vic_events
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = "Noa Arch",
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: vic_events should be a nested list of list with a length 3
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = ["Noa Arch"],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: vic_events should be a nested list of list with a length 3
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [0, 1]]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all elements in vic_events should be lists of lenght 3
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [0], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: second element of vic_events should be a list of 2 deme ids
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [["Birth of Christ", [0, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all elements of vic_events should be ints
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[-6000, [0, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all times in _vic_events should be strictly positive
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[40, [0, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: split times in vic_events should also appear in changetime
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [0, 1], 3]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Split events do not match provided deme information
+    >>> t = simulate(samples = [2, 2, 2], com_size = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[40, [0, 2], 0], [30, [0, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Split dates should be provided in chronological order
+    >>> t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [1, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Splits events of two demes should be defined relative to one of the demes' id
+    >>> t = simulate(samples = [2, 2, 2], com_size = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [0, 1], 0], [40, [1, 2], 1]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Trying to merge with inactive deme
+
+    
+    >>> t = simulate(samples = [2, 2, 2], com_size = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_time = None, vic_events = [[30, [0, 1], 0], [40, [0, 1], 0]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Trying to merge with inactive deme
+    
 testing verbose
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
@@ -416,8 +516,8 @@ testing verbose
     ...  verbose = "False", seed = None)
     Traceback (most recent call last):
       ...
-    SystemExit: verbose must be a boolean
-
+    ValueError: verbose must be a boolean
+    
 testing seed
     >>> t = simulate(samples = 2, com_size = [[20, 50]], mu = 1, 
     ...  init_rates = None, 
@@ -426,7 +526,7 @@ testing seed
     ...  verbose = False, seed = "tournesol")
     Traceback (most recent call last):
       ...
-    SystemExit: seed must be an integer
+    ValueError: seed must be an integer
 
 
 ## Testing outputs
@@ -587,3 +687,10 @@ testing seed
       |   /-3
        \-|
           \-1
+
+cas qui est cense marche mais flemme
+   # >>> t = simulate(samples = [2, 2, 2], com_size = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+   # ...  init_rates = None, 
+   # ...  changetime = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+   # ...  migr = 1, migr_time = None, vic_events = [[30, [0, 1], 0]],
+   # ...  verbose = False, seed = None)

@@ -23,6 +23,7 @@ import warnings
 from ete3 import Tree
 import pandas as pd
 from scipy.stats import loguniform
+import collections
 
 from ecophylo import pastdemo
 from ecophylo import phylogen
@@ -61,7 +62,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     # CHECKS HERE FOR IDIOT-PROOFING
     
     if prior_distrib not in ("uniform", "log_unif"):
-        sys.exit("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
+        raise ValueError("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
     
     comments = 'Simulating eco-evolutionary dynamics over the following parameters ranges:'
     df = pd.DataFrame()
@@ -141,7 +142,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     # While loop for calling simulate
     while i < nsim:
         if safecount > 100:
-            sys.exit("Too many simulations have failed")
+            raise ValueError("Too many simulations have failed")
 
         try:
             df = df.append(pd.Series(), ignore_index=True)
@@ -238,7 +239,8 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
 
 def simulate(samples, com_size, mu, init_rates = None, 
                    changetime = None, mrca = None, 
-                   migr = 1, migr_time = None, verbose = False, seed = None):
+                   migr = 1, migr_time = None, vic_events = None,
+                   verbose = False, seed = None):
     """
     This function implements the simulation algorithm described in Barthelemy
     et al. 2021 in which (i) the shared co-ancestry of present individuals is
@@ -306,6 +308,9 @@ def simulate(samples, com_size, mu, init_rates = None,
     migr_time = None: list of ints
         the times (in generation before present) at which migration rates have
         changed in which the first element is 0
+    vic_events = None: # TODO lizzy
+        # TODO : need format [[time, [popA,popB], popAB]]
+
     verbose = False : bool
         whether or not to print a summary of the demographic history and the
         resulting genealogy to be passed to a phylogeny
@@ -414,10 +419,10 @@ def simulate(samples, com_size, mu, init_rates = None,
         samples = [samples]
     isint_samp = [isinstance(s, int) for s in samples]
     if not all(isint_samp):
-        sys.exit("samples should all be ints")
+        raise ValueError("samples should all be ints")
     ispos_samp = [s>0 for s in samples]
     if not all(ispos_samp):
-        sys.exit("samples should all be positive")
+        raise ValueError("samples should all be positive")
     # compute number of populations
     npop = len(samples)
 
@@ -428,39 +433,39 @@ def simulate(samples, com_size, mu, init_rates = None,
                 if changetime >= 0 :
                     changetime = [[changetime]]
                 else :
-                    sys.exit('changetime must be positive values')
+                    raise ValueError('changetime must be positive values')
             else :
-                sys.exit('changetime must be int, list of int or'+
+                raise ValueError('changetime must be int, list of int or'+
                 ' nested list of int')
         else :
             for x in changetime:
                 if isinstance(x, list):
                     if not all(isinstance(y, (float, int)) for y in x) : 
-                        sys.exit('changetime must be int, list of int or'+
+                        raise ValueError('changetime must be int, list of int or'+
                                  ' nested list of int')
                     if any(y < 0 for y in x[1:]) : 
-                        sys.exit('changetime must be positive values')
+                        raise ValueError('changetime must be positive values')
                     if x[0] != 0:
-                        sys.exit('first element of changetime for a Deme'+
+                        raise ValueError('first element of changetime for a Deme'+
                         ' must be equal to 0')
                     if len(set(x)) != len(x) :
-                        sys.exit('Duplicated times in changetime for a Deme' +
+                        raise ValueError('Duplicated times in changetime for a Deme' +
                                  ' are not possible')
                 else :
                     if len(set(changetime)) != len(changetime) :
-                        sys.exit('Duplicated times in changetime are not possible')
+                        raise ValueError('Duplicated times in changetime are not possible')
                     if not isinstance(x, (float, int)):
-                        sys.exit('changetime must be int, list of int or'+
+                        raise ValueError('changetime must be int, list of int or'+
                                  ' nested list of int')
                     if x < 0 :
-                        sys.exit('changetime must be positive values')
+                        raise ValueError('changetime must be positive values')
                     if changetime[0] != 0:
-                        sys.exit('first element of changetime'+
+                        raise ValueError('first element of changetime'+
                         ' must be equal to 0')
             if not isinstance(x, list):
                 changetime = [changetime]
         if len(changetime) != npop :
-            sys.exit("there should be as many past sizes as there " + 
+            raise ValueError("there should be as many past sizes as there " + 
             "are epochs in changetime")
     else :
         changetime = [[0]] * npop
@@ -483,36 +488,36 @@ def simulate(samples, com_size, mu, init_rates = None,
                     else :
                         com_size[i] = [int(x) if isinstance(x, float) else x for x in com_size[i]]
                     if len(com_size) != npop :
-                        sys.exit("there should be as many elements in"+
+                        raise ValueError("there should be as many elements in"+
                                  " com_size as there are demes")
                     if len(com_size[i]) !=  len(changetime[i]) :
-                        sys.exit("there should be as many past "+
+                        raise ValueError("there should be as many past "+
                         "com_size as there are epochs in changetime")
                     if isint_com and any([s <= 0 for s in com_size[i]]):
-                        sys.exit("all past sizes should be strictly positive")
+                        raise ValueError("all past sizes should be strictly positive")
                     if isint_com and any([x < samples[i] for x in com_size[i]]):
                         sampl_com = False 
                 else :
                     if len(com_size) != npop :
-                        sys.exit("there should be as many elements in"+
+                        raise ValueError("there should be as many elements in"+
                                  " com_size as there are demes")
                     if not isinstance(com_size[i], (float, int)):
                         isint_com = False 
                     if isint_com and com_size[i] <= 0 :
-                        sys.exit("all past sizes should be strictly positive")
+                        raise ValueError("all past sizes should be strictly positive")
                     if isint_com and com_size[i] < samples[i] :
                         sampl_com = False 
                     com_size[i] = [com_size[i]]
         if not isint_com:
-            sys.exit("community sizes should be strictly positive int")
+            raise ValueError("community sizes should be strictly positive int")
         if not sampl_com:
-            sys.exit('com_size must be superior to samples')
+            raise ValueError('com_size must be superior to samples')
         
     # if isinstance(com_size, float) :
     #     com_size = [[int(com_size)]] * npop
     # check mu
     if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
-        sys.exit('mu must be a float between 0 and 1')
+        raise ValueError('mu must be a float between 0 and 1')
     # check init_rates
     if init_rates is not None and changetime is not None:
         isint_rates = True
@@ -527,20 +532,20 @@ def simulate(samples, com_size, mu, init_rates = None,
                     if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
                         isint_rates = False
                     if len(init_rates[i]) !=  len(changetime[i]) :
-                        sys.exit("there should be as many past growth "+
+                        raise ValueError("there should be as many past growth "+
                         "init_rates as there are epochs in changetime")
                 else :
                     if len(init_rates) != npop :
-                        sys.exit("there should be as many elements in"+
+                        raise ValueError("there should be as many elements in"+
                         " init_rates as there are demes")
                     if not isinstance(init_rates[i], (float, int)):
                         isint_rates = False 
                     init_rates[i] <- [init_rates[i]]
         if not isint_rates:
-            sys.exit('init_rates must be float, list of float or'+
+            raise ValueError('init_rates must be float, list of float or'+
                                  ' nested list of float')
         if len(init_rates) != npop :
-            sys.exit("there should be as many past sizes as there " + 
+            raise ValueError("there should be as many past sizes as there " + 
             "are epochs in init_rates")
     else :
         init_rates = [[0]] * npop
@@ -556,9 +561,9 @@ def simulate(samples, com_size, mu, init_rates = None,
     if migr is not None :
         if not isinstance(migr, list) : # case 'a
             if not isinstance(migr, (int,float)) :
-                sys.exit("migration rate must be a float or an int.")
+                raise ValueError("migration rate must be a float or an int.")
             if migr < 0 or migr > 1 :
-                sys.exit("migration rate should be positive (or zero) and" + 
+                raise ValueError("migration rate should be positive (or zero) and" + 
                 " not exceed 1")
             # migr = np.ones((npop,npop))*migr
             # np.fill_diagonal(migr, 0)
@@ -567,12 +572,12 @@ def simulate(samples, com_size, mu, init_rates = None,
             for i in range(len(migr)):
                 if not isinstance(migr[i], list): # case ['a, ... ,'b]
                     if len(migr) != len(migr_time):
-                        sys.exit("there should be as many migration rates" + 
+                        raise ValueError("there should be as many migration rates" + 
                             " or matrices as there are times in migr_time")
                     if not isinstance(migr[i], (int,float)) :
-                        sys.exit("migration rate must be a float or an int.")
+                        raise ValueError("migration rate must be a float or an int.")
                     if migr[i] < 0 or migr[i] > 1 :
-                        sys.exit("migration rate should be positive (or zero)" + 
+                        raise ValueError("migration rate should be positive (or zero)" + 
                                  " and not exceed 1")
                     # check len of migr is done with migr_time
                     migr[i] = np.ones((npop,npop))*migr[i]
@@ -580,40 +585,83 @@ def simulate(samples, com_size, mu, init_rates = None,
                 else :
                     if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
                         if len(migr[i]) != len(migr) or len(migr) != npop:
-                            sys.exit("custom migration matrices should be of" + 
+                            raise ValueError("custom migration matrices should be of" + 
                                      " size ndeme x ndeme")
                         if not all([ isinstance(r, (float,int)) for r in migr[i]]) :
-                            sys.exit("found custom migration matrix that is" + 
+                            raise ValueError("found custom migration matrix that is" + 
                                      " not made of ints or floats")
                         if any([r<0 or r> 1 for r in migr[i]]):
-                            sys.exit("found custom migration matrix with" + 
+                            raise ValueError("found custom migration matrix with" + 
                                 " negative migration rates or greater than 1")
                     else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
                         if len(migr) != len(migr_time):
-                            sys.exit("there should be as many migration rates" + 
+                            raise ValueError("there should be as many migration rates" + 
                                 " or matrices as there are times in migr_time")
                         for j in range(len(migr[i])) :
                             if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
-                                sys.exit("custom migration matrices should be" + 
+                                raise ValueError("custom migration matrices should be" + 
                                     " of size ndeme x ndeme")
                             if any ([not isinstance(r, (float,int)) for r in migr[i][j]]) :
-                                sys.exit("found custom migration matrix that" + 
+                                raise ValueError("found custom migration matrix that" + 
                                     " is not made of ints or floats")
                             if any ([r<0 or r> 1 for r in migr[i][j]]):
-                                sys.exit("found custom migration matrix with" + 
+                                raise ValueError("found custom migration matrix with" + 
                                  " negative migration rates or greater than 1")
 
     m = np.array(migr)
     dim = m.shape
     if np.sum(m) == 0 :
-        sys.exit("migration matrices cannot all be empty")
-    
+        raise ValueError("migration matrices cannot all be empty")
+    # check vic_events
+    if vic_events is not None:
+        if not isinstance(vic_events, list) or any([not isinstance(x, list) for x in vic_events]):
+            raise ValueError("vic_events should be a nested list of list with "+
+            "a length 3")
+        if any([len(v)!=3 for v in vic_events]) :
+            raise ValueError("all elements in vic_events should be lists of"+
+            " lenght 3")
+        
+        if any([len(v[1])!=2 for v in vic_events]):
+            raise ValueError("second element of vic_events should be a list"+
+            " of 2 deme ids")
+        # TODO : cath float and format them
+        if not all([isinstance(v, int) for v in flatten(vic_events)]):
+             raise ValueError("all elements of vic_events should be ints")
+        
+        if any([t<0 for t in [v[0] for v in vic_events]]):
+            raise ValueError("all times in _vic_events should be strictly"+
+            " positive")
+        
+        if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
+            raise ValueError("split times in vic_events should also appear"+
+            " in changetime")
+
+        if not all([x in range(npop) for x in sum([flatten(v[1:]) for v in vic_events],[]) ]):
+            raise ValueError("Split events do not match provided deme"+
+            " information")
+        
+        vic_dates = [v[0] for v in vic_events]
+        if vic_dates != sorted(vic_dates):
+            raise ValueError("Split dates should be provided in chronological"+
+            " order")
+        
+        if any([v[2] not in v[1] for v in vic_events]):
+            raise ValueError("Splits events of two demes should be defined"+
+            " relative to one of the demes' id")
+        
+        for i in range(len(vic_events)) :
+            if i == 0 :
+                continue
+            if vic_events[i][1][0] in vic_events[i-1][1] or vic_events[i][1][0] != vic_events[i-1][2]:
+                raise ValueError("Trying to merge with inactive deme")
+            if vic_events[i][1][1] in vic_events[i-1][1] or vic_events[i][1][1] != vic_events[i-1][2]:
+                raise ValueError("Trying to merge with inactive deme")
     # check verbose
     if not isinstance(verbose, bool):
-        sys.exit('verbose must be a boolean') 
+        raise ValueError('verbose must be a boolean') 
     # check seed
     if seed is not None and not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer')
+        raise ValueError('seed must be an integer')
     if seed is not None and isinstance(seed, float):
         seed = int(seed)
   
@@ -627,7 +675,7 @@ def simulate(samples, com_size, mu, init_rates = None,
     demography = msprime.Demography()
     
     # Build samples
-    samples = {"pop_"+str(i):samples[i] for i in range(len(samples))}
+    samples = {"pop_" + str(i):samples[i] for i in range(len(samples))}
     pop_ids = ["pop_" + str(p) for p in range(npop)]
 
     # initialize population configurations
@@ -651,6 +699,50 @@ def simulate(samples, com_size, mu, init_rates = None,
                     time = changetime[pop][i+1] , 
                     growth_rate=init_rates[pop][i+1], 
                     population= pop_ids[pop])
+
+    ## VICARIANCE EVENTS
+    if vic_events is not None:
+        # extract some informations about 
+        nvic = len(vic_events)
+        ancestrals = [str(vic_events[i][2]) for i in range(nvic)] 
+        count = {}
+        for i, anc in enumerate(ancestrals):
+            cnt = count.get(anc, 0)
+            count[anc] = cnt + 1
+            ancestrals[i] += chr(ord('a') + cnt)
+
+        ancestrals = ["pop_" + a for a in ancestrals]
+        derived = []
+        # add the ancestral pop and their size change
+        for v in range(nvic):
+            demography.add_population(
+                name = ancestrals[v],
+                initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])]) # TODO : check this
+            tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
+            an_changetime = changetime[vic_events[v][2]][tmp:]
+            an_com_size = com_size[vic_events[v][2]][tmp:]
+            for i in range(len(an_changetime)):
+                demography.add_population_parameters_change(
+                    population=ancestrals[v],
+                    time = an_changetime[i],
+                    initial_size= an_com_size[i])
+            derived.extend(vic_events[v][1])
+
+        #set up split events
+        derived = [str(o) for o in derived]
+        count = {}
+        for i, o in enumerate(derived):
+            cnt = count.get(o, 0)
+            count[o] = cnt + 1
+            if cnt > 0:
+                derived[i] += chr(ord('a') + cnt - 1) 
+        derived = ["pop_" + d for d in derived]
+        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)] # TODO : check this
+        
+        for v in range(nvic):
+            demography.add_population_split(time = vic_events[v][0], 
+                                            derived = derived[v], 
+                                            ancestral = ancestrals[v])
 
     ## MIGRATION
     if migr is not None :
@@ -834,10 +926,10 @@ def getAbund(tree, samples = None):
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
+        raise ValueError('tree must have a class TreeNode')
     if samples != None:
       if not isinstance(samples, int):
-          sys.exit('samples must be an integer')
+          raise ValueError('samples must be an integer')
 
     sfs = list()
     abund = list()
@@ -894,7 +986,7 @@ def getDeme(tree, div = False):
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
+        raise ValueError('tree must have a class TreeNode')
     
     indiv = list()
     for leaf in tree.iter_leaves():
@@ -906,6 +998,17 @@ def getDeme(tree, div = False):
         indiv = np.array(indiv)
         indiv = [sum(indiv[:,i] > 0) for i in range(indiv.shape[1])]
     return indiv
+
+
+def flatten(x):
+    """
+    lizzy need to document this because thx SO
+    """
+    if isinstance(x, collections.Iterable) and not isinstance(x, str):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
+
 
 if __name__ == "__main__":
         import doctest
