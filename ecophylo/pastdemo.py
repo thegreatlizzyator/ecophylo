@@ -14,7 +14,6 @@ Functions :
 
 import msprime
 import numpy as np
-import sys
 
 
 # TODO : make an example in rmd about timeframes
@@ -51,11 +50,11 @@ def timeframes(I, T, a):
     """
     # Idiotproof
     if not isinstance(I, int) or I <= 0 :
-        sys.exit('I number of time windows must be an integer superior to 0.')
+        raise ValueError('I number of time windows must be an integer superior to 0.')
     if not isinstance(T, (int,float)) or T <= 0 :
-        sys.exit('T maximum time in generation time must be a strict positive float.')
+        raise ValueError('T maximum time in generation time must be a strict positive float.')
     if not isinstance(a, (int, float)) or  a <= 0 :
-        sys.exit("The resolution a must be a float superior to 0.")
+        raise ValueError("The resolution a must be a float superior to 0.")
     
     I += 1
     times = [(np.exp((np.log(1+a*T)*i)/(I-1))-1)/a for i in range(1, I)]
