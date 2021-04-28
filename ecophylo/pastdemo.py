@@ -8,14 +8,12 @@ Created on Wed May 13 11:42:50 2020
 
 Functions :
     timeframes
-    demographic_events
 
 """
 # TODO : more info in pastdemo
 
 import msprime
 import numpy as np
-import sys
 
 
 # TODO : make an example in rmd about timeframes
@@ -52,60 +50,17 @@ def timeframes(I, T, a):
     """
     # Idiotproof
     if not isinstance(I, int) or I <= 0 :
-        sys.exit('I number of time windows must be an integer superior to 0.')
+        raise ValueError('I number of time windows must be an integer superior to 0.')
     if not isinstance(T, (int,float)) or T <= 0 :
-        sys.exit('T maximum time in generation time must be a strict positive float.')
+        raise ValueError('T maximum time in generation time must be a strict positive float.')
     if not isinstance(a, (int, float)) or  a <= 0 :
-        sys.exit("The resolution a must be a float superior to 0.")
+        raise ValueError("The resolution a must be a float superior to 0.")
     
     I += 1
     times = [(np.exp((np.log(1+a*T)*i)/(I-1))-1)/a for i in range(1, I)]
     
     return(times)
 
-
-def demographic_events(changetime, past_sizes):
-    """
-    Change the demography of one populations over given time periods.
-
-    Parameters
-    ----------
-    changetime : list of int
-        When the demographic changes have occured. Must be >= 0.
-    past_sizes : list of int
-        Population past_sizes at the different time periods. Must be > 0.
-
-    Returns
-    -------
-    a list object to be passed into msprime.simulate to change 
-    the demography over given times periods. 
-    Changes affect Population past_sizes at the different times, 
-    growth rates are automatically set to 0 (constant size).
-    Should later implement an option to change a specific population 
-    for now the changes affect all populations simultaneously.
-
-    Examples
-    --------
-    >>> demographic_events([1, 2], [42, 9000])
-    [PopulationParametersChange(time=1, initial_size=42, growth_rate=None, population=-1), PopulationParametersChange(time=2, initial_size=9000, growth_rate=None, population=-1)]
-    
-    >>> demographic_events([1], [42])
-    [PopulationParametersChange(time=1, initial_size=42, growth_rate=None, population=-1)]
-    """
-    # Idiot proof
-    if len(changetime) != len(past_sizes) :
-        sys.exit('changetime and past_sizes list must be of same length')
-    if not all(isinstance(x, (int,float)) for x in changetime) :
-        sys.exit('changetime must be a list of int')
-    if not all(isinstance(x, int) for x in past_sizes) :
-        sys.exit('past_sizes must be a list of int')
-    if not all((x > 0) for x in changetime) :
-        sys.exit('changetime must be strict positive values')
-    if not all((x > 0) for x in past_sizes) :
-        sys.exit('past_sizes must be strict positive values')
-
-    dc = [msprime.PopulationParametersChange(time=t, initial_size =s) for t, s in zip(changetime, past_sizes)]
-    return dc
 
 if __name__ == "__main__":
         import doctest

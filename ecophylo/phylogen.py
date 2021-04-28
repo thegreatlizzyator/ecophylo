@@ -13,7 +13,6 @@ Functions :
 # TODO : more info in help toPhylo
 
 import numpy as np
-import sys
 
 def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
@@ -75,16 +74,16 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
+        raise ValueError('tree must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
-        sys.exit('mu must be a float between 0 and 1')
+        raise ValueError('mu must be a float between 0 and 1')
     if not spmodel in ['SGD', 'NTD']:
-        sys.exit(spmodel+' is not a correct model. '+
+        raise ValueError(spmodel+' is not a correct model. '+
                 'spmodel must be either "SGD" or "NTD" string')
     if not isinstance(force_ultrametric, bool):
-        sys.exit('force_ultrametric must be a boolean')
-    if not isinstance(seed, int):
-        sys.exit('seed must be an integer')
+        raise ValueError('force_ultrametric must be a boolean')
+    if seed is not None and not isinstance(seed, int):
+        raise ValueError('seed must be an integer')
 
     # init some parameters
     innerNodeIndex = 0
@@ -169,7 +168,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                 if not node.is_leaf():
                     children = node.get_children()
                     if len(children) != 2:
-                        sys.exit("The algorithm does not know how to deal with non dichotomic trees!")
+                        raise ValueError("The algorithm does not know how to deal with non dichotomic trees!")
                     csp1 = set()
                     for j in children[0].iter_leaves():
                         csp1.add(j.sp)
@@ -260,11 +259,11 @@ def ubranch_mutation(node, mu, seed = None):
     """
     # Idiot proof
     if node.__class__.__name__ != 'TreeNode' :
-        sys.exit('node must have a class TreeNode')
+        raise ValueError('node must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
-        sys.exit('mu must be a float between 0 and 1')
-    if not isinstance(seed, int):
-        sys.exit('seed must be an integer')
+        raise ValueError('mu must be a float between 0 and 1')
+    if seed is not None and not isinstance(seed, int):
+        raise ValueError('seed must be an integer')
     
     lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
     # set the seed

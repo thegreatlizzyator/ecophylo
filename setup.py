@@ -5,7 +5,7 @@ with open("README.md", "r") as readme_file:
 
 setuptools.setup(
     name="ecophylo",
-    version="0.0.8",
+    version="0.0.9",
     author="Elizabeth Barthelemy",
     author_email="elizabeth.barthelemy@univ-grenoble-alpes.fr",
     url="https://github.com/thegreatlizzyator/ecophylo",
@@ -17,9 +17,11 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=["setuptools", "requests"],
     classifiers=[
-        "Programming Language :: Python :: 3",
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Science/Research',
+        "Programming Language :: Python :: 3.7",
         "License :: CeCILL-B Free Software License Agreement (CECILL-B)",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
 )
