@@ -22,13 +22,9 @@ twine upload dist/*
 # for install from Pypi
 pip install [your-package]
 
-# TODO @p:1 Planning
-# plan de vignette et article avant le 25
-#
+# TODO @p:1
 # vignette : 2 parties : changement de tailles; migration/vicariance
 # partie 1 : utiliser les Abund (R) et comparer a log serie (attendus de la theorie neutre d'hubbel)
-# partie 2 : gros check de code sur la partie 2
-#
 #
 # TODO @p:2
 # test sur le format plutot que contenu
@@ -37,6 +33,3 @@ pip install [your-package]
 #
 # TODO @p:10
 # ajouter save tree to dosimulate voir dans dev/
-#
-# TODO @p:1
-# idiotproof for integer should test if it's not float with no decimal value and then accept it as int !

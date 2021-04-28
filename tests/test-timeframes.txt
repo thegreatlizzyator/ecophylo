@@ -15,19 +15,19 @@ Now use it:
     >>> timeframes(I=2, T=-2, a=0.3)
     Traceback (most recent call last):
       ...
-    SystemExit: T maximum time in generation time must be a strict positive float.
+    ValueError: T maximum time in generation time must be a strict positive float.
     
     >>> timeframes(I=-2, T=2, a=0.3)
     Traceback (most recent call last):
       ...
-    SystemExit: I number of time windows must be an integer superior to 0.
+    ValueError: I number of time windows must be an integer superior to 0.
     
     >>> timeframes(I=3, T=0, a=0.3)
     Traceback (most recent call last):
       ...
-    SystemExit: T maximum time in generation time must be a strict positive float.
+    ValueError: T maximum time in generation time must be a strict positive float.
     
     >>> timeframes(I=2, T=2, a=-0.3)
     Traceback (most recent call last):
       ...
-    SystemExit: The resolution a must be a float superior to 0.
+    ValueError: The resolution a must be a float superior to 0.

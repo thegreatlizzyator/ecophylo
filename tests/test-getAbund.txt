@@ -41,12 +41,12 @@ Now use it:
     >>> getAbund('bamboo', 7)
     Traceback (most recent call last):
       ...
-    SystemExit: tree must have a class TreeNode
+    ValueError: tree must have a class TreeNode
     
     >>> getAbund(phylo, "7")
     Traceback (most recent call last):
       ...
-    SystemExit: sample_size must be an integer
+    ValueError: samples must be an integer
     
     >>> getAbund(phylo, 6)
     Traceback (most recent call last):

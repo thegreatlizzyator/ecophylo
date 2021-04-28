@@ -18,14 +18,13 @@ Functions :
 import msprime
 import random
 import numpy as np
-import sys
+import warnings
 from ete3 import Tree
 import pandas as pd
-#from loguniform import LogUniform
 from scipy.stats import loguniform
+import collections
 
 from ecophylo import pastdemo
-from ecophylo import islmodel
 from ecophylo import phylogen
 
 def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
@@ -62,7 +61,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     # CHECKS HERE FOR IDIOT-PROOFING
     
     if prior_distrib not in ("uniform", "log_unif"):
-        sys.exit("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
+        raise ValueError("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
     
     comments = 'Simulating eco-evolutionary dynamics over the following parameters ranges:'
     df = pd.DataFrame()
@@ -142,7 +141,7 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     # While loop for calling simulate
     while i < nsim:
         if safecount > 100:
-            sys.exit("Too many simulations have failed")
+            raise ValueError("Too many simulations have failed")
 
         try:
             df = df.append(pd.Series(), ignore_index=True)
@@ -236,74 +235,90 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
         f.close()
     return df, ssdf
 
-def simulate(sample_size, com_size, mu, mrca = None, npop = 1, 
-             m = 0, init_rates = None, init_sizes = None, 
-             past_sizes = None, changetime = None, split_dates = None, 
-             migrfrom = None, migrto = None, verbose = False, seed = None):
+
+def simulate(samples, com_size, mu, init_rates = None, 
+                   changetime = None, mrca = None, 
+                   migr = 1, migr_time = None, vic_events = None,
+                   verbose = False, seed = None):
     """
-    Simulate a phylogeny with msprime
-    
+    This function implements the simulation algorithm described in Barthelemy
+    et al. 2021 in which (i) the shared co-ancestry of present individuals is
+    simulated backward in time using coalescent theory (ii) speciation events
+    are sprinkled over the simulated genealogy conditionally to its topology
+    and branch lengths and (iii) the phylogenetic relationships amongst
+    individuals and their abundances are finally obtained by merging
+    paraphyletic clades into single species. Coalescent reconstruction of the
+    genealogy of individuals can be simulated to represent past demographic
+    fluctuations due to varying habitat availability, or include multiple demes
+    linked by migration events and/or vicariance.
+
+    Phylogenies are returned in Newick format given the desired parameter
+    combinations accounting for the demographic history of Jm
+
     Parameters
     ----------
-    sample_size : int
-        number of individual in the community
-        Sample size should not exceed community size
-        # TODO : renommer init_size
-    com_size : int
-        taille de la meta-communauté sensu hubbel 2001
+    samples : int or list of int
+        number of sampled individuals in an assemblage for which the shared
+        co-ancestry should be reconstructed. If multiple demes are to be
+        simulated, this should be a list of sample sizes for each deme. These
+        should not exceed the present or past assemblage sizes.
+    com_size : int or nested list of ints
+        the size of Jm for each deme at each given period. Should be a nested
+        list containing for each deme, a list of past Jm sizes in which the
+        first element is the current size of the assemblage and the nth element
+        is the size of Jm at epoch n 
+        # TODO: rename to Jm ?
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
+        the point mutation rate must be comprised between between 0 and 1.
+    init_rates: float or nested list of floats
+        the growth rates for each deme at each given period. Should be a nested
+        list containing for each deme, a list of past growth rates in which the
+        first element is the current growth rate and the nth element is the
+        growth rate at epoch n. If no growth rates are given, then changes in
+        deme sizes occur instantenously following sizes provided in com_size at
+        the different times given in changetime
+        # TODO: rename to gr_rates ?
+    changetime: list of int or nested list of int
+        the times (in generation before present) at which either growth rates or
+        the size of the assemblages Jm have changed. If multiple demes are to be
+        simulated, should be a nested list containing for each deme, a list of
+        times at which changes occured in which the first element is 0.
+        # TODO: rename epochs? times?
     mrca = None : int
-        number of generation
-        # TODO : test if it is not a float
-        DESCRIPTION
-    npop = 1 : int
-        > 0
-        DESCRIPTION
-    m = 0 : float
-        DESCRIPTION
-        # TODO : rename migr: float taux de migration
-        # TODO : test between 0 and 1
-        overall symetric migration rate. Default is 0. 
-    init_rates = None : list of float$
-        list of length = npop
-        DESCRIPTION
-        # TODO : rename with ilsmodel rates : list of float
-        # TODO : test rates limites (real, -1:1 or -inf:inf)
-        The initial population growth rates
-    init_sizes = None : list of int
-        DESCRIPTION
-        # TODO : same as in islmodels init_sizes : list of int
-        positive values
-        The initial population sizes
-    past_sizes = None : list of int
-        Population past_sizes at the different time periods. Must be > 0.
-        Must be of same length as npop and same length as changetime.
-    changetime = None : list of int
-        When the demographic changes have occured. Must be >= 0.
-        Must be of same length as past_sizes
-    split_dates = None : list of int
-        # TODO : check if it work with list length == 1
-        DESCRIPTION
-    migrfrom = None : TYPE
-        DESCRIPTION
-        # TODO : rename accordingly to sources in islmodel
-    migrto = None : TYPE
-        DESCRIPTION
-        # TODO : rename accordingly to destinations in islmodel
+        # TODO : document this when it is implemented
+    migr = 1 : int, float or list of int,float or nested lists of int,float
+        the migration rates between pairs of demes at each given period. Can be
+        an int or float comprised between 0 and 1, in which case constant
+        symmetric migration is assumed between all demes for all epochs.
+
+        If migration rate are to change then migr should be a list of ints or
+        floats comprised between 0 and 1 containing the different symmetric
+        migration rates at each given time period in which the first element is
+        the current symmetric migration rate and the nth element is the migration
+        rate at epoch n.
+
+        For non-symmetric migration rates, migr should be a list of migration
+        matrices M of size dxd where d is the number of demes. Migr should then
+        contain as many matrices M as there are time periods in migr_time where
+        M[j,k] is the rate at which individuals move from deme j to deme k in
+        the coalescent process, backwards in time. Individuals that move from
+        deme j to k backwards in time actually correspond to individuals
+        migrating from deme k to j forwards in time.
+    migr_time = None: list of ints
+        the times (in generation before present) at which migration rates have
+        changed in which the first element is 0
+    vic_events = None: # TODO lizzy
+        # TODO : need format [[time, [popA,popB], popAB]]
+
     verbose = False : bool
-        DESCRIPTION
+        whether or not to print a summary of the demographic history and the
+        resulting genealogy to be passed to a phylogeny
     seed = None : int
-        An integer used to set the seed in all the random events in msprime
-        and in the mutation on the phylogeny.
-
-    Returns
-    -------
-    None.
-
+        set seed for entire simulation
+    
     Examples
     --------
-    >>> t = simulate(10, 1e5, 0.03, seed = 42)
+    >>> t = simulate(samples = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-1
@@ -319,264 +334,401 @@ def simulate(sample_size, com_size, mu, mrca = None, npop = 1,
           \-|   \-3
             |
              \-6
-    >>> simulate(1e5, 1e5, 0.03, seed = 42)
-    Traceback (most recent call last):
-      File "/usr/lib/python3.6/doctest.py", line 1330, in __run
-        compileflags, 1), test.globs)
-      File "<doctest ecophylo.dosimulate.simulate[2]>", line 1, in <module>
-        simulate(1e5, 1e5, 0.03, seed = 42)
-      File "/home/maxime/Bureau/BEE/ecophylo/ecophylo/dosimulate.py", line 289, in simulate
-        sys.exit("Sample size should not exceed community size")
-    SystemExit: Sample size should not exceed community size
-    """
-    
-    if not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer')
-    if isinstance(seed, float):
-      seed = int(seed)
-
-    # TODO : doc !!!
-    # TODO : idiotproof
-    # TODO : more examples
-    # do dummy checks here --> try to make code stupid-proof
-    if sample_size >= com_size:
-        sys.exit("Sample size should not exceed community size")
-    
-    popchange = []
-    massmigration = []
-    popconfig = None
-    migration = None
-
-    # make past demographic changes between different time frames
-    if past_sizes is not None and changetime is not None:
-        if len(past_sizes) != len(changetime):
-            sys.exit("There should be as many sizes as there are past epochs")
-        popchange = pastdemo.demographic_events(changetime, past_sizes)
-
-    # make island model
-    if npop > 1:
-        if init_sizes is None or init_rates is None:
-            sys.exit("Initial population sizes and growth rates should be provided when there are more than one population (npop>1)")
-        
-        # subpops =  npop
-        
-        migration = islmodel.migration_matrix(npop, m)
-        samples = np.ones(npop, dtype=int)*sample_size
-        # TODO : allow differential sampling in pop (provide sample list same length as npop)
-        popconfig = islmodel.population_configurations(init_sizes, samples, init_rates)
-
-        # possible mass migration between populations
-        if split_dates is not None:
-            # implement option later for limited mass dispersal
-            M = 1
-            massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, M)
-
-    demography = popchange + massmigration
-    if len(demography) == 0:
-        demography = None
-
-    # if verbose should print the demography debugger - only for debugging purposes!!! 
-    if verbose: 
-        dd = msprime.DemographyDebugger(Ne = com_size, 
-                                        demographic_events= demography, 
-                                        migration_matrix= migration, 
-                                        population_configurations= popconfig)
-        dd.print_history(output=sys.stderr) # this will get deprecated with msprime 1.0
-    
-    if npop > 1:
-         treeseq = msprime.simulate(Ne = com_size,
-                                    random_seed= seed,
-                                    population_configurations = popconfig,
-                                    migration_matrix = migration,
-                                    demographic_events = demography)
-    else: 
-        treeseq = msprime.simulate(sample_size= sample_size,
-                                   Ne = com_size,
-                                   random_seed= seed,
-                                   demographic_events = demography)
-
-    tree = treeseq.first()
-    # if verbose: print(tree.draw(format = 'unicode'))
-    if mrca is not None:
-        if tree.time(tree.root) > mrca : 
-            raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
-                             " fixed limit ({mrca})")
-    #print(tree.draw(format="unicode"))
-    node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
-    tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = phylogen.toPhylo(tree, mu, seed = seed)
-
-    return phylo
-
-
-def simulate_dolly(sample_size, com_size, mu, init_rates = None, 
-                   changetime = None, stable_pop = True, mrca = None, 
-                   migr = 1, migr_time = None, verbose = False, seed = None):
-    """
-    Examples
-    --------
-    >>> t = simulate_dolly(sample_size = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
-          /-1
-       /-|
-      |  |   /-8
-      |   \-|
-    --|      \-0
-      |
-      |   /-7
-      |  |
-       \-|      /-5
-         |   /-|
-          \-|   \-3
-            |
-             \-6
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-       /-8
-      |
-    --|      /-7
-      |   /-|
-      |  |   \-4
-       \-|
-         |   /-3
-         |  |
-          \-|      /-6
-            |   /-|
-             \-|   \-0
-               |
-                \-1
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-4
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-4
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-3
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-             /-6
-          /-|
-         |   \-0
-       /-|
-      |  |   /-7
-      |   \-|
-    --|     |   /-1
-      |      \-|
-      |         \-3
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-             /-6
-          /-|
-         |   \-0
-       /-|
-      |  |   /-7
-      |   \-|
-    --|     |   /-1
-      |      \-|
-      |         \-3
-      |
-       \-2
-    >>> t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-                /-7
-             /-|
-          /-|   \-2
-         |  |
-       /-|   \-3
-      |  |
-      |  |   /-9
-    --|   \-|
+          /-7
+         |
+       /-|      /-4
+      |  |   /-|
+      |   \-|   \-8
+    --|     |
       |      \-0
       |
-       \-6
+      |   /-3
+       \-|
+          \-1
     """         
-    init_sizes = list()
-    tmp = list()
-    past_sizes = list()
-
-    for i in range(len(com_size)):
-    # extract init_values
-        init_sizes.append(com_size[i][0])
-        if len(com_size[i]) == 1:
-            past_sizes.append([com_size[i][0]])
-            tmp.append([0])
-        else:
-            past_sizes.append(com_size[i][1:])
-            tmp.append(changetime[i][1:])
-    com_size = list(init_sizes)
-    changetime = list(tmp)
-
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
     # migrfrom = None # won't be used
     # migrto = None # won't be used
     
     # Idiotproof
-    if not isinstance(seed, (int,float)):
-        sys.exit('seed must be an integer')
-    if isinstance(seed, float):
-        seed = int(seed)
-    # TODO : idiotproof
-    #if sample_size >= com_size:
-    #    sys.exit("Sample size should not exceed community size")
-    
-    samples = {"pop_"+str(i):sample_size[i] for i in range(len(sample_size))}
-    
-    demo = msprime.Demography()
-    npop = len(sample_size)
+    # check samples
+    if not isinstance(samples, list):
+        samples = [samples]
+    isint_samp = [isinstance(s, int) for s in samples]
+    if not all(isint_samp):
+        raise ValueError("samples should all be ints")
+    ispos_samp = [s>0 for s in samples]
+    if not all(ispos_samp):
+        raise ValueError("samples should all be positive")
+    # compute number of populations
+    npop = len(samples)
 
-    demo = islmodel.population_configurations_stripe(
-        init_sizes = com_size, past_sizes = past_sizes, 
-        changetime = changetime, samples = sample_size, 
-        stable_pop = stable_pop, rates = init_rates, demo = demo)
+        # check changetime
+    if changetime is not None:
+        if not isinstance(changetime, list):
+            if isinstance(changetime, (int,float)) : 
+                if changetime >= 0 :
+                    changetime = [[changetime]]
+                else :
+                    raise ValueError('changetime must be positive values')
+            else :
+                raise ValueError('changetime must be int, list of int or'+
+                ' nested list of int')
+        else :
+            for x in changetime:
+                if isinstance(x, list):
+                    if not all(isinstance(y, (float, int)) for y in x) : 
+                        raise ValueError('changetime must be int, list of int or'+
+                                 ' nested list of int')
+                    if any(y < 0 for y in x[1:]) : 
+                        raise ValueError('changetime must be positive values')
+                    if x[0] != 0:
+                        raise ValueError('first element of changetime for a Deme'+
+                        ' must be equal to 0')
+                    if len(set(x)) != len(x) :
+                        raise ValueError('Duplicated times in changetime for a Deme' +
+                                 ' are not possible')
+                else :
+                    if len(set(changetime)) != len(changetime) :
+                        raise ValueError('Duplicated times in changetime are not possible')
+                    if not isinstance(x, (float, int)):
+                        raise ValueError('changetime must be int, list of int or'+
+                                 ' nested list of int')
+                    if x < 0 :
+                        raise ValueError('changetime must be positive values')
+                    if changetime[0] != 0:
+                        raise ValueError('first element of changetime'+
+                        ' must be equal to 0')
+            if not isinstance(x, list):
+                changetime = [changetime]
+        if len(changetime) != npop :
+            raise ValueError("there should be as many past sizes as there " + 
+            "are epochs in changetime")
+    else :
+        changetime = [[0]] * npop
 
-    if npop > 1:
-
-        # set the migration matrix
-        # migration = migration_configuration(npop = npop, migr = migr, migr_time = None)
-        if isinstance(migr, (int, float)) :
-            migration = islmodel.migration_matrix(npop = npop, migr = migr)
-        else : 
-            migration = [[0., 0.5], [0.5, 0.]]
+    # check com_size 
+    if changetime is not None  :
+        isint_com = True
+        sampl_com = True
+        if not isinstance(com_size, list) :
+            if isinstance(com_size, (int,float)) and com_size > 0 : 
+                if com_size < samples[0] : sampl_com = False
+                com_size = [[int(com_size)]] * npop
+            else :
+                isint_com = False
+        else :
+            for i in range(len(com_size)):
+                if isinstance(com_size[i], list):
+                    if not all(isinstance(y, (float, int)) for y in com_size[i]) :
+                        isint_com = False
+                    else :
+                        com_size[i] = [int(x) if isinstance(x, float) else x for x in com_size[i]]
+                    if len(com_size) != npop :
+                        raise ValueError("there should be as many elements in"+
+                                 " com_size as there are demes")
+                    if len(com_size[i]) !=  len(changetime[i]) :
+                        raise ValueError("there should be as many past "+
+                        "com_size as there are epochs in changetime")
+                    if isint_com and any([s <= 0 for s in com_size[i]]):
+                        raise ValueError("all past sizes should be strictly positive")
+                    if isint_com and any([x < samples[i] for x in com_size[i]]):
+                        sampl_com = False 
+                else :
+                    if len(com_size) != npop :
+                        raise ValueError("there should be as many elements in"+
+                                 " com_size as there are demes")
+                    if not isinstance(com_size[i], (float, int)):
+                        isint_com = False 
+                    if isint_com and com_size[i] <= 0 :
+                        raise ValueError("all past sizes should be strictly positive")
+                    if isint_com and com_size[i] < samples[i] :
+                        sampl_com = False 
+                    com_size[i] = [com_size[i]]
+        if not isint_com:
+            raise ValueError("community sizes should be strictly positive int")
+        if not sampl_com:
+            raise ValueError('com_size must be superior to samples')
         
-        demo.set_symmetric_migration_rate(populations = range(npop),rate = migr)
-      
-        #     samples = np.ones(npop, dtype=int)*sample_size
-        # # possible mass migration between populations
-        # if split_dates is not None:
-        #     # implement option later for limited mass dispersal
-        #     massmigration = islmodel.mass_migrations(split_dates, migrfrom, migrto, migr = 1)
+    # if isinstance(com_size, float) :
+    #     com_size = [[int(com_size)]] * npop
+    # check mu
+    if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
+        raise ValueError('mu must be a float between 0 and 1')
+    # check init_rates
+    if init_rates is not None and changetime is not None:
+        isint_rates = True
+        if not isinstance(init_rates, list):
+            if isinstance(init_rates, (int,float)) : 
+                init_rates = [[init_rates]] * npop
+            else :
+                isint_rates = False
+        else :
+            for i in range(len(init_rates)):
+                if isinstance(init_rates[i], list):
+                    if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
+                        isint_rates = False
+                    if len(init_rates[i]) !=  len(changetime[i]) :
+                        raise ValueError("there should be as many past growth "+
+                        "init_rates as there are epochs in changetime")
+                else :
+                    if len(init_rates) != npop :
+                        raise ValueError("there should be as many elements in"+
+                        " init_rates as there are demes")
+                    if not isinstance(init_rates[i], (float, int)):
+                        isint_rates = False 
+                    init_rates[i] <- [init_rates[i]]
+        if not isint_rates:
+            raise ValueError('init_rates must be float, list of float or'+
+                                 ' nested list of float')
+        if len(init_rates) != npop :
+            raise ValueError("there should be as many past sizes as there " + 
+            "are epochs in init_rates")
+    else :
+        init_rates = [[0]] * npop
+
+    # check mrca
+    # if mrca is not None :
+    #     # TODO : do this
+    # check migr & migr_time
+    if migr is not None :
+        if npop == 1 :
+            # warnings.warn("no migration matrix is needed for a single deme")
+            migr = None
+    if migr is not None :
+        if not isinstance(migr, list) : # case 'a
+            if not isinstance(migr, (int,float)) :
+                raise ValueError("migration rate must be a float or an int.")
+            if migr < 0 or migr > 1 :
+                raise ValueError("migration rate should be positive (or zero) and" + 
+                " not exceed 1")
+            # migr = np.ones((npop,npop))*migr
+            # np.fill_diagonal(migr, 0)
+            migr = [migr]
+        else :
+            for i in range(len(migr)):
+                if not isinstance(migr[i], list): # case ['a, ... ,'b]
+                    if len(migr) != len(migr_time):
+                        raise ValueError("there should be as many migration rates" + 
+                            " or matrices as there are times in migr_time")
+                    if not isinstance(migr[i], (int,float)) :
+                        raise ValueError("migration rate must be a float or an int.")
+                    if migr[i] < 0 or migr[i] > 1 :
+                        raise ValueError("migration rate should be positive (or zero)" + 
+                                 " and not exceed 1")
+                    # check len of migr is done with migr_time
+                    migr[i] = np.ones((npop,npop))*migr[i]
+                    np.fill_diagonal(migr[i], 0)
+                else :
+                    if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
+                        if len(migr[i]) != len(migr) or len(migr) != npop:
+                            raise ValueError("custom migration matrices should be of" + 
+                                     " size ndeme x ndeme")
+                        if not all([ isinstance(r, (float,int)) for r in migr[i]]) :
+                            raise ValueError("found custom migration matrix that is" + 
+                                     " not made of ints or floats")
+                        if any([r<0 or r> 1 for r in migr[i]]):
+                            raise ValueError("found custom migration matrix with" + 
+                                " negative migration rates or greater than 1")
+                    else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
+                        if len(migr) != len(migr_time):
+                            raise ValueError("there should be as many migration rates" + 
+                                " or matrices as there are times in migr_time")
+                        for j in range(len(migr[i])) :
+                            if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
+                                raise ValueError("custom migration matrices should be" + 
+                                    " of size ndeme x ndeme")
+                            if any ([not isinstance(r, (float,int)) for r in migr[i][j]]) :
+                                raise ValueError("found custom migration matrix that" + 
+                                    " is not made of ints or floats")
+                            if any ([r<0 or r> 1 for r in migr[i][j]]):
+                                raise ValueError("found custom migration matrix with" + 
+                                 " negative migration rates or greater than 1")
+
+    m = np.array(migr)
+    dim = m.shape
+    if np.sum(m) == 0 :
+        raise ValueError("migration matrices cannot all be empty")
+    # check vic_events
+    if vic_events is not None:
+        if not isinstance(vic_events, list) or any([not isinstance(x, list) for x in vic_events]):
+            raise ValueError("vic_events should be a nested list of list with "+
+            "a length 3")
+        if any([len(v)!=3 for v in vic_events]) :
+            raise ValueError("all elements in vic_events should be lists of"+
+            " lenght 3")
+        
+        if any([len(v[1])!=2 for v in vic_events]):
+            raise ValueError("second element of vic_events should be a list"+
+            " of 2 deme ids")
+        # TODO : cath float and format them
+        if not all([isinstance(v, int) for v in flatten(vic_events)]):
+             raise ValueError("all elements of vic_events should be ints")
+        
+        if any([t<0 for t in [v[0] for v in vic_events]]):
+            raise ValueError("all times in _vic_events should be strictly"+
+            " positive")
+        
+        if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
+            raise ValueError("split times in vic_events should also appear"+
+            " in changetime")
+
+        if not all([x in range(npop) for x in sum([flatten(v[1:]) for v in vic_events],[]) ]):
+            raise ValueError("Split events do not match provided deme"+
+            " information")
+        
+        vic_dates = [v[0] for v in vic_events]
+        if vic_dates != sorted(vic_dates):
+            raise ValueError("Split dates should be provided in chronological"+
+            " order")
+        
+        if any([v[2] not in v[1] for v in vic_events]):
+            raise ValueError("Splits events of two demes should be defined"+
+            " relative to one of the demes' id")
+        
+        for i in range(len(vic_events)) :
+            if i == 0 :
+                continue
+            if vic_events[i][1][0] in vic_events[i-1][1] or vic_events[i][1][0] != vic_events[i-1][2]:
+                raise ValueError("Trying to merge with inactive deme")
+            if vic_events[i][1][1] in vic_events[i-1][1] or vic_events[i][1][1] != vic_events[i-1][2]:
+                raise ValueError("Trying to merge with inactive deme")
+    # check verbose
+    if not isinstance(verbose, bool):
+        raise ValueError('verbose must be a boolean') 
+    # check seed
+    if seed is not None and not isinstance(seed, (int,float)):
+        raise ValueError('seed must be an integer')
+    if seed is not None and isinstance(seed, float):
+        seed = int(seed)
+  
+    ############################################################################
+    ####                    Now we can compute something                    ####
+    ############################################################################
+    # compute number of populations
+    npop = len(samples)
+
+    # initialise demography object for msprime.sim_ancestry()
+    demography = msprime.Demography()
+    
+    # Build samples
+    samples = {"pop_" + str(i):samples[i] for i in range(len(samples))}
+    pop_ids = ["pop_" + str(p) for p in range(npop)]
+
+    # initialize population configurations
+    for pop in range(npop):
+        demography.add_population(
+            initial_size= com_size[pop][0],       
+            growth_rate=init_rates[pop][0])
+        
+        # if population sizes have fluctuated in the past:
+        if len(changetime[pop]) > 1 and len(com_size[pop]) > 1:
+            for i in range(len(changetime[pop][1:])):
+                demography.add_population_parameters_change(
+                    time = changetime[pop][i+1] , 
+                    initial_size=com_size[pop][i+1], 
+                    population= pop_ids[pop])
+        
+        # if population growth rates have fluctuated in the past:
+        if len(changetime[pop]) > 1 and len(init_rates[pop]) > 1:
+            for i in range(len(changetime[pop][1:])):
+                demography.add_population_parameters_change(
+                    time = changetime[pop][i+1] , 
+                    growth_rate=init_rates[pop][i+1], 
+                    population= pop_ids[pop])
+
+    ## VICARIANCE EVENTS
+    if vic_events is not None:
+        # extract some informations about 
+        nvic = len(vic_events)
+        ancestrals = [str(vic_events[i][2]) for i in range(nvic)] 
+        count = {}
+        for i, anc in enumerate(ancestrals):
+            cnt = count.get(anc, 0)
+            count[anc] = cnt + 1
+            ancestrals[i] += chr(ord('a') + cnt)
+
+        ancestrals = ["pop_" + a for a in ancestrals]
+        derived = []
+        # add the ancestral pop and their size change
+        for v in range(nvic):
+            demography.add_population(
+                name = ancestrals[v],
+                initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])])
+            tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
+            an_changetime = changetime[vic_events[v][2]][tmp:]
+            an_com_size = com_size[vic_events[v][2]][tmp:]
+            for i in range(len(an_changetime)):
+                demography.add_population_parameters_change(
+                    population=ancestrals[v],
+                    time = an_changetime[i],
+                    initial_size= an_com_size[i])
+            derived.extend(vic_events[v][1])
+
+        #set up split events
+        derived = [str(o) for o in derived]
+        count = {}
+        for i, o in enumerate(derived):
+            cnt = count.get(o, 0)
+            count[o] = cnt + 1
+            if cnt > 0:
+                derived[i] += chr(ord('a') + cnt - 1) 
+        derived = ["pop_" + d for d in derived]
+        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)] 
+        
+        for v in range(nvic):
+            demography.add_population_split(time = vic_events[v][0], 
+                                            derived = derived[v], 
+                                            ancestral = ancestrals[v])
+
+    ## MIGRATION
+    if migr is not None :
+        if len(dim) == 1 :
+            # symmetric migration matrix
+            demography.set_symmetric_migration_rate(
+                populations = range(npop), rate = migr[0])
+
+            # if symmatric migration rate has changed in the past:
+            if len(migr) > 1:
+                for m in range(len(migr[1:])):
+                    demography.add_migration_rate_change(
+                        time = migr_time[m+1], rate = migr[m+1])
+
+        if len(dim) > 2 :
+            # custom migration matrix
+            for row in range(npop):
+                for col in range(npop):
+                    if migr[0][row][col] == 0 :
+                        continue
+                    demography.set_migration_rate(
+                        source = pop_ids[row], dest = pop_ids[col], 
+                        rate = migr[0][row][col])
+
+            # if migration matrix has changed in the past
+            if len(migr)>1:
+                for t in range(len(migr_time)):
+                    for row in range(npop):
+                        for col in range(npop):
+                            if migr[t][row][col] == 0 :
+                                continue
+                            demography.add_migration_rate_change(
+                                time = migr_time[t], rate = migr[t][row][col], 
+                                source=pop_ids[row], dest=pop_ids[col])
+
+    # sort events chronologically
+    demography.sort_events()
 
     # if verbose should print the demography debugger - only for debugging purposes!!! 
     if verbose:
-        print(demo.debug())
+        print(demography.debug())
         
     treeseq = msprime.sim_ancestry(samples = samples, 
-          demography=demo, random_seed=seed, ploidy = 1)
+          demography=demography, random_seed=seed, ploidy = 1)
     
     # Work on the result tree
     tree = treeseq.first()
@@ -679,7 +831,7 @@ def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     return p
 
 
-def getAbund(tree, sample_size = None):
+def getAbund(tree, samples = None):
     """
     
     Parameters
@@ -689,9 +841,8 @@ def getAbund(tree, sample_size = None):
         string containing all names of the species individual (mean to use 
         topPhylo result). Names is formated like this :
           " name1 name2 name3"
-    sample_size : int
+    samples : int
         number of individual in the community
-        # TODO : rename sample_size
         # TODO : set this check as optionnal
 
     Returns
@@ -717,10 +868,10 @@ def getAbund(tree, sample_size = None):
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
-    if sample_size != None:
-      if not isinstance(sample_size, int):
-          sys.exit('sample_size must be an integer')
+        raise ValueError('tree must have a class TreeNode')
+    if samples != None:
+      if not isinstance(samples, int):
+          raise ValueError('samples must be an integer')
 
     sfs = list()
     abund = list()
@@ -734,7 +885,7 @@ def getAbund(tree, sample_size = None):
     sfs.extend(abund)
     # think about catching error when phylogeny has only 1 sp
     
-    if sample_size != None and sum(sfs) != sample_size:
+    if samples != None and sum(sfs) != samples:
         raise Exception(f"Simulated phylogeny has only one species!")
         # TODO : modify error with a better check here
     return sfs
@@ -777,7 +928,7 @@ def getDeme(tree, div = False):
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
+        raise ValueError('tree must have a class TreeNode')
     
     indiv = list()
     for leaf in tree.iter_leaves():
@@ -790,37 +941,47 @@ def getDeme(tree, div = False):
         indiv = [sum(indiv[:,i] > 0) for i in range(indiv.shape[1])]
     return indiv
 
+
+def flatten(x):
+    """
+    lizzy need to document this because thx SO
+    """
+    if isinstance(x, collections.Iterable) and not isinstance(x, str):
+        return [a for i in x for a in flatten(i)]
+    else:
+        return [x]
+
+
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        #simulate_dolly(sample_size = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
-        # simulate_dolly(sample_size = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        #simulate(samples = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
+        # simulate(samples = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
+        # print(t)
 
         ## SINGLE POP
         # stat discret
-        # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
         # stat continue 
-        # t = simulate_dolly(sample_size = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         # fluct discret
-        # t = simulate_dolly(sample_size = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # fluct continue # TODO : marche avec certaines valeurs cheloues
-        # t = simulate_dolly(sample_size = [5], com_size = [[10, 2e5]], changetime = [[0, 800]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
-        
+        # t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+
         ## MULT POP
 
         # stat discret
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # stat continue # 
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         # fluct discret
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # fluct continue # TODO : marche bizarrement
-        # t = simulate_dolly(sample_size = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
 
-        
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
         # print(t)
 
+        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # print(t)
 
