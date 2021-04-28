@@ -649,7 +649,69 @@ testing seed
 # npop with vic
 ## discret
 ### const
+    >>> t = simulate(samples = [5, 5], com_size = [[2e3, 4e3], [2e3]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 300], [0]] , mrca = None, 
+    ...  migr = None, migr_time = None, vic_events = [[300, [0, 1], 0]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-7
+         |
+       /-|      /-1
+      |  |   /-|
+      |  |  |   \-5
+      |   \-|
+      |     |   /-2
+    --|      \-|
+      |        |   /-3
+      |         \-|
+      |            \-0
+      |
+       \-6
+
 ### fluct
+    >>> t = simulate(samples = [5, 5], com_size = [[2e3, 5e3, 1e4], [2e3, 5e3]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 200, 300], [0, 150]] , mrca = None, 
+    ...  migr = None, migr_time = None, vic_events = [[300, [0, 1], 0]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-5
+       /-|
+      |   \-1
+      |
+    --|      /-8
+      |   /-|
+      |  |   \-2
+       \-|
+         |   /-6
+          \-|
+            |   /-9
+             \-|
+                \-0
+    
+    >>> t = simulate(samples = [5, 5], com_size = [[2e3, 5e3, 1e4, 5e3], [2e3, 5e3]], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = [[0, 200, 300, 500], [0, 150]] , mrca = None, 
+    ...  migr = None, migr_time = None, vic_events = [[300, [0, 1], 0]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-8
+       /-|
+      |  |   /-6
+      |   \-|
+      |      \-7
+    --|
+      |      /-5
+      |   /-|
+      |  |  |   /-1
+       \-|   \-|
+         |      \-0
+         |
+          \-2
 
 ## gr
 ### const
@@ -688,7 +750,7 @@ testing seed
        \-|
           \-1
 
-cas qui est cense marche mais flemme
+cas qui est cense marche (migration) mais flemme
    # >>> t = simulate(samples = [2, 2, 2], com_size = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
    # ...  init_rates = None, 
    # ...  changetime = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
