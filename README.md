@@ -1,8 +1,9 @@
 # EcoPhylo
 
-[![Lifecycle:                                                           
-experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![](https://img.shields.io/badge/devel%20version-0.0.9-blue.svg)](https://github.com/thegreatlizzyator/ecophylo)
+[![PyPI status](https://img.shields.io/pypi/status/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+[![PyPI version](https://badge.fury.io/py/ecophylo.svg)](https://badge.fury.io/py/ecophylo)
+[![PyPI license](https://img.shields.io/pypi/l/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
 
 project description
 
