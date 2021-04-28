@@ -18,7 +18,6 @@ Functions :
 import msprime
 import random
 import numpy as np
-import sys
 import warnings
 from ete3 import Tree
 import pandas as pd
@@ -335,7 +334,8 @@ def simulate(samples, com_size, mu, init_rates = None,
           \-|   \-3
             |
              \-6
-    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
           /-7
@@ -349,64 +349,6 @@ def simulate(samples, com_size, mu, init_rates = None,
       |   /-3
        \-|
           \-1
-    >>> t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 1, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-4
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 1, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-3
-       /-|
-    --|   \-0
-      |
-       \-2
-    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-7
-         |
-       /-|      /-4
-      |  |   /-|
-      |   \-|   \-8
-    --|     |
-      |      \-0
-      |
-      |   /-3
-       \-|
-          \-1
-    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-2
-       /-|
-      |   \-0
-      |
-    --|         /-6
-      |      /-|
-      |   /-|   \-3
-      |  |  |
-       \-|   \-1
-         |
-          \-7
-    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42)
-    >>> print(t)
-    <BLANKLINE>
-          /-3
-       /-|
-      |  |   /-1
-      |   \-|
-    --|      \-0
-      |
-      |      /-6
-      |   /-|
-       \-|   \-2
-         |
-          \-5
     """         
     # # parameters that will be used later when mass migration will be coded
     # split_dates = None # won't be used
@@ -717,7 +659,7 @@ def simulate(samples, com_size, mu, init_rates = None,
         for v in range(nvic):
             demography.add_population(
                 name = ancestrals[v],
-                initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])]) # TODO : check this
+                initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])])
             tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
             an_changetime = changetime[vic_events[v][2]][tmp:]
             an_com_size = com_size[vic_events[v][2]][tmp:]
@@ -737,7 +679,7 @@ def simulate(samples, com_size, mu, init_rates = None,
             if cnt > 0:
                 derived[i] += chr(ord('a') + cnt - 1) 
         derived = ["pop_" + d for d in derived]
-        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)] # TODO : check this
+        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)] 
         
         for v in range(nvic):
             demography.add_population_split(time = vic_events[v][0], 
@@ -1026,9 +968,7 @@ if __name__ == "__main__":
         
         # fluct discret
         # t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # fluct continue # TODO : marche avec certaines valeurs cheloues
-        # t = simulate(samples = [5], com_size = [[10, 2e5]], changetime = [[0, 800]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
-        
+
         ## MULT POP
 
         # stat discret
@@ -1038,8 +978,6 @@ if __name__ == "__main__":
 
         # fluct discret
         # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # fluct continue # TODO : marche bizarrement
-        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
         # print(t)
