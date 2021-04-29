@@ -48,8 +48,9 @@ def timeframes(I, T, a):
     >>> timeframes(I=3, T=0.5, a=0.3)
     [0.15896517723882417, 0.32551133275002, 0.4999999999999997]
     """
+    # TODO : change for new comsize
     # Idiotproof
-    if not isinstance(I, int) or I <= 0 :
+    if not isinstance(I, int) or I <= 0 : # TODO : accept and change to float
         raise ValueError('I number of time windows must be an integer superior to 0.')
     if not isinstance(T, (int,float)) or T <= 0 :
         raise ValueError('T maximum time in generation time must be a strict positive float.')
