@@ -290,13 +290,11 @@ def simulate(samples, com_size, mu, init_rates = None,
         the migration rates between pairs of demes at each given period. Can be
         an int or float comprised between 0 and 1, in which case constant
         symmetric migration is assumed between all demes for all epochs.
-
         If migration rate are to change then migr should be a list of ints or
         floats comprised between 0 and 1 containing the different symmetric
         migration rates at each given time period in which the first element is
         the current symmetric migration rate and the nth element is the migration
         rate at epoch n.
-
         For non-symmetric migration rates, migr should be a list of migration
         matrices M of size dxd where d is the number of demes. Migr should then
         contain as many matrices M as there are time periods in migr_time where
@@ -307,9 +305,16 @@ def simulate(samples, com_size, mu, init_rates = None,
     migr_time = None: list of ints
         the times (in generation before present) at which migration rates have
         changed in which the first element is 0
-    vic_events = None: # TODO lizzy
-        # TODO : need format [[time, [popA,popB], popAB]]
-
+    vic_events = nested list of ints
+        a nested list detailing the different split events that should be 
+        included in the simulation. Each element of vic_events should be a list
+        specifying, in order: the date (in generations before present) at which
+        the split occured, the demes resulting from the split (as a list of ints)
+        and finally the ancestral deme number. For instance, if deme 1 splits 
+        into deme 0 and deme 1 then vic_events =  [[time01, [0,1], 1]]
+        Note that time01 should appear in changetime. Also, user should specify
+        in com_size (at the correct position i.e to the size of the ancestral 
+        deme at time01) the size of the ancestral deme when the split occurs. 
     verbose = False : bool
         whether or not to print a summary of the demographic history and the
         resulting genealogy to be passed to a phylogeny
