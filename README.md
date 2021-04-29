@@ -53,7 +53,6 @@ com_size = [[5000,10000,50000]] # the size of the assemblage in the past, the fi
 mu = 0.001 # the point mutation rate
 changetime = [[0,700,10000]] # the dates (in generation time) at which the assemblage has changed sizes in the past
 
-
 tree = ecophylo.simulate(samples = n,
                          com_size= com_size, 
                          mu = mu, 
