@@ -495,6 +495,14 @@ def simulate(samples, com_size, mu, init_rates = None,
     # check mrca
     # if mrca is not None :
     #     # TODO : do this
+    # check migr_time
+    if migr_time is not None and migr is not None:
+        if not isinstance(migr_time, list):
+            raise ValueError("migr_time should be a list of int")
+        if not all([isinstance(x, (int,float)) for x in migr_time]):
+            raise ValueError("migr_time should be a list of int")
+    else :
+        migr_time = [0]
     # check migr & migr_time
     if migr is not None :
         if npop == 1 :
@@ -513,8 +521,6 @@ def simulate(samples, com_size, mu, init_rates = None,
         else :
             for i in range(len(migr)):
                 if not isinstance(migr[i], list): # case ['a, ... ,'b]
-                    if migr_time is None and len(migr) == 1:
-                        migr_time = [0]
                     if len(migr) != len(migr_time):
                         raise ValueError("there should be as many migration rates" + 
                             " or matrices as there are times in migr_time")
