@@ -42,3 +42,12 @@ Now use it:
     Traceback (most recent call last):
       ...
     ValueError: tree must have a class TreeNode
+
+
+    >>> tree = ecophylo.simulate(samples = [5, 10],
+    ...                     com_size= [[1000,2500],[4000,5000,6000]], 
+    ...                     mu = 0.001, 
+    ...                     changetime= [[0,100], [0,300,400]],
+    ...                     seed= 42)
+    >>> print(ecophylo.getDeme(tree))
+    [[1, 0], [3, 3], [0, 2], [1, 5]]

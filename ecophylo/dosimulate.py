@@ -368,7 +368,7 @@ def simulate(samples, com_size, mu, init_rates = None,
     # compute number of populations
     npop = len(samples)
 
-        # check changetime
+    # check changetime
     if changetime is not None:
         if not isinstance(changetime, list):
             if isinstance(changetime, (int,float)) : 
@@ -513,6 +513,8 @@ def simulate(samples, com_size, mu, init_rates = None,
         else :
             for i in range(len(migr)):
                 if not isinstance(migr[i], list): # case ['a, ... ,'b]
+                    if migr_time is None and len(migr) == 1:
+                        migr_time = [0]
                     if len(migr) != len(migr_time):
                         raise ValueError("there should be as many migration rates" + 
                             " or matrices as there are times in migr_time")
@@ -577,7 +579,7 @@ def simulate(samples, com_size, mu, init_rates = None,
         if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
             raise ValueError("split times in vic_events should also appear"+
             " in changetime")
-
+        
         if not all([x in range(npop) for x in sum([flatten(v[1:]) for v in vic_events],[]) ]):
             raise ValueError("Split events do not match provided deme"+
             " information")
@@ -594,9 +596,9 @@ def simulate(samples, com_size, mu, init_rates = None,
         for i in range(len(vic_events)) :
             if i == 0 :
                 continue
-            if vic_events[i][1][0] in vic_events[i-1][1] or vic_events[i][1][0] != vic_events[i-1][2]:
+            if vic_events[i][1][0] in vic_events[i-1][1] and vic_events[i][1][0] != vic_events[i-1][2]:
                 raise ValueError("Trying to merge with inactive deme")
-            if vic_events[i][1][1] in vic_events[i-1][1] or vic_events[i][1][1] != vic_events[i-1][2]:
+            if vic_events[i][1][1] in vic_events[i-1][1] and vic_events[i][1][1] != vic_events[i-1][2]:
                 raise ValueError("Trying to merge with inactive deme")
     # check verbose
     if not isinstance(verbose, bool):
@@ -738,11 +740,11 @@ def simulate(samples, com_size, mu, init_rates = None,
             raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
                              " fixed limit ({mrca})")
     #print(tree.draw(format="unicode"))
-    node_labels = {u: str(u) for u in tree.nodes() if tree.is_sample(u)}
+    node_labels = {u: str(u)+'_'+str(tree.population(u)) for u in tree.nodes() if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
     phylo = phylogen.toPhylo(tree, mu, seed = seed)
 
-    return phylo  
+    return phylo
 
 
 def sample(lower, upper, distr = "uniform", typ = "float", seed = None):
