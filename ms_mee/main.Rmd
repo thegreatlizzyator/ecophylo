@@ -88,24 +88,35 @@ The *ecophylo* package essentially articulates itself around the *simulate* func
 
 In the following example, an assemblage of species and their phylogenetic relationships, is simulated assuming that $J_m$ has fluctuated in the past over 3 predefined periods. Users can input the desired time periods (in generations before present) by specifying the *changetime* parameter, yet the *timeframes* function can be used to determine the periods while accounting for loss of resolution in more ancient periods (Boitard et.al 2016 Plos Genetics). Changes in sizes can be instantaneous (by providing a list of past sizes in *past_sizes*). Users can also model assemblages with exponential growth or contraction by providing a list of growth rates $\alpha$ for each desired time period. The size of the assemblage at a given time $t_n$  in the past (provided in the *changetime* parameter) is computed as $S_n = S_{n-1}.e^{-\alpha_{n}(t_{n} - t_{n-1})}$. 
 
+```{python}
+import ecophylo
+
+tree = ecophylo.simulate(samples = 10, com_size= [[500,1000,5000]], mu = 0.01, changetime=[[0,700,10000]], seed= 42)
+```
+
+
 ```{r message=FALSE, warning=FALSE}
 library(reticulate)
 use_python(Sys.which("python3"))
 ecophylo <- import('ecophylo')
 
-n <- as.integer(10) # the number of simulated individuals
-Jm <- as.integer(500) # the size of the assemblage at present
-mu <- as.numeric(0.01) # the point mutation rate
+n <- list(as.integer(10)) # the number of simulated individuals
+comsize <- list(list(500, 1000, 5000)) # the size of the assemblage in the past, the first element is the current assemblage size
+mu <- 0.01 # the point mutation rate
 
-epochs <- ecophylo$timeframes(I= as.integer(3), T= as.integer(10000), a=0.3) # the dates at which the assemblage has changed sizes in the past
+#epochs <- ecophylo$timeframes(I= as.integer(2), T= as.integer(10000), a=0.3) # the dates at which the assemblage has changed sizes in the past
 
-sizes <- list(as.integer(1000), as.integer(5000), as.integer(500)) # the different past sizes
+epochs <- list(list(0, 700, 10000))
 
-tree <- ecophylo$simulate(n, Jm, mu,
+
+
+tree <- ecophylo$simulate(samples = n,
+                          com_size = comsize,
+                          mu = mu,
                           changetime = epochs,
-                          past_sizes = sizes,
                           seed = 42)
 ``` 
+
 
 We can then compute summary statistics on the resulting phylogeny. The *getAbund* function allows us to retrieve the number of individuals descending from a speciation event in the genealogy, thus defining the species abundance in the sample at present. 
 
