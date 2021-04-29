@@ -255,6 +255,24 @@ testing changetime
     
 testing mrca
 
+testing migr_time
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = 1, migr_time = 1, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migr_time should be a list of int
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = 1, migr_time = ["truc"], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migr_time should be a list of int
+
 testing migr
 # one rate
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
@@ -283,6 +301,14 @@ testing migr
     ValueError: migration rate must be a float or an int.
 
 # mult rates
+    >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
+    ...  init_rates = None, 
+    ...  changetime = None, mrca = None, 
+    ...  migr = [1, 1], migr_time = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many migration rates or matrices as there are times in migr_time
     >>> t = simulate(samples = [2, 2], com_size = [20, 50], mu = 1, 
     ...  init_rates = None, 
     ...  changetime = None, mrca = None, 
