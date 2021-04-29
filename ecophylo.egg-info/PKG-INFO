@@ -8,9 +8,10 @@ Author-email: elizabeth.barthelemy@univ-grenoble-alpes.fr
 License: CeCILL
 Description: # EcoPhylo
         
-        [![Lifecycle:                                                           
-        experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-        [![](https://img.shields.io/badge/devel%20version-0.0.9-blue.svg)](https://github.com/thegreatlizzyator/ecophylo)
+        [![PyPI status](https://img.shields.io/pypi/status/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+        [![PyPI version](https://badge.fury.io/py/ecophylo.svg)](https://badge.fury.io/py/ecophylo)
+        [![PyPI license](https://img.shields.io/pypi/l/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+        [![PyPI pyversions](https://img.shields.io/pypi/pyversions/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
         
         project description
         
@@ -88,8 +89,10 @@ Description: # EcoPhylo
         **A vignette is being written at this moment.**
         
 Platform: UNKNOWN
-Classifier: Programming Language :: Python :: 3
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3.7
 Classifier: License :: CeCILL-B Free Software License Agreement (CECILL-B)
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.6
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
