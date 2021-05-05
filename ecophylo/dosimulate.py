@@ -952,6 +952,7 @@ def getDeme(tree, div = False):
     if div:
         indiv = np.array(indiv)
         indiv = [sum(indiv[:,i] > 0) for i in range(indiv.shape[1])]
+        # TODO : t(indiv) and compute div 
     return indiv
 
 
