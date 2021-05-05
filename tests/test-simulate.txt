@@ -583,7 +583,26 @@ testing seed
 
 ## gr
 ### const
+    >>> t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03,
+    ... init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-4
+       /-|
+    --|   \-0
+      |
+       \-2
+
 ### fluct
+    >>> t = simulate(samples = [5], com_size = [[1e3, 2e3]], 
+    ... changetime = [[0, 50]], mu = 0.03, init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+    --|   \-0
+      |
+       \-2
 
 
 # npop with K migr
@@ -624,7 +643,40 @@ testing seed
 
 ## gr
 ### const
+    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-5
+       /-|
+      |  |   /-6
+      |   \-|
+      |      \-2
+    --|
+      |      /-0
+      |   /-|
+      |  |   \-4
+       \-|
+         |   /-1
+          \-|
+             \-3
+
 ### fluct
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-2
+       /-|
+      |   \-0
+      |
+    --|         /-6
+      |      /-|
+      |   /-|   \-3
+      |  |  |
+       \-|   \-1
+         |
+          \-7
 
 
 # npop with diff migr
@@ -669,7 +721,42 @@ testing seed
 
 ## gr
 ### const
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]],
+    ... changetime = [[0],[0]], mu = 0.03, migr = [0, 1], 
+    ... migr_time = [0, 200], init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-9
+       /-|
+      |   \-5
+      |
+    --|      /-3
+      |   /-|
+      |  |  |   /-1
+      |  |   \-|
+       \-|      \-0
+         |
+         |   /-2
+          \-|
+             \-6
+
 ### fluct
+    >>> t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], 
+    ... migr_time = [0, 200], init_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-3
+       /-|
+      |  |   /-1
+      |   \-|
+    --|      \-0
+      |
+      |      /-6
+      |   /-|
+       \-|   \-2
+         |
+          \-5
 
 
 # npop with vic
@@ -759,10 +846,6 @@ testing seed
          |   /-3
           \-|
              \-7
-
-## gr
-### const
-### fluct
 
 
 ### Vignette cases ! # TODO : move this to code doc !
