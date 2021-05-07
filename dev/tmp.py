@@ -13,32 +13,14 @@
 #     return x
 
 
-prior_locate = [["com_size", 0, 1, [50, 150, "unif"]],
-                ["com_size", 1, 1, [300, 500, "unif"]]]    
+# prior_locate = [["com_size", 0, 1, [50, 150, "unif"]],
+#                 ["com_size", 1, 1, [300, 500, "unif"]]]    
 
 import pandas as pd
-
-# df = pd.DataFrame()
-# colnames = {}
-# for el in prior_locate:
-#     colnames[el[0]+"_d"+str(el[1])+"_t"+ str(el[2])] = []
-# df = pd.DataFrame(colnames)
-# print(colnames)
-# print(df)
-
-# com_size = [[500, 124], [2000, 420, 6000]]
-
-# print()
-# colnames = {}
-# for el in prior_locate:
-#     if el[0] == "com_size":
-#         colnames[el[0]+"_d"+str(el[1])+"_t"+ str(el[2])] = [com_size[el[1]][el[2]] ]
-# tmp = pd.DataFrame(colnames)
-
-# print(tmp)
-# print(pd.concat([df, tmp]))
-
-import ecophylo as eco
+from ecophylo import check_params
+from ecophylo import simulate
+from ecophylo import getAbund
+from ecophylo import getDeme
 
 def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
              mrca = None, migr = 1, migr_time = None,
@@ -54,7 +36,7 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     
     # IDIOTPROOF and Register locations
     samples, com_size, mu, init_rates, changetime, mrca, migr, migr_time, \
-                    vic_events, verbose, seed, prior_locate = eco.check_params(
+                    vic_events, verbose, seed, prior_locate = check_params(
         samples = samples, com_size = com_size, mu = mu, init_rates = init_rates, 
         changetime = changetime, mrca = mrca, migr = migr, 
         migr_time = migr_time, vic_events = vic_events, 
@@ -63,6 +45,9 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     prior_names = [prior_locate[p][0] for p in range(len(prior_locate))]
     print("prior_locate :",prior_locate) # TODO : remove
 
+    ##########################################################################
+    ####                    SET DATAFRAME                                 ####
+    ##########################################################################
     # Creating parameter dataframe
     # if prior locate is empty deal with this later
     comments = ("Simulating eco-evolutionary dynamics over the following" +
@@ -124,6 +109,9 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         print("you are fucked") # TODO : maybe remove this
   
     print(df)
+    ##########################################################################
+    ####                    SIMULATING                                    ####
+    ##########################################################################
 
     print("\n SIMULATING \n\n============\n")
     failed = 1
@@ -131,16 +119,20 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     while i < nsim and failed <= 100:
 
         # SIMULATE
-        phylo = eco.simulate(
+        phylo = simulate(
             samples = samples, com_size = com_size, mu = mu, 
             init_rates = init_rates, changetime = changetime, 
             mrca = mrca, migr = migr, migr_time = migr_time, 
             vic_events = vic_events, verbose = False, seed = seed, force = True
         )
 
+        #################################################################
+        ####                    CHECK TREE                           ####
+        #################################################################
         # check tree
         if True : # TODO : if tree ok
             failed = 1
+            i+=1
             # add parameters
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
@@ -161,15 +153,17 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
             failed += 1
             # maybe resample value ?
       
+        #################################################################
+        ####                    RESAMPLING                           ####
+        #################################################################
         samples, com_size, mu, init_rates, changetime, mrca, migr, migr_time, \
-                    vic_events, verbose, seed, prior_locate = eco.check_params(
+                    vic_events, verbose, seed, prior_locate = check_params(
             samples = samples, com_size = com_size, mu = mu, init_rates = init_rates, 
             changetime = changetime, mrca = mrca, migr = migr, 
             migr_time = migr_time, vic_events = vic_events, 
             verbose = verbose, seed = seed, prior_locate = prior_locate
         )
 
-        i+=1
     if failed > 100 :
         raise ValueError("Too many simulations have failed")
 
