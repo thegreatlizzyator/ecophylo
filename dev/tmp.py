@@ -26,7 +26,15 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
              mrca = None, migr = 1, migr_time = None,
              vic_events = None, 
              verbose = False, sumstat = None, result = ['Params'], 
-             file = None, seed = None):
+             file_name = None, seed = None):
+
+    # Idiotproof dosimul parameters
+    # sumstat
+    # result
+    # file_name
+    if file_name is not None and not isinstance(file_name, str):
+        raise ValueError("file_name must be string value.")
+
 
     # register None value before they are initiated
     Nonedef = [init_rates, changetime, mrca, migr_time, vic_events]
@@ -131,8 +139,6 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         #################################################################
         # check tree
         if True : # TODO : if tree ok
-            failed = 1
-            i+=1
             # add parameters
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
@@ -149,6 +155,11 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
                     print('not done')
                 if tmp_p[0] == "migr":
                     print('not done')
+
+            # Sumstat
+
+            failed = 1
+            i+=1
         else :
             failed += 1
             # maybe resample value ?
@@ -167,6 +178,14 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     if failed > 100 :
         raise ValueError("Too many simulations have failed")
 
+    if file_name is not None :
+        saved = df.to_string()
+
+        print('need to save the file')
+        f = open(file_name, "w")
+        f.write(saved)
+        f.close()
+
     return df
 
 print("\n\n* test 1\n")
@@ -177,7 +196,7 @@ print(dosimuls(nsim = 5, samples = [10],
 print("\n\n* test 2\n")
 print(dosimuls(nsim = 5, samples = [10],
     com_size = [[[1500, 5000, "uniform"], [1500, 5000, "uniform"]]],
-    mu = 0.001, changetime = [0, 500], seed = None))
+    mu = 0.001, changetime = [0, 500], seed = None,  file_name = 'tmp.txt'))
 print("\n\n* test 3\n")
 print(dosimuls(nsim = 5, samples = [10, 9],
     com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
