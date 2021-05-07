@@ -283,7 +283,7 @@ def check_params(samples, com_size, mu, init_rates = None,
         #      and (not isinstance(prior_distrib, str) or \
         #          not prior_distrib in ['uniform', 'loguniform']):
         #     raise ValueError("prior_distrib must be a string input with model in"+
-        #                      " ['uniform', 'loguniform']") # TODO : a terme prior_distrib will move out !
+        #      " ['uniform', 'loguniform']") # TODO : a terme prior_distrib will move out !
 
         # check samples
         if not isinstance(samples, list):
@@ -304,35 +304,35 @@ def check_params(samples, com_size, mu, init_rates = None,
                     if changetime >= 0 :
                         changetime = [[changetime]]
                     else :
-                        raise ValueError('changetime must be positive values')
+                        raise ValueError("changetime must be positive values")
                 else :
-                    raise ValueError('changetime must be int, list of int or'+
-                    ' nested list of int')
+                    raise ValueError("changetime must be int, list of int or"+
+                    " nested list of int")
             else :
                 for x in changetime:
                     if isinstance(x, list):
                         if not all(isinstance(y, (float, int)) for y in x) : 
-                            raise ValueError('changetime must be int, list of int or'+
-                                     ' nested list of int')
+                            raise ValueError("changetime must be int, list of"+
+                            " int or nested list of int")
                         if any(y < 0 for y in x[1:]) : 
-                            raise ValueError('changetime must be positive values')
+                            raise ValueError("changetime must be positive values")
                         if x[0] != 0:
-                            raise ValueError('first element of changetime for a Deme'+
-                            ' must be equal to 0')
+                            raise ValueError("first element of changetime for a Deme"+
+                            " must be equal to 0")
                         if len(set(x)) != len(x) :
-                            raise ValueError('Duplicated times in changetime for a Deme' +
-                                     ' are not possible')
+                            raise ValueError("Duplicated times in changetime for a Deme" +
+                                     " are not possible")
                     else :
                         if len(set(changetime)) != len(changetime) :
-                            raise ValueError('Duplicated times in changetime are not possible')
+                            raise ValueError("Duplicated times in changetime are not possible")
                         if not isinstance(x, (float, int)):
-                            raise ValueError('changetime must be int, list of int or'+
-                                     ' nested list of int')
+                            raise ValueError("changetime must be int, list of int or"+
+                                     " nested list of int")
                         if x < 0 :
-                            raise ValueError('changetime must be positive values')
+                            raise ValueError("changetime must be positive values")
                         if changetime[0] != 0:
-                            raise ValueError('first element of changetime'+
-                            ' must be equal to 0')
+                            raise ValueError("first element of changetime"+
+                            " must be equal to 0")
                 if not isinstance(x, list):
                     changetime = [changetime]
             if len(changetime) != npop :
@@ -391,13 +391,13 @@ def check_params(samples, com_size, mu, init_rates = None,
             if not isint_com:
                 raise ValueError("community sizes should be strictly positive int")
             if not sampl_com:
-                raise ValueError('com_size must be superior to samples')
+                raise ValueError("com_size must be superior to samples")
             
         # if isinstance(com_size, float) :
         #     com_size = [[int(com_size)]] * npop
         # check mu
         if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
-            raise ValueError('mu must be a float between 0 and 1')
+            raise ValueError("mu must be a float between 0 and 1")
         # check init_rates
         if init_rates is not None and changetime is not None:
             isint_rates = True
@@ -422,8 +422,8 @@ def check_params(samples, com_size, mu, init_rates = None,
                             isint_rates = False 
                         init_rates[i] <- [init_rates[i]]
             if not isint_rates:
-                raise ValueError('init_rates must be float, list of float or'+
-                                     ' nested list of float')
+                raise ValueError("init_rates must be float, list of float or"+
+                                     " nested list of float")
             if len(init_rates) != npop :
                 raise ValueError("there should be as many past sizes as there " + 
                 "are epochs in init_rates")
@@ -546,14 +546,15 @@ def check_params(samples, com_size, mu, init_rates = None,
                     raise ValueError("Trying to merge with inactive deme")
         # check verbose
         if not isinstance(verbose, bool):
-            raise ValueError('verbose must be a boolean') 
+            raise ValueError("verbose must be a boolean") 
         # check seed
         if seed is not None and not isinstance(seed, (int,float)):
-            raise ValueError('seed must be an integer')
+            raise ValueError("seed must be an integer")
         if seed is not None and isinstance(seed, float):
             seed = int(seed)
 
-    return samples, com_size, mu, init_rates, changetime, mrca, migr, migr_time, vic_events, verbose, seed, prior_locate
+    return samples, com_size, mu, init_rates, changetime, mrca, migr, \
+                    migr_time, vic_events, verbose, seed, prior_locate
 
 
 
@@ -683,7 +684,8 @@ def simulate(samples, com_size, mu, init_rates = None,
             samples = samples, com_size = com_size, mu = mu,  
             init_rates = init_rates, changetime = changetime,
             mrca = mrca, migr = migr, migr_time = migr_time,
-            vic_events = vic_events, verbose = verbose, seed = seed, prior_locate = None
+            vic_events = vic_events, verbose = verbose, seed = seed, 
+            prior_locate = None
         )
   
     ############################################################################
@@ -739,7 +741,8 @@ def simulate(samples, com_size, mu, init_rates = None,
         for v in range(nvic):
             demography.add_population(
                 name = ancestrals[v],
-                initial_size= com_size[vic_events[v][2]][changetime[vic_events[v][2]].index(vic_dates[v])])
+                initial_size= com_size[vic_events[v][2]]\
+                           [changetime[vic_events[v][2]].index(vic_dates[v])])
             tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
             an_changetime = changetime[vic_events[v][2]][tmp:]
             an_com_size = com_size[vic_events[v][2]][tmp:]
@@ -759,7 +762,8 @@ def simulate(samples, com_size, mu, init_rates = None,
             if cnt > 0:
                 derived[i] += chr(ord('a') + cnt - 1) 
         derived = ["pop_" + d for d in derived]
-        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic] for i in range(nvic)] 
+        derived = [derived[i*len(derived) // nvic: (i+1)*len(derived) // nvic]\
+                                                          for i in range(nvic)] 
         
         for v in range(nvic):
             demography.add_population_split(time = vic_events[v][0], 
@@ -805,7 +809,7 @@ def simulate(samples, com_size, mu, init_rates = None,
     # sort events chronologically
     demography.sort_events()
 
-    # if verbose should print the demography debugger - only for debugging purposes!!! 
+    # if verbose should print the demography debugger - only for debugging !!! 
     if verbose:
         print(demography.debug())
         
@@ -820,7 +824,8 @@ def simulate(samples, com_size, mu, init_rates = None,
             raise Exception(f"Simulated MRCA ({tree.time(tree.root)}) predates"+
                              " fixed limit ({mrca})")
     #print(tree.draw(format="unicode"))
-    node_labels = {u: str(u)+'_'+str(tree.population(u)) for u in tree.nodes() if tree.is_sample(u)}
+    node_labels = {u: str(u)+'_'+str(tree.population(u)) for u in tree.nodes()\
+                                                           if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
     phylo = phylogen.toPhylo(tree, mu, seed = seed)
 
