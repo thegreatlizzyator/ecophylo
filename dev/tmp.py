@@ -33,8 +33,8 @@ from ecophylo import getDeme
 def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
              mrca = None, migr = 1, migr_time = None,
              vic_events = None, 
-             verbose = False, sumstat = None # TODO : remove
-             , output = ['Params'], 
+             verbose = False, sumstat = None, # TODO : remove
+             output = ['Params'], # Params, Sumstat, Tree
              file_name = None, seed = None):
 
     # Idiotproof dosimul parameters
@@ -69,67 +69,54 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     # if prior locate is empty deal with this later
     comments = ("Simulating eco-evolutionary dynamics over the following" +
                " parameters ranges:")
-    df = pd.DataFrame()
-    # params = {"samples" : samples, "com_size" : com_size, "mu" : mu,
-    #           "init_rates": init_rates, "changetime" : changetime,
-    #           "migr" : migr, "migr_time": migr_time, "vic_events": vic_events}
+    params = pd.DataFrame()
 
-    # params = {k: v for k, v in params.items() if v is not None}
-    
-    # # cst_params = {k: v for k, v in params.items() if k not in prior_names} # useless
     prior_names = []
     for prior in prior_locate :
         if prior[0] == "mu": prior_names.append('mu')
         if prior[0] == "com_size":
             prior_names.append(f'com_size_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "changetime":
+            prior_names.append(f'time_pop{prior[1]}_t{prior[2]}')
         if prior[0] == "init_rates":
             prior_names.append(f'rate_pop{prior[1]}_t{prior[2]}')
-        if prior[0] == "migr": prior_names.append(f'migr_t{prior[1]}')
-
-    # prior_names = [f'{priors[p]}_pop{prior_locate[p][1]}_t{prior_locate[p][2]}' for p in range(len(prior_locate))]
-    # print('\nprior_names',prior_names)
-    # print('priors', priors, '\n')
-
+        if prior[0] == "migr": prior_names.append(f'migr_t{migr_time[prior[1]]}')
     ## samples
     col_samples = ['samples_pop{}'.format(i) for i in range(len(samples))]
     for j in range(len(samples)):
-        if col_samples[j] in prior_names: df[col_samples[j]] =  [None]*nsim
-        else: df[col_samples[j]] = [samples[j]]*nsim
-
+        if col_samples[j] in prior_names: params[col_samples[j]] =  [None]*nsim
+        else: params[col_samples[j]] = [samples[j]]*nsim
     ## com_size
     for j in range(len(com_size)):
         for jj in range(len(com_size[j])):
             tmp_name = f'com_size_pop{j}_t{jj}'
-            if tmp_name in prior_names:
-                df[tmp_name] = [None] * nsim
-            else :
-                df[tmp_name] = [com_size[j][jj]] * nsim
-
+            if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+            else : params[tmp_name] = [com_size[j][jj]] * nsim
     ## mu
-    if "mu" in priors: df["mu"] = [None]*nsim 
-    else: df["mu"] = [mu]*nsim
-
+    if "mu" in priors: params["mu"] = [None]*nsim 
+    else: params["mu"] = [mu]*nsim
     ## init_rates
-    # TODO : same as com_size
     if Nonedef[0]:
-        col_init_rates = [f'rate_pop{index1}_t{index2}' for index1,value1 in enumerate(com_size) for index2,value2 in enumerate(value1)]
-        for col in col_init_rates:
-            df[col] = ""
-           
+        for i in range(npop):
+            for ii in range(len(init_rates[i])):
+                tmp_name = f'rates_pop{i}_t{ii}'
+                if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+                else : params[tmp_name] = [init_rates[i][ii]] * nsim
     ## changetime
-    # TODO : same as com_size
     if Nonedef[1]:
-        col_times = [f'time_pop{index1}_t{index2}' for index1,value1 in enumerate(com_size) for index2,value2 in enumerate(value1)]
-        for col in col_times:
-            df[col] = ""
-
+        for i in range(npop):
+            for ii in range(len(changetime[i])):
+                if ii != 0:
+                    tmp_name = f'time_pop{i}_t{ii}'
+                    if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+                    else : params[tmp_name] = [changetime[i][ii]] * nsim
+    ## migr and migr_time
     if migr is not None and isinstance(migr[0], (int, float)):
         for i in range(len(migr)):
-            tmp_name = f'migr_t{i}'
-            if tmp_name in prior_names: df[tmp_name] =  [None]*nsim
-            else: df[tmp_name] = [migr[i]]*nsim
-
-        # This should work for matrices but we don't want to fuck our brains
+            tmp_name = f'migr_t{migr_time[i]}'
+            if tmp_name in prior_names: params[tmp_name] =  [None]*nsim
+            else: params[tmp_name] = [migr[i]]*nsim
+        # # This should work for matrices but we don't want to fuck our brains
         # col_migr = []
         # migr_val = []
         # for mt in range(len(migr)):
@@ -143,64 +130,53 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         #     migr_val.extend([t[0] for t in table if np.unique(t[1:]).size != 1])
         # for j in range(len(col_migr)):
         #     if 'migr' in priors:
-        #         df[col_migr[j]] =  [None]*nsim
+        #         params[col_migr[j]] =  [None]*nsim
         #     else: 
-        #         df[col_migr[j]] = [migr_val[j]]*nsim
-
-    # ## migr_time
-    # TODO : same as sample
-    # if all(Nonedef[]):
-    #     col_migrtime = ['migr_t{}'.format(i) for i in range(len(migr))]
-    #     for col in col_migrtime:
-    #         df[col] = ""
-           
+        #         params[col_migr[j]] = [migr_val[j]]*nsim
     ## vic_events
-    if Nonedef[4]:
-        print("you are fucked") # TODO : maybe remove this
-    
-    print(df)
-    ##########################################################################
-    ####                    SIMULATING                                    ####
-    ##########################################################################
-
-    print("\n SIMULATING \n\n============\n")
-    failed = 1
+    # if Nonedef[4]:
+    #     print("you are fucked") # TODO : maybe remove this
+    # print(params)
+    print("\n****SIMULATING***************\n\n")
+    failed = 0
     i = 0
-    while i < nsim and failed <= 100:
-
+    while i < nsim and failed < 100:
         # SIMULATE
         phylo = simulate(
             samples = samples, com_size = com_size, mu = mu, 
             init_rates = init_rates, changetime = changetime, 
             mrca = mrca, migr = migr, migr_time = migr_time, 
-            vic_events = vic_events, verbose = verbose, seed = seed, force = True
+            vic_events = vic_events, verbose = False, seed = seed, force = True
         )
-
         #################################################################
         ####                    CHECK TREE                           ####
         #################################################################
         # check tree
-        if True : # TODO : if tree ok
+        sp  = phylo.get_leaf_names()
+        if len(sp) > 2 and len(set(sp)) > 1 :
             # add parameters
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
                 if tmp_p[0] == "samples":
                     print('not done')
                 if tmp_p[0] == "com_size":
-                    df.loc[i,(f'com_size_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                    params.loc[i,(f'com_size_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
                         com_size[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == "mu":
-                    df.loc[i,'mu'] = mu
+                    params.loc[i,'mu'] = mu
                 if tmp_p[0] == "init_rates":
-                    print('not done') # TODO :
+                    params.loc[i,(f'rates_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        init_rates[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == "changetime":
-                    print('not done')
+                    params.loc[i,(f'time_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        changetime[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == 'migr':
-                    df.loc[i,(f'migr_t{tmp_p[1]}')] = migr[tmp_p[1]]
-
+                    params.loc[i,(f'migr_t{migr_time[tmp_p[1]]}')] = migr[tmp_p[1]]
             # Sumstat
+            sumstat = getAbund(phylo) + getDeme(phylo, div = True)
+            print(sumstat)
 
-            failed = 1
+            failed = 0
             i+=1
         else :
             failed += 1
@@ -217,23 +193,25 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
             verbose = verbose, seed = seed, prior_locate = prior_locate
         )
 
-    if failed > 100 :
-        raise ValueError("Too many simulations have failed")
+    if failed >= 100 : raise ValueError("Too many simulations have failed")
+
+    if verbose:
+        print(comments)
 
     if file_name is not None :
-        saved = df.to_string()
+        saved = params.to_string()
 
-        print('need to save the file')
+        print('\nSimulation saved in :', file_name, '\n')
         f = open(file_name, "w")
         f.write(saved)
         f.close()
 
-    return df
+    return params
 
 print("\n\n* test 1\n")
 print(dosimuls(nsim = 5, samples = [10],
     com_size = [[500]],
-    mu = 0.001, 
+    mu = 0.1, # will fail if 0.0001
     seed = 42))
 # print("\n\n* test mu\n")
 # print(dosimuls(nsim = 5, samples = [10],
@@ -252,7 +230,8 @@ print(dosimuls(nsim = 5, samples = [10, 9],
 print("\n\n* test migr\n")
 print(dosimuls(nsim = 5, samples = [10, 9],
     com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
-    mu = 0.001, migr = [[0.2,0.5,"uniform"]], file_name = 'tmpmigr.txt',
+    mu = 0.001, migr = [[0.2,0.5,"uniform"],[0.2,0.5,"uniform"]], 
+    file_name = 'tmpmigr.txt', migr_time = [0, 200],
     changetime = [[0, 200], [0, 100, 500]]))
 
 # print("\n\n* test migr\n")
@@ -291,5 +270,3 @@ print(dosimuls(nsim = 5, samples = [10, 9],
 #     changetime = [[0, 200], [0, 100, 500]],
 #     seed = 42,
 #     prior_locate = None))
-
-
