@@ -263,15 +263,26 @@ def check_params(samples, com_size, mu, init_rates = None,
 
     # prior_locate will pass this if educated
     if isinstance(prior_locate, list) :
-        # tirer les priors et les placers 
+        # draw and return prior values
         for prior in prior_locate :
-            if prior[0] == "com_size":
+            if prior[0] == "mu": # draw prior for mu
+                mu = sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
+            if prior[0] == "com_size": # draw prior for com_size
                 com_size[prior[1]][prior[2]] = round(
                     sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
                 )
+            if prior[0] == "init_rates": # draw prior for init_rates
+                init_rates[prior[1]][prior[2]] = sample(
+                    prior[3][0], prior[3][1], prior[3][2], seed = seed
+                )
+            if prior[0] == "migr":
+                migr[prior[1]] = sample(
+                    prior[3][0], prior[3][1], prior[3][2], seed = seed
+                )
 
-        # 
-        print("not done yet")
+    #################################################################
+    ####                    CHECK ALL AND SAMPLE                 ####
+    #################################################################
     else :
         if prior_locate == "naive":
             prior_locate = []
@@ -396,6 +407,10 @@ def check_params(samples, com_size, mu, init_rates = None,
         # if isinstance(com_size, float) :
         #     com_size = [[int(com_size)]] * npop
         # check mu
+        if isinstance(mu, list) and len(mu) == 3 and prior_locate is not None and \
+             all([x > 0 and x < 1 for x in mu[:2]]):
+            prior_locate.append(["mu", 0, 0, mu])
+            mu = sample(mu[0], mu[1], mu[2])
         if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
             raise ValueError("mu must be a float between 0 and 1")
         # check init_rates
@@ -409,6 +424,14 @@ def check_params(samples, com_size, mu, init_rates = None,
             else :
                 for i in range(len(init_rates)):
                     if isinstance(init_rates[i], list):
+                        for ii in range(len(init_rates[i])): 
+                            # draw priors
+                            if prior_locate is not None and isinstance(init_rates[i][ii], list):
+                                prior_locate.append(["init_rates", i, ii, com_size[i][ii]])
+                                init_rates[i][ii] = round(sample(
+                                    init_rates[i][ii][0], init_rates[i][ii][1],
+                                    init_rates[i][ii][2], seed = seed
+                                ))
                         if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
                             isint_rates = False
                         if len(init_rates[i]) !=  len(changetime[i]) :
@@ -468,10 +491,15 @@ def check_params(samples, com_size, mu, init_rates = None,
                             raise ValueError("migration rate should be positive (or zero)" + 
                                      " and not exceed 1")
                         # check len of migr is done with migr_time
-                        migr[i] = np.ones((npop,npop))*migr[i]
-                        np.fill_diagonal(migr[i], 0)
+                        # migr[i] = np.ones((npop,npop))*migr[i]
+                        # np.fill_diagonal(migr[i], 0)
                     else :
-                        if not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
+                        if prior_locate is not None and len(migr[i]) == 3 and isinstance(migr[i][2], str) :
+                            prior_locate.append(["migr", i, 0, migr[i]])
+                            migr[i] = sample(
+                                migr[i][0], migr[i][1], migr[i][2], seed = seed
+                            )
+                        elif not isinstance(migr[i][0], list) : # case [[0,'a], ['a, 0]]
                             if len(migr[i]) != len(migr) or len(migr) != npop:
                                 raise ValueError("custom migration matrices should be of" + 
                                          " size ndeme x ndeme")
@@ -544,6 +572,10 @@ def check_params(samples, com_size, mu, init_rates = None,
                     raise ValueError("Trying to merge with inactive deme")
                 if vic_events[i][1][1] in vic_events[i-1][1] and vic_events[i][1][1] != vic_events[i-1][2]:
                     raise ValueError("Trying to merge with inactive deme")
+        # check coalesc
+        if migr is None and vic_events is None and npop > 1:
+            raise ValueError("Multiple demes must be linked by either migration"+
+            " or vicariance events in order to coalesce")
         # check verbose
         if not isinstance(verbose, bool):
             raise ValueError("verbose must be a boolean") 
