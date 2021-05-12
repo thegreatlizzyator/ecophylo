@@ -11,6 +11,8 @@ Functions :
 
 """
 
+import numpy as np
+
 def getAbund(tree, samples = None):
     """
     
