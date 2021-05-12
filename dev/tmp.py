@@ -33,16 +33,24 @@ from ecophylo import getDeme
 def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
              mrca = None, migr = 1, migr_time = None,
              vic_events = None, 
-             verbose = False, sumstat = None, # TODO : remove
+             verbose = False,
              output = ['Params'], # Params, Sumstat, Tree
              file_name = None, seed = None):
 
     # Idiotproof dosimul parameters
     # nsim
+    if not isinstance(nsim, (float,int)) or nsim < 1 :
+        raise ValueError("nsim must be a int value above 0")
+    if isinstance(nsim, float) : nsim = int(nsim)
     # output
+    if not isinstance(output, list) or any([not isinstance(x, str) for x in output]) :
+        raise ValueError("output must be a list of string")
+    if len(output) > 3 or any([ x not in ["Params", "Sumstat", "Trees"] for x in output]):
+        raise ValueError("output must contain only 'Params', 'Sumstat' or/and 'Trees'")
     # file_name
-    if file_name is not None and not isinstance(file_name, str):
+    if file_name is not None and not isinstance(file_name, str) :
         raise ValueError("file_name must be string value.")
+            
 
     # register None values before they are initiated
     Nonedef = [init_rates, changetime, mrca, migr_time, vic_events]
@@ -133,10 +141,16 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         #         params[col_migr[j]] =  [None]*nsim
         #     else: 
         #         params[col_migr[j]] = [migr_val[j]]*nsim
+
     ## vic_events
     # if Nonedef[4]:
     #     print("you are fucked") # TODO : maybe remove this
     # print(params)
+
+    result = list()
+    abund = list()
+    diver = list()
+    trees = ""
     print("\n****SIMULATING***************\n\n")
     failed = 0
     i = 0
@@ -154,7 +168,6 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         # check tree
         sp  = phylo.get_leaf_names()
         if len(sp) > 2 and len(set(sp)) > 1 :
-            # add parameters
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
                 if tmp_p[0] == "samples":
@@ -171,17 +184,17 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
                     params.loc[i,(f'time_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
                         changetime[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == 'migr':
-                    params.loc[i,(f'migr_t{migr_time[tmp_p[1]]}')] = migr[tmp_p[1]]
-            # Sumstat
-            sumstat = getAbund(phylo) + getDeme(phylo, div = True)
-            print(sumstat)
-
+                    params.loc[i,(f'migr_t{migr_time[tmp_p[1]]}')] = \
+                        migr[tmp_p[1]]
+            # Save sumstat
+            abund.append(getAbund(phylo))
+            diver.append(getDeme(phylo, div = True))
+            # Save tree
+            trees += phylo.write() + "\n"
             failed = 0
             i+=1
         else :
-            failed += 1
-            # maybe resample value ?
-      
+            failed += 1      
         #################################################################
         ####                    RESAMPLING                           ####
         #################################################################
@@ -198,15 +211,37 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     if verbose:
         print(comments)
 
+    # abund
+    abund_pd = np.zeros((nsim, max(len(x) for x in abund)))
+    for k, j in enumerate(abund):
+        abund_pd[k][0:len(j)] = j
+    abund_pd = pd.DataFrame(abund_pd)
+    # diver
+    diver_pd = pd.DataFrame(diver_pd)
+    # ['gamma'] +  and shape - 1
+    print(['alpha'+ str(x) for x in range(diver_pd.shape[1] )])
+    diver_pd.columns = ['alpha'+ str(x) for x in range(diver_pd.shape[1] )]
+    print(diver_pd)
+    sumstat = pd.concat([abund_pd.reset_index(drop=True), diver_pd], axis=1)
+
+    print(sumstat)
+
     if file_name is not None :
-        saved = params.to_string()
+        saved = ""
+        if "Params" in output:
+            saved += params.to_string()
+        if "Sumstat" in output :
+            saved += "\n###\n" + sumstat.to_string()
+        if "Trees" in output : 
+            saved += "\n###\n" + trees
 
         print('\nSimulation saved in :', file_name, '\n')
         f = open(file_name, "w")
         f.write(saved)
         f.close()
 
-    return params
+    result = [params, sumstat, trees]
+    return result
 
 print("\n\n* test 1\n")
 print(dosimuls(nsim = 5, samples = [10],
@@ -232,6 +267,7 @@ print(dosimuls(nsim = 5, samples = [10, 9],
     com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
     mu = 0.001, migr = [[0.2,0.5,"uniform"],[0.2,0.5,"uniform"]], 
     file_name = 'tmpmigr.txt', migr_time = [0, 200],
+    output = ["Params", "Sumstat", "Trees"],
     changetime = [[0, 200], [0, 100, 500]]))
 
 # print("\n\n* test migr\n")
