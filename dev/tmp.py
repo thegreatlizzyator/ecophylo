@@ -70,16 +70,25 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     comments = ("Simulating eco-evolutionary dynamics over the following" +
                " parameters ranges:")
     df = pd.DataFrame()
-    params = {"samples" : samples, "com_size" : com_size, "mu" : mu,
-              "init_rates": init_rates, "changetime" : changetime,
-              "migr" : migr, "migr_time": migr_time, "vic_events": vic_events}
+    # params = {"samples" : samples, "com_size" : com_size, "mu" : mu,
+    #           "init_rates": init_rates, "changetime" : changetime,
+    #           "migr" : migr, "migr_time": migr_time, "vic_events": vic_events}
 
-    params = {k: v for k, v in params.items() if v is not None}
+    # params = {k: v for k, v in params.items() if v is not None}
     
-    # cst_params = {k: v for k, v in params.items() if k not in prior_names} # useless
-    prior_names = [f'{priors[p]}_pop{prior_locate[p][1]}_t{prior_locate[p][2]}' for p in range(len(prior_locate))]
-    print('prior_names',prior_names)
-    print('priors', priors)
+    # # cst_params = {k: v for k, v in params.items() if k not in prior_names} # useless
+    prior_names = []
+    for prior in prior_locate :
+        if prior[0] == "mu": prior_names.append('mu')
+        if prior[0] == "com_size":
+            prior_names.append(f'com_size_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "init_rates":
+            prior_names.append(f'rate_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "migr": prior_names.append(f'migr_t{prior[1]}')
+
+    # prior_names = [f'{priors[p]}_pop{prior_locate[p][1]}_t{prior_locate[p][2]}' for p in range(len(prior_locate))]
+    # print('\nprior_names',prior_names)
+    # print('priors', priors, '\n')
 
     ## samples
     col_samples = ['samples_pop{}'.format(i) for i in range(len(samples))]
@@ -115,11 +124,10 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
             df[col] = ""
 
     if migr is not None and isinstance(migr[0], (int, float)):
-        col_migr = [f'migr_t{i}' for i in range(len(migr))]
-        print(col_migr, prior_names)
-        for j in range(len(migr)):
-            if col_migr[j] in prior_names: df[col_migr[j]] =  [None]*nsim # HERE IS ISSUE about migr in table !!
-            else: df[col_migr[j]] = [migr[j]]*nsim
+        for i in range(len(migr)):
+            tmp_name = f'migr_t{i}'
+            if tmp_name in prior_names: df[tmp_name] =  [None]*nsim
+            else: df[tmp_name] = [migr[i]]*nsim
 
         # This should work for matrices but we don't want to fuck our brains
         # col_migr = []
@@ -188,8 +196,7 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
                 if tmp_p[0] == "changetime":
                     print('not done')
                 if tmp_p[0] == 'migr':
-                    print("pipoodo", migr[tmp_p[1]])
-                    # df.loc[i,(f'migr_t{tmp_p[1]}')] = migr[tmp_p[1]]
+                    df.loc[i,(f'migr_t{tmp_p[1]}')] = migr[tmp_p[1]]
 
             # Sumstat
 
