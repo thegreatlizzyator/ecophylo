@@ -530,40 +530,40 @@ def check_params(samples, com_size, mu, init_rates = None,
             raise ValueError("migration matrices cannot all be empty")
         # check vic_events
         if vic_events is not None:
-            if not isinstance(vic_events, list) or any([not isinstance(x, list) for x in vic_events]):
+            if not isinstance(vic_events, list):
                 raise ValueError("vic_events should be a nested list of list with "+
                 "a length 3")
-            if any([len(v)!=3 for v in vic_events]) :
-                raise ValueError("all elements in vic_events should be lists of"+
-                " lenght 3")
+            for i in range(len(vic_events)) :
+                if not isinstance(vic_events[i], list):
+                    raise ValueError("vic_events should be a nested list of list with "+
+                                 "a length 3")
+                if len(vic_events[i]) != 3 :
+                    raise ValueError("all elements in vic_events should be lists of"+
+                                         " lenght 3")
+                if len(vic_events[i][1])!=2:
+                    raise ValueError("second element of vic_events should be a list"+
+                    " of 2 deme ids")
+            # # TODO : cath float and format them
+                if not all([isinstance(x, int) for x in flatten(vic_events[i])]):
+                     raise ValueError("all elements of vic_events should be ints")
+                if vic_events[i][0] < 0 or any(isinstance(vic_events[i][1])):
+                    raise ValueError("all times in _vic_events should be strictly"+
+                    " positive")
             
-            if any([len(v[1])!=2 for v in vic_events]):
-                raise ValueError("second element of vic_events should be a list"+
-                " of 2 deme ids")
-            # TODO : cath float and format them
-            if not all([isinstance(v, int) for v in flatten(vic_events)]):
-                 raise ValueError("all elements of vic_events should be ints")
+            # if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
+            #     raise ValueError("split times in vic_events should also appear"+
+            #     " in changetime")
+                if any(vic_events[i][1]) > npop or vic_events[i][2] > npop  :
+                    raise ValueError("Split events do not match provided deme"+
+                    " information")
+                if vic_events[i][2] not in vic_events[i][1]:
+                    raise ValueError("Splits events of two demes should be defined"+
+                    " relative to one of the demes' id")
             
-            if any([t<0 for t in [v[0] for v in vic_events]]):
-                raise ValueError("all times in _vic_events should be strictly"+
-                " positive")
-            
-            if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
-                raise ValueError("split times in vic_events should also appear"+
-                " in changetime")
-            
-            if not all([x in range(npop) for x in sum([flatten(v[1:]) for v in vic_events],[]) ]):
-                raise ValueError("Split events do not match provided deme"+
-                " information")
-            
-            vic_dates = [v[0] for v in vic_events]
+            vic_dates = [[0] for v in vic_events]
             if vic_dates != sorted(vic_dates):
                 raise ValueError("Split dates should be provided in chronological"+
                 " order")
-            
-            if any([v[2] not in v[1] for v in vic_events]):
-                raise ValueError("Splits events of two demes should be defined"+
-                " relative to one of the demes' id")
             
             for i in range(len(vic_events)) :
                 if i == 0 :
@@ -572,6 +572,7 @@ def check_params(samples, com_size, mu, init_rates = None,
                     raise ValueError("Trying to merge with inactive deme")
                 if vic_events[i][1][1] in vic_events[i-1][1] and vic_events[i][1][1] != vic_events[i-1][2]:
                     raise ValueError("Trying to merge with inactive deme")
+
         # check coalesc
         if migr is None and vic_events is None and npop > 1:
             raise ValueError("Multiple demes must be linked by either migration"+
