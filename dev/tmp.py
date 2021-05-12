@@ -81,6 +81,7 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
 
     prior_names = []
     for prior in prior_locate :
+        if prior[0] == "samples": prior_names.append(f'samples_pop{prior[1]}')
         if prior[0] == "mu": prior_names.append('mu')
         if prior[0] == "com_size":
             prior_names.append(f'com_size_pop{prior[1]}_t{prior[2]}')
@@ -94,22 +95,15 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     for j in range(len(samples)):
         if col_samples[j] in prior_names: params[col_samples[j]] =  [None]*nsim
         else: params[col_samples[j]] = [samples[j]]*nsim
+    ## mu
+    if "mu" in priors: params["mu"] = [None]*nsim 
+    else: params["mu"] = [mu]*nsim
     ## com_size
     for j in range(len(com_size)):
         for jj in range(len(com_size[j])):
             tmp_name = f'com_size_pop{j}_t{jj}'
             if tmp_name in prior_names: params[tmp_name] = [None] * nsim
             else : params[tmp_name] = [com_size[j][jj]] * nsim
-    ## mu
-    if "mu" in priors: params["mu"] = [None]*nsim 
-    else: params["mu"] = [mu]*nsim
-    ## init_rates
-    if Nonedef[0]:
-        for i in range(npop):
-            for ii in range(len(init_rates[i])):
-                tmp_name = f'rates_pop{i}_t{ii}'
-                if tmp_name in prior_names: params[tmp_name] = [None] * nsim
-                else : params[tmp_name] = [init_rates[i][ii]] * nsim
     ## changetime
     if Nonedef[1]:
         for i in range(npop):
@@ -118,6 +112,13 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
                     tmp_name = f'time_pop{i}_t{ii}'
                     if tmp_name in prior_names: params[tmp_name] = [None] * nsim
                     else : params[tmp_name] = [changetime[i][ii]] * nsim
+    ## init_rates
+    if Nonedef[0]:
+        for i in range(npop):
+            for ii in range(len(init_rates[i])):
+                tmp_name = f'rates_pop{i}_t{ii}'
+                if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+                else : params[tmp_name] = [init_rates[i][ii]] * nsim
     ## migr and migr_time
     if migr is not None and isinstance(migr[0], (int, float)):
         for i in range(len(migr)):
@@ -171,18 +172,18 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
                 if tmp_p[0] == "samples":
-                    print('not done')
+                    print('not done') # TODO : samples 
+                if tmp_p[0] == "mu":
+                    params.loc[i,'mu'] = mu
                 if tmp_p[0] == "com_size":
                     params.loc[i,(f'com_size_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
                         com_size[tmp_p[1]][tmp_p[2]]
-                if tmp_p[0] == "mu":
-                    params.loc[i,'mu'] = mu
-                if tmp_p[0] == "init_rates":
-                    params.loc[i,(f'rates_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
-                        init_rates[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == "changetime":
                     params.loc[i,(f'time_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
                         changetime[tmp_p[1]][tmp_p[2]]
+                if tmp_p[0] == "init_rates":
+                    params.loc[i,(f'rates_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        init_rates[tmp_p[1]][tmp_p[2]]
                 if tmp_p[0] == 'migr':
                     params.loc[i,(f'migr_t{migr_time[tmp_p[1]]}')] = \
                         migr[tmp_p[1]]
@@ -217,8 +218,7 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
         abund_pd[k][0:len(j)] = j
     abund_pd = pd.DataFrame(abund_pd)
     # diver
-    diver_pd = pd.DataFrame(diver_pd)
-    # ['gamma'] +  and shape - 1
+    diver_pd = pd.DataFrame(diver)
     print(['alpha'+ str(x) for x in range(diver_pd.shape[1] )])
     diver_pd.columns = ['alpha'+ str(x) for x in range(diver_pd.shape[1] )]
     print(diver_pd)

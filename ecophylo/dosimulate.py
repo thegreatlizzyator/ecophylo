@@ -15,7 +15,7 @@ Functions :
     check_params
 
 """
-    # TODO : doc !!!
+    # TODO : general doc !!!
 import msprime
 import random
 import numpy as np
@@ -49,16 +49,11 @@ def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS"
     pastprior : TYPE
     savetrees : TYPE
     saveto : TYPE
-  
-    # TODO : find simulate parameters
-    # TODO : rename lim_mrca with mrca
-    
+      
     Examples
     --------
     """
 
-    # TODO : doc !!!
-    # TODO : idiotproof
     # CHECKS HERE FOR IDIOT-PROOFING
     
     if prior_distrib not in ("uniform", "log_unif"):
@@ -265,10 +260,18 @@ def check_params(samples, com_size, mu, init_rates = None,
     if isinstance(prior_locate, list) :
         # draw and return prior values
         for prior in prior_locate :
+            if prior[0] == "samples": # draw prior for qamples
+                samples[prior[1]] = round(
+                    sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
+                )
             if prior[0] == "mu": # draw prior for mu
                 mu = sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
             if prior[0] == "com_size": # draw prior for com_size
                 com_size[prior[1]][prior[2]] = round(
+                    sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
+                )
+            if prior[0] == "changetime": # draw prior for changetime
+                changetime[prior[1]][prior[2]] = round(
                     sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
                 )
             if prior[0] == "init_rates": # draw prior for init_rates
@@ -288,23 +291,19 @@ def check_params(samples, com_size, mu, init_rates = None,
             prior_locate = []
             # else prior_locate is None
         # Idiotproof
-
-        # check 
-        # if prior_distrib is not None \
-        #      and (not isinstance(prior_distrib, str) or \
-        #          not prior_distrib in ['uniform', 'loguniform']):
-        #     raise ValueError("prior_distrib must be a string input with model in"+
-        #      " ['uniform', 'loguniform']") # TODO : a terme prior_distrib will move out !
-
         # check samples
         if not isinstance(samples, list):
             samples = [samples]
-        isint_samp = [isinstance(s, int) for s in samples]
-        if not all(isint_samp):
-            raise ValueError("samples should all be ints")
-        ispos_samp = [s>0 for s in samples]
-        if not all(ispos_samp):
-            raise ValueError("samples should all be positive")
+        for i in range(len(samples)):
+            if prior_locate is not None and isinstance(samples[i], list):
+                prior_locate.append(["samples", i, 0, samples[i]])
+                samples[i] = round(sample(
+                    samples[i][0], samples[i][1], samples[i][2], seed = seed
+                ))
+            if not isinstance(samples[i], int):
+                raise ValueError("samples should all be ints")
+            if samples[i] <= 0:
+                raise ValueError("samples should all be positive")
         # compute number of populations
         npop = len(samples)
 
@@ -320,31 +319,39 @@ def check_params(samples, com_size, mu, init_rates = None,
                     raise ValueError("changetime must be int, list of int or"+
                     " nested list of int")
             else :
-                for x in changetime:
-                    if isinstance(x, list):
-                        if not all(isinstance(y, (float, int)) for y in x) : 
+                for i in range(len(changetime)):
+                    if isinstance(changetime[i], list):
+                        for ii in range(len(changetime[i])):
+                            # draw priors
+                            if prior_locate is not None and isinstance(changetime[i][ii], list):
+                                prior_locate.append(["changetime", i, ii, changetime[i][ii]])
+                                changetime[i][ii] = round(sample(
+                                    changetime[i][ii][0], changetime[i][ii][1],
+                                    changetime[i][ii][2], seed = seed
+                                ))
+                        if not all(isinstance(y, (float, int)) for y in changetime[i]) :
                             raise ValueError("changetime must be int, list of"+
                             " int or nested list of int")
-                        if any(y < 0 for y in x[1:]) : 
+                        if any(y < 0 for y in changetime[i][1:]) : 
                             raise ValueError("changetime must be positive values")
-                        if x[0] != 0:
+                        if changetime[i][0] != 0:
                             raise ValueError("first element of changetime for a Deme"+
                             " must be equal to 0")
-                        if len(set(x)) != len(x) :
+                        if len(set(changetime[i])) != len(changetime[i]) :
                             raise ValueError("Duplicated times in changetime for a Deme" +
                                      " are not possible")
                     else :
                         if len(set(changetime)) != len(changetime) :
                             raise ValueError("Duplicated times in changetime are not possible")
-                        if not isinstance(x, (float, int)):
+                        if not isinstance(changetime[i], (float, int)):
                             raise ValueError("changetime must be int, list of int or"+
                                      " nested list of int")
-                        if x < 0 :
+                        if changetime[i] < 0 :
                             raise ValueError("changetime must be positive values")
                         if changetime[0] != 0:
                             raise ValueError("first element of changetime"+
                             " must be equal to 0")
-                if not isinstance(x, list):
+                if not isinstance(changetime[i], list):
                     changetime = [changetime]
             if len(changetime) != npop :
                 raise ValueError("there should be as many past sizes as there " + 
@@ -407,6 +414,7 @@ def check_params(samples, com_size, mu, init_rates = None,
         # if isinstance(com_size, float) :
         #     com_size = [[int(com_size)]] * npop
         # check mu
+        # draw prior
         if isinstance(mu, list) and len(mu) == 3 and prior_locate is not None and \
              all([x > 0 and x < 1 for x in mu[:2]]):
             prior_locate.append(["mu", 0, 0, mu])
@@ -494,6 +502,7 @@ def check_params(samples, com_size, mu, init_rates = None,
                         # migr[i] = np.ones((npop,npop))*migr[i]
                         # np.fill_diagonal(migr[i], 0)
                     else :
+                        # draw prior
                         if prior_locate is not None and len(migr[i]) == 3 and isinstance(migr[i][2], str) :
                             prior_locate.append(["migr", i, 0, migr[i]])
                             migr[i] = sample(
@@ -543,24 +552,25 @@ def check_params(samples, com_size, mu, init_rates = None,
                 if len(vic_events[i][1])!=2:
                     raise ValueError("second element of vic_events should be a list"+
                     " of 2 deme ids")
-            # # TODO : cath float and format them
+                # # TODO : cath float and format them
                 if not all([isinstance(x, int) for x in flatten(vic_events[i])]):
                      raise ValueError("all elements of vic_events should be ints")
-                if vic_events[i][0] < 0 or any(isinstance(vic_events[i][1])):
+                if vic_events[i][0] < 0 or any([ x < 0 for x in vic_events[i][1]]):
                     raise ValueError("all times in _vic_events should be strictly"+
                     " positive")
-            
-            # if any([test not in flatten(changetime) for test in [v[0] for v in vic_events]]):
-            #     raise ValueError("split times in vic_events should also appear"+
-            #     " in changetime")
+                
                 if any(vic_events[i][1]) > npop or vic_events[i][2] > npop  :
                     raise ValueError("Split events do not match provided deme"+
                     " information")
+
+                if vic_events[i][0] not in changetime[vic_events[i][2]]:
+                    raise ValueError("split times in vic_events should also appear"+
+                                       " in changetime")
                 if vic_events[i][2] not in vic_events[i][1]:
                     raise ValueError("Splits events of two demes should be defined"+
                     " relative to one of the demes' id")
             
-            vic_dates = [[0] for v in vic_events]
+            vic_dates = [v[0] for v in vic_events]
             if vic_dates != sorted(vic_dates):
                 raise ValueError("Split dates should be provided in chronological"+
                 " order")
@@ -902,7 +912,7 @@ def sample(lower, upper, distr = "uniform", seed = None):
         p =   loguniform(lower, upper).rvs()
     return p 
 
-
+# TODO : FUNCTION TO REMOVE !!!
 def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
     """
     Make a list of parameters to test from prior distribution limits.
