@@ -549,28 +549,28 @@ def check_params(samples, com_size, mu, init_rates = None,
                 if len(vic_events[i]) != 3 :
                     raise ValueError("all elements in vic_events should be lists of"+
                                          " lenght 3")
-                if len(vic_events[i][1])!=2:
-                    raise ValueError("second element of vic_events should be a list"+
+                if len(vic_events[i][0])!=2:
+                    raise ValueError("first element of vic_events should be a list"+
                     " of 2 deme ids")
                 # # TODO : cath float and format them
                 if not all([isinstance(x, int) for x in flatten(vic_events[i])]):
                      raise ValueError("all elements of vic_events should be ints")
-                if vic_events[i][0] < 0 or any([ x < 0 for x in vic_events[i][1]]):
+                if vic_events[i][2] < 0 or any([ x < 0 for x in vic_events[i][0]]):
                     raise ValueError("all times in _vic_events should be strictly"+
                     " positive")
                 
-                if any(vic_events[i][1]) > npop or vic_events[i][2] > npop  :
+                if any(vic_events[i][0]) > npop or vic_events[i][1] > npop  :
                     raise ValueError("Split events do not match provided deme"+
                     " information")
 
-                if vic_events[i][0] not in changetime[vic_events[i][2]]:
+                if vic_events[i][2] >= len(changetime[vic_events[i][1]]):
                     raise ValueError("split times in vic_events should also appear"+
                                        " in changetime")
-                if vic_events[i][2] not in vic_events[i][1]:
+                if vic_events[i][1] not in vic_events[i][0]:
                     raise ValueError("Splits events of two demes should be defined"+
                     " relative to one of the demes' id")
             
-            vic_dates = [v[0] for v in vic_events]
+            vic_dates = [v[2] for v in vic_events]
             if vic_dates != sorted(vic_dates):
                 raise ValueError("Split dates should be provided in chronological"+
                 " order")
@@ -578,9 +578,9 @@ def check_params(samples, com_size, mu, init_rates = None,
             for i in range(len(vic_events)) :
                 if i == 0 :
                     continue
-                if vic_events[i][1][0] in vic_events[i-1][1] and vic_events[i][1][0] != vic_events[i-1][2]:
+                if vic_events[i][0][0] in vic_events[i-1][0] and vic_events[i][0][0] != vic_events[i-1][1]:
                     raise ValueError("Trying to merge with inactive deme")
-                if vic_events[i][1][1] in vic_events[i-1][1] and vic_events[i][1][1] != vic_events[i-1][2]:
+                if vic_events[i][0][1] in vic_events[i-1][0] and vic_events[i][0][1] != vic_events[i-1][1]:
                     raise ValueError("Trying to merge with inactive deme")
 
         # check coalesc
@@ -670,7 +670,7 @@ def simulate(samples, com_size, mu, init_rates = None,
     migr_time = None: list of ints
         the times (in generation before present) at which migration rates have
         changed in which the first element is 0
-    vic_events = nested list of ints
+    vic_events = nested list of ints # TODO : change doc for vic_events
         a nested list detailing the different split events that should be 
         included in the simulation. Each element of vic_events should be a list
         specifying, in order: the date (in generations before present) at which
@@ -768,10 +768,10 @@ def simulate(samples, com_size, mu, init_rates = None,
 
     ## VICARIANCE EVENTS
     if vic_events is not None:
-        vic_dates = [v[0] for v in vic_events]
+        vic_dates = [changetime[v[1]][v[2]] for v in vic_events]
         # extract some informations about 
         nvic = len(vic_events)
-        ancestrals = [str(vic_events[i][2]) for i in range(nvic)] 
+        ancestrals = [str(vic_events[i][1]) for i in range(nvic)] 
         count = {}
         for i, anc in enumerate(ancestrals):
             cnt = count.get(anc, 0)
@@ -784,17 +784,17 @@ def simulate(samples, com_size, mu, init_rates = None,
         for v in range(nvic):
             demography.add_population(
                 name = ancestrals[v],
-                initial_size= com_size[vic_events[v][2]]\
-                           [changetime[vic_events[v][2]].index(vic_dates[v])])
-            tmp = changetime[vic_events[v][2]].index(vic_dates[v]) + 1
-            an_changetime = changetime[vic_events[v][2]][tmp:]
-            an_com_size = com_size[vic_events[v][2]][tmp:]
+                initial_size= com_size[vic_events[v][1]]\
+                           [changetime[vic_events[v][1]].index(vic_dates[v])])
+            tmp = changetime[vic_events[v][1]].index(vic_dates[v]) + 1
+            an_changetime = changetime[vic_events[v][1]][tmp:]
+            an_com_size = com_size[vic_events[v][1]][tmp:]
             for i in range(len(an_changetime)):
                 demography.add_population_parameters_change(
                     population=ancestrals[v],
                     time = an_changetime[i],
                     initial_size= an_com_size[i])
-            derived.extend(vic_events[v][1])
+            derived.extend(vic_events[v][0])
 
         #set up split events
         derived = [str(o) for o in derived]
@@ -809,7 +809,7 @@ def simulate(samples, com_size, mu, init_rates = None,
                                                           for i in range(nvic)] 
         
         for v in range(nvic):
-            demography.add_population_split(time = vic_events[v][0], 
+            demography.add_population_split(time = vic_dates[v], 
                                             derived = derived[v], 
                                             ancestral = ancestrals[v])
 

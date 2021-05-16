@@ -23,6 +23,12 @@ from ecophylo import simulate
 from ecophylo import getAbund
 from ecophylo import getDeme
 
+t = simulate(samples = [5, 5], com_size = [[2e3, 4e3], [2e3]], mu = 1,
+             init_rates = None, changetime = [[0, 300], [0]] , mrca = None, 
+             migr = None, migr_time = None, vic_events = [[[0, 1], 0, 1]],
+             verbose = True, seed = 42)
+print(t)
+
 # t = simulate(samples = [2, 2], com_size = [[20, 50, 100], [20, 50]], mu = 1, 
 # init_rates = None, 
 # changetime = [[0, 20, 30], [0, 20]] , mrca = None, 
@@ -243,32 +249,32 @@ def dosimuls(nsim, samples, com_size, mu, init_rates = None, changetime = None,
     result = [params, sumstat, trees]
     return result
 
-print("\n\n* test 1\n")
-print(dosimuls(nsim = 5, samples = [10],
-    com_size = [[500]],
-    mu = 0.1, # will fail if 0.0001
-    seed = 42))
-# print("\n\n* test mu\n")
+# print("\n\n* test 1\n")
 # print(dosimuls(nsim = 5, samples = [10],
 #     com_size = [[500]],
-#     mu = [0.001, 0.005, 'uniform']))
-print("\n\n* test 2\n")
-print(dosimuls(nsim = 5, samples = [10],
-    com_size = [[[1500, 5000, "uniform"], [1500, 5000, "uniform"]]],
-    mu = 0.001, changetime = [0, 500], seed = None,  file_name = 'tmp.txt'))
-print("\n\n* test 3\n")
-print(dosimuls(nsim = 5, samples = [10, 9],
-    com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
-    mu = 0.001, migr = 0.5,
-    changetime = [[0, 200], [0, 100, 500]],
-    seed = 42))
-print("\n\n* test migr\n")
-print(dosimuls(nsim = 5, samples = [10, 9],
-    com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
-    mu = 0.001, migr = [[0.2,0.5,"uniform"],[0.2,0.5,"uniform"]], 
-    file_name = 'tmpmigr.txt', migr_time = [0, 200],
-    output = ["Params", "Sumstat", "Trees"],
-    changetime = [[0, 200], [0, 100, 500]]))
+#     mu = 0.1, # will fail if 0.0001
+#     seed = 42))
+# # print("\n\n* test mu\n")
+# # print(dosimuls(nsim = 5, samples = [10],
+# #     com_size = [[500]],
+# #     mu = [0.001, 0.005, 'uniform']))
+# print("\n\n* test 2\n")
+# print(dosimuls(nsim = 5, samples = [10],
+#     com_size = [[[1500, 5000, "uniform"], [1500, 5000, "uniform"]]],
+#     mu = 0.001, changetime = [0, 500], seed = None,  file_name = 'tmp.txt'))
+# print("\n\n* test 3\n")
+# print(dosimuls(nsim = 5, samples = [10, 9],
+#     com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
+#     mu = 0.001, migr = 0.5,
+#     changetime = [[0, 200], [0, 100, 500]],
+#     seed = 42))
+# print("\n\n* test migr\n")
+# print(dosimuls(nsim = 5, samples = [10, 9],
+#     com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]],
+#     mu = 0.001, migr = [[0.2,0.5,"uniform"],[0.2,0.5,"uniform"]], 
+#     file_name = 'tmpmigr.txt', migr_time = [0, 200],
+#     output = ["Params", "Sumstat", "Trees"],
+#     changetime = [[0, 200], [0, 100, 500]]))
 
 # print("\n\n* test migr\n")
 # print(dosimuls(nsim = 5, samples = [10, 9],
