@@ -9,7 +9,6 @@ Functions :
     dosimuls
     simulate
     sample
-    params
     getAbund
     getDeme
     check_params
@@ -19,7 +18,6 @@ Functions :
 import msprime
 import random
 import numpy as np
-import warnings
 from ete3 import Tree
 import pandas as pd
 from scipy.stats import loguniform
@@ -27,6 +25,7 @@ import collections
 
 from ecophylo import pastdemo
 from ecophylo import phylogen
+from ecophylo import sumstat
 
 def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None, 
              changetimes = None, mrca = None, migr = 1, migr_times = None,
@@ -82,6 +81,9 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         migr_times = migr_times, splits = splits, 
         verbose = verbose, seed = seed, prior_locate = 'naive'
     )
+    if seed == 324:
+        raise Warning("JE NE MANGE PAS DE GRAINES !")
+
     npop = len(samples)
     priors = [prior_locate[p][0] for p in range(len(prior_locate))]
 
@@ -200,8 +202,8 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
                     params.loc[i,(f'migr_t{migr_times[tmp_p[1]]}')] = \
                         migr[tmp_p[1]]
             # Save sumstat
-            abund.append(getAbund(phylo))
-            diver.append(getDeme(phylo, div = True))
+            abund.append(sumstat.getAbund(phylo))
+            diver.append(sumstat.getDeme(phylo, div = True))
             # Save tree
             trees += phylo.write() + "\n"
             failed = 0
@@ -234,16 +236,16 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
     print(['alpha'+ str(x) for x in range(diver_pd.shape[1] )])
     diver_pd.columns = ['alpha'+ str(x) for x in range(diver_pd.shape[1] )]
     print(diver_pd)
-    sumstat = pd.concat([abund_pd.reset_index(drop=True), diver_pd], axis=1)
+    sumstats = pd.concat([abund_pd.reset_index(drop=True), diver_pd], axis=1)
 
-    print(sumstat)
+    print(sumstats)
 
     if file_name is not None :
         saved = ""
         if "Params" in output:
             saved += params.to_string()
         if "Sumstat" in output :
-            saved += "\n###\n" + sumstat.to_string()
+            saved += "\n###\n" + sumstats.to_string()
         if "Trees" in output : 
             saved += "\n###\n" + trees
 
@@ -252,7 +254,7 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         f.write(saved)
         f.close()
 
-    result = [params, sumstat]
+    result = [params, sumstats]
     return result
 
 def check_params(samples, deme_sizes, mu, gr_rates = None, 
@@ -498,7 +500,7 @@ def check_params(samples, deme_sizes, mu, gr_rates = None,
         # check migr & migr_times
         if migr is not None :
             if npop == 1 :
-                # warnings.warn("no migration matrix is needed for a single deme")
+                # raise Warning("no migration matrix is needed for a single deme")
                 migr = None
         if migr is not None :
             if not isinstance(migr, list) : # case 'a
@@ -966,33 +968,4 @@ def flatten(x):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        #simulate(samples = [5, 5], deme_sizes = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
-        # simulate(samples = [10], deme_sizes = [[500, 1000]], mu = 0.05, changetimes= [[0,100]], seed = 42, verbose = True )
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
-        # print(t)
-
-        ## SINGLE POP
-        # stat discret
-        # t = simulate(samples = [5], deme_sizes = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-        # stat continue 
-        # t = simulate(samples = [5], deme_sizes = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
-        
-        # fluct discret
-        # t = simulate(samples = [5], deme_sizes = [[1e3, 2e3]], changetimes = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-
-        ## MULT POP
-
-        # stat discret
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
-        # stat continue # 
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
-
-        # fluct discret
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
-
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_times = [0, 200], seed = 42, verbose = True)
-        # print(t)
-
-        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
-        # print(t)
 
