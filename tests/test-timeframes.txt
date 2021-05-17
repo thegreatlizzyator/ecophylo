@@ -12,22 +12,22 @@ This is an example text file in reStructuredText format.  First import
 
 Now use it:
 
-    >>> timeframes(I=2, T=-2, a=0.3)
+    >>> timeframes(I=2, time=-2, a=0.3)
     Traceback (most recent call last):
       ...
-    ValueError: T maximum time in generation time must be a strict positive float.
+    ValueError: time maximum time in generation time must be a strict positive float.
     
-    >>> timeframes(I=-2, T=2, a=0.3)
+    >>> timeframes(I=-2, time=2, a=0.3)
     Traceback (most recent call last):
       ...
     ValueError: I number of time windows must be an integer superior to 0.
     
-    >>> timeframes(I=3, T=0, a=0.3)
+    >>> timeframes(I=3, time=0, a=0.3)
     Traceback (most recent call last):
       ...
-    ValueError: T maximum time in generation time must be a strict positive float.
+    ValueError: time maximum time in generation time must be a strict positive float.
     
-    >>> timeframes(I=2, T=2, a=-0.3)
+    >>> timeframes(I=2, time=2, a=-0.3)
     Traceback (most recent call last):
       ...
     ValueError: The resolution a must be a float superior to 0.

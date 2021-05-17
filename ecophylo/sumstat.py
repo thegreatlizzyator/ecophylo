@@ -40,11 +40,11 @@ def getAbund(tree, samples = None):
     >>> phylo = eco.toPhylo(tree, 0.5, seed = 42)
     >>> print(phylo)
     <BLANKLINE>
-          /-A
+          /-sp1
        /-|
-    --|   \-D
+    --|   \-sp2
       |
-       \-F
+       \-sp3
     >>> getAbund(phylo, 7)
     [3, 2, 2]
     """
@@ -98,11 +98,11 @@ def getDeme(tree, div = False):
     >>> phylo = eco.toPhylo(tree, 0.5, seed = 42)
     >>> print(phylo)
     <BLANKLINE>
-          /-A
+          /-sp1
        /-|
-    --|   \-D
+    --|   \-sp2
       |
-       \-F
+       \-sp3
     >>> getDeme(phylo)
     [[2, 1, 0], [0, 2, 0], [0, 0, 2]]
     >>> getDeme(phylo, div = True)

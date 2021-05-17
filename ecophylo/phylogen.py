@@ -14,7 +14,8 @@ Functions :
 
 import numpy as np
 
-def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
+def toPhylo(tree, mu, tau = 0, spmodel = "SGD", 
+            force_ultrametric = True, seed = None):
     """
     Merge branches of genealogy following speciation model of the user choice 
     after applying mutation to the tree.
@@ -25,6 +26,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
         A tree with all the individuals.
     mu : float
         mutation rate, must be comprised between between 0 and 1.
+    tau = 0 : float
+        # TODO : DESCRIPTION
     spmodel = "SGD" : string
         # TODO :DESCRIPTION
         choices SGD, NTD ; type of model of speciation wanted
@@ -63,11 +66,11 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     >>> phylo = toPhylo(tree, 0.5, seed = 42)
     >>> print(phylo)
     <BLANKLINE>
-          /-A
+          /-sp1
        /-|
-    --|   \-D
+    --|   \-sp2
       |
-       \-F
+       \-sp3
     >>> import ecophylo as eco
     >>> eco.getAbund(phylo, 7)
     [3, 2, 2]
@@ -117,7 +120,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
             node.name = name_deme[0]
 
         if not node.is_leaf():
-            umut = ubranch_mutation(node, mu, seed = seed)
+            umut = ubranch_mutation(node= node, mu= mu, tau= tau, seed= seed)
             if umut:
                 # print(f"Speciation event @ node {node.name}")
                 spID += 1
@@ -168,7 +171,8 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                 if not node.is_leaf():
                     children = node.get_children()
                     if len(children) != 2:
-                        raise ValueError("The algorithm does not know how to deal with non dichotomic trees!")
+                        raise ValueError("The algorithm does not know how to"+
+                                         " deal with non dichotomic trees!")
                     csp1 = set()
                     for j in children[0].iter_leaves():
                         csp1.add(j.sp)
@@ -218,11 +222,16 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
             dst = tree.get_distance(leaf)
             if dst != tree_dist:
                 leaf.dist += tree_dist - dst
+
+    nsp = 1
+    for leaf in tree.iter_leaves():
+        leaf.name = "sp"+str(nsp)
+        nsp += 1
     
     return tree
 
 
-def ubranch_mutation(node, mu, seed = None):
+def ubranch_mutation(node, mu, tau = 0, seed = None):
     """
     Draw mutations following a poisson process.
     # TODO : add tau parameter for speciation
@@ -234,6 +243,8 @@ def ubranch_mutation(node, mu, seed = None):
         node from which to compute branch length
     mu : float
         mutation rate, must be comprised between between 0 and 1.
+    tau = 0 : float
+        # TODO : DESCRIPTION
     seed : int
         None by default, set the seed for mutation random events.
         
@@ -262,10 +273,12 @@ def ubranch_mutation(node, mu, seed = None):
         raise ValueError('node must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
         raise ValueError('mu must be a float between 0 and 1')
+    if tau < 0 or not isinstance(tau, (int,float)):
+        raise ValueError('tau must be a float superior or equal to 0')
     if seed is not None and not isinstance(seed, int):
         raise ValueError('seed must be an integer')
     
-    lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
+    lambd = max((node.dist - tau), 0) * mu 
     # set the seed
     np.random.seed(seed)
     rb = np.random.poisson(lambd) 

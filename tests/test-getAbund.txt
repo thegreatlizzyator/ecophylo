@@ -6,7 +6,7 @@ Using ``getAbund``
 Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
-``toPhylo`` from the ``ecophylo`` module:
+``toPhylo`` and ``getAbund`` from the ``ecophylo`` module:
 
     >>> from ecophylo import toPhylo
     >>> from ecophylo import getAbund
@@ -33,11 +33,11 @@ Now use it:
     >>> phylo = toPhylo(tree, 0.5, seed = 42)
     >>> print(phylo)
     <BLANKLINE>
-          /-A
+          /-sp1
        /-|
-    --|   \-D
+    --|   \-sp2
       |
-       \-F
+       \-sp3
     >>> getAbund('bamboo', 7)
     Traceback (most recent call last):
       ...
