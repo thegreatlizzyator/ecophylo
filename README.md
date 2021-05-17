@@ -23,7 +23,7 @@ You can experiment difficulties for installing msprime, check the help [here][ms
 
 [msprime]: https://tskit.dev/msprime/docs/stable/installation.html
 
-## Installation (with pip)
+## Install (with pip)
 
 To install this package, you can either download the tar.gz file in the *dist* directory of the repository :
 ```shell
@@ -42,7 +42,7 @@ or install from github (it does not work for private repository):
 python3 -m pip install git+https://github.com/thegreatlizzyator/ecophylo/tree/packaging/dist/ecophylo-0.0.5.tar.gz
 ```
 
-## Running ##
+## Usage
 
 You can simulate trees using this package main function in python.
 
@@ -77,3 +77,7 @@ This project exists thanks to all the people who contribute.
 <a href = "https://github.com/thegreatlizzyator/ecophylo/graphs/contributors">
   <img src = "https://contrib.rocks/image?repo = thegreatlizzyator/ecophylo"/>
 </a>
+
+## License
+
+[CeCILL-B](LICENSE) © Richard Littauer
