@@ -60,3 +60,20 @@ tree = ecophylo.simulate(samples = n,
 
 print(tree)
 ```
+
+## Maintainers
+
+[@thegreatlizzyator](https://github.com/thegreatlizzyator) & [@gowachin](https://github.com/gowachin).
+
+## Contributing
+
+Feel free to dive in! [Open an issue](https://github.com/thegreatlizzyator/ecophylo/issues/new) or submit PRs.
+
+thegreatlizzyator follows the [Contributor Covenant](http://contributor-covenant.org/version/1/3/0/) Code of Conduct.
+
+### Contributors
+
+This project exists thanks to all the people who contribute. 
+<a href = "https://github.com/thegreatlizzyator/ecophylo/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo = thegreatlizzyator/ecophylo"/>
+</a>
