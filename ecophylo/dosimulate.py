@@ -28,213 +28,240 @@ import collections
 from ecophylo import pastdemo
 from ecophylo import phylogen
 
-def dosimuls(nsim, sample_size, comprior, muprior, lim_mrca = None, sstype="SFS",
-             prior_distrib = "uniform", npop=1, withmigr=False, init_ratesprior=None,
-             init_sizeprior=None, pastprior=None, changetime = None,
-             nsplit=None, massprior=None, migrfrom=None, migrto=None,
-             verbose=False, savetrees= False, saveto = "", seed = None):
+def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None, 
+             changetimes = None, mrca = None, migr = 1, migr_times = None,
+             splits = None, 
+             verbose = False,
+             output = ['Params'], # Params, Sumstat, Tree
+             file_name = None, seed = None):
     """
   
     nsim : int
-    comprior : list of int 
-        lenght = 2
-    muprior : list of float
-        length = 2
-    sstype : str
-    prior_distrib
-    withmigr : bool
-    inits_ratesprior : TYPE
-    nsplit : TYPE
-    massprior : TYPE
-    pastprior : TYPE
-    savetrees : TYPE
-    saveto : TYPE
+    Simulate parameters : See simulate documentation
+    output = ['Params'] : list of str
+        Can be Params, Sumstat or/and Treee
+    file_name = one
+    seed = None : int
+        set seed for entire simulation. If seeded, all nsim simulation will be 
+        identical
+
+    Notes
+    -----
+        To implement a prior, change a value by a list of length 3 like so :
+        [min_prior, max_prior, sample_law].
       
     Examples
     --------
     """
+    # Idiotproof dosimul parameters
+    # nsim
+    if not isinstance(nsim, (float,int)) or nsim < 1 :
+        raise ValueError("nsim must be a int value above 0")
+    if isinstance(nsim, float) : nsim = int(nsim)
+    # output
+    if not isinstance(output, list) or any([not isinstance(x, str) for x in output]) :
+        raise ValueError("output must be a list of string")
+    if len(output) > 3 or any([ x not in ["Params", "Sumstat", "Trees"] for x in output]):
+        raise ValueError("output must contain only 'Params', 'Sumstat' or/and 'Trees'")
+    # file_name
+    if file_name is not None and not isinstance(file_name, str) :
+        raise ValueError("file_name must be string value.")
+            
 
-    # CHECKS HERE FOR IDIOT-PROOFING
+    # register None values before they are initiated
+    Nonedef = [gr_rates, changetimes, mrca, migr_times, splits]
+    for i in range(len(Nonedef)):
+        if Nonedef[i] is not None : Nonedef[i] = True
+        else : Nonedef[i] = False
     
-    if prior_distrib not in ("uniform", "log_unif"):
-        raise ValueError("Ecophylo only supports uniform or log-uniform prior distributions for the moment")
-    
-    comments = 'Simulating eco-evolutionary dynamics over the following parameters ranges:'
-    df = pd.DataFrame()
+    # IDIOTPROOF and Register locations
+    samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times, \
+                    splits, verbose, seed, prior_locate = check_params(
+        samples = samples, deme_sizes = deme_sizes, mu = mu, gr_rates = gr_rates, 
+        changetimes = changetimes, mrca = mrca, migr = migr, 
+        migr_times = migr_times, splits = splits, 
+        verbose = verbose, seed = seed, prior_locate = 'naive'
+    )
+    npop = len(samples)
+    priors = [prior_locate[p][0] for p in range(len(prior_locate))]
+    print("prior_locate :",prior_locate) # TODO : remove
 
-    # CREATING PARAMETER DATAFRAME
-    
-    # sample size
-    if isinstance(sample_size, list):
-        df['sampsize'] = ""
-        comments += (f'\n -sample size in {sample_size}')
-    else:
-        samp = sample_size
-    
-    # mutation rate
-    if muprior is not None:
-        df['mu'] = ""
-        comments += (f'\n -mutation rate in {muprior}')
-   
-    # community size (Ne)
-    if comprior is not None:
-       df['comsize'] = ""
-       comments += (f'\n -community size in {comprior}')
-    
-    # past size(s)
-    if pastprior is not None:
-        nepoch = len(changetime)
-        colnames = ['pastsize{}'.format(i) for i in range(1, nepoch+1)]
-        for i in range(nepoch):
-            df[colnames[i]] = ""
-        comments += (f'\n -{nepoch} past epoch(s) in which community size varies in {pastprior}')
-    else:
-        past_sizes = None
+    ##########################################################################
+    ####                    SETUP DATAFRAME                               ####
+    ##########################################################################
+    # Creating parameter dataframe
+    # if prior locate is empty deal with this later
+    comments = ("Simulating eco-evolutionary dynamics over the following" +
+               " parameters ranges:")
+    params = pd.DataFrame()
 
-    # populations sizes and growth rates
-    if init_sizeprior is not None and init_ratesprior is not None and npop is not None:
-        comments += (f'\n -{npop} population(s) in which initial community sizes vary in {init_sizeprior} and growth rates vary in {init_ratesprior}')
-        colnames = ['initrate{}'.format(i) for i in range(1, npop+1)]
+    prior_names = []
+    for prior in prior_locate :
+        if prior[0] == "samples": prior_names.append(f'samples_pop{prior[1]}')
+        if prior[0] == "mu": prior_names.append('mu')
+        if prior[0] == "deme_sizes":
+            prior_names.append(f'deme_sizes_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "changetimes":
+            prior_names.append(f'time_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "gr_rates":
+            prior_names.append(f'rate_pop{prior[1]}_t{prior[2]}')
+        if prior[0] == "migr": prior_names.append(f'migr_t{migr_times[prior[1]]}')
+    ## samples
+    col_samples = ['samples_pop{}'.format(i) for i in range(len(samples))]
+    for j in range(len(samples)):
+        if col_samples[j] in prior_names: params[col_samples[j]] =  [None]*nsim
+        else: params[col_samples[j]] = [samples[j]]*nsim
+    ## mu
+    if "mu" in priors: params["mu"] = [None]*nsim 
+    else: params["mu"] = [mu]*nsim
+    ## deme_sizes
+    for j in range(len(deme_sizes)):
+        for jj in range(len(deme_sizes[j])):
+            tmp_name = f'deme_sizes_pop{j}_t{jj}'
+            if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+            else : params[tmp_name] = [deme_sizes[j][jj]] * nsim
+    ## changetimes
+    if Nonedef[1]:
         for i in range(npop):
-            df[colnames[i]] = ""
-        colnames = ['initsize{}'.format(i) for i in range(1, npop+1)]
+            for ii in range(len(changetimes[i])):
+                if ii != 0:
+                    tmp_name = f'time_pop{i}_t{ii}'
+                    if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+                    else : params[tmp_name] = [changetimes[i][ii]] * nsim
+    ## gr_rates
+    if Nonedef[0]:
         for i in range(npop):
-            df[colnames[i]] = ""
-    else:
-        init_sizes = None
-        init_rates = None
+            for ii in range(len(gr_rates[i])):
+                tmp_name = f'rates_pop{i}_t{ii}'
+                if tmp_name in prior_names: params[tmp_name] = [None] * nsim
+                else : params[tmp_name] = [gr_rates[i][ii]] * nsim
+    ## migr and migr_times
+    if migr is not None and isinstance(migr[0], (int, float)):
+        for i in range(len(migr)):
+            tmp_name = f'migr_t{migr_times[i]}'
+            if tmp_name in prior_names: params[tmp_name] =  [None]*nsim
+            else: params[tmp_name] = [migr[i]]*nsim
+        # # This should work for matrices but we don't want to fuck our brains
+        # col_migr = []
+        # migr_val = []
+        # for mt in range(len(migr)):
+        #     if isinstance(migr[mt], (int, float)):
+        #         migr[mt] = np.ones((npop,npop))*migr[mt]
+        #         np.fill_diagonal(migr[mt], 0)
+        #     x = np.array(migr[mt])
+        #     XX,YY = np.meshgrid(np.arange(x.shape[1]),np.arange(x.shape[0]))
+        #     table = np.vstack((x.ravel(),XX.ravel(),YY.ravel())).T
+        #     col_migr.extend([f'migr_pop{int(t[1])}_pop{int(t[2])}_t{mt}' for t in table if np.unique(t[1:]).size != 1])
+        #     migr_val.extend([t[0] for t in table if np.unique(t[1:]).size != 1])
+        # for j in range(len(col_migr)):
+        #     if 'migr' in priors:
+        #         params[col_migr[j]] =  [None]*nsim
+        #     else: 
+        #         params[col_migr[j]] = [migr_val[j]]*nsim
 
-    # migration between populations
-    if withmigr and npop is not None:
-        df['m'] = ""
-        comments += ('\n -there is migration between populations')
-    else:
-        m = 0
+    ## splits
+    # if Nonedef[4]:
+    #     print("you are fucked") # TODO : maybe remove this
+    # print(params)
 
-    # past split dates
-    if massprior is not None:
-        colnames = ['splitdate{}'.format(i) for i in range(1, nsplit+1)]
-        for i in range(nsplit):
-            df[colnames] = ""
-        comments += (f'\n -populations {migrfrom} and {migrto} split at dates ranging in {massprior}')
-    else:
-        split_dates = None
+    result = list()
+    abund = list()
+    diver = list()
+    trees = ""
+    print("\n****SIMULATING***************\n\n")
+    failed = 0
+    i = 0
+    while i < nsim and failed < 100:
+        # SIMULATE
+        phylo = simulate(
+            samples = samples, deme_sizes = deme_sizes, mu = mu, tau = tau,
+            gr_rates = gr_rates, changetimes = changetimes, 
+            mrca = mrca, migr = migr, migr_times = migr_times, 
+            splits = splits, verbose = False, seed = seed, force = True
+        )
+        #################################################################
+        ####                    CHECK TREE                           ####
+        #################################################################
+        # check tree
+        sp  = phylo.get_leaf_names()
+        if len(sp) > 2 and len(set(sp)) > 1 :
+            for ii in range(len(prior_locate)):
+                tmp_p = prior_locate[ii]
+                if tmp_p[0] == "samples":
+                    print('not done') # TODO : samples 
+                if tmp_p[0] == "mu":
+                    params.loc[i,'mu'] = mu
+                if tmp_p[0] == "deme_sizes":
+                    params.loc[i,(f'deme_sizes_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        deme_sizes[tmp_p[1]][tmp_p[2]]
+                if tmp_p[0] == "changetimes":
+                    params.loc[i,(f'time_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        changetimes[tmp_p[1]][tmp_p[2]]
+                if tmp_p[0] == "gr_rates":
+                    params.loc[i,(f'rates_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
+                        gr_rates[tmp_p[1]][tmp_p[2]]
+                if tmp_p[0] == 'migr':
+                    params.loc[i,(f'migr_t{migr_times[tmp_p[1]]}')] = \
+                        migr[tmp_p[1]]
+            # Save sumstat
+            abund.append(getAbund(phylo))
+            diver.append(getDeme(phylo, div = True))
+            # Save tree
+            trees += phylo.write() + "\n"
+            failed = 0
+            i+=1
+        else :
+            failed += 1      
+        #################################################################
+        ####                    RESAMPLING                           ####
+        #################################################################
+        samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times, \
+                    splits, verbose, seed, prior_locate = check_params(
+            samples = samples, deme_sizes = deme_sizes, mu = mu, gr_rates = gr_rates, 
+            changetimes = changetimes, mrca = mrca, migr = migr, 
+            migr_times = migr_times, splits = splits, 
+            verbose = verbose, seed = seed, prior_locate = prior_locate
+        )
 
-    comments += f"\nEstimating the associated model's {len(df.columns)} parameter(s) based on the {sstype} summary statistic(s)"
-    
-    if savetrees and saveto is not None:
-        comments += f"\n  //!\\\ Phylogenies will be saved to the specified file"
-        trees = ""
+    if failed >= 100 : raise ValueError("Too many simulations have failed")
 
     if verbose:
         print(comments)
-    
-    # FILL PARAMETER DATAFRAME AND SIMULATE PHYLOGENIES
-    safecount = 0
-    i = 0
-    ss = list()
 
-    # While loop for calling simulate
-    while i < nsim:
-        if safecount > 100:
-            raise ValueError("Too many simulations have failed")
+    # abund
+    abund_pd = np.zeros((nsim, max(len(x) for x in abund)))
+    for k, j in enumerate(abund):
+        abund_pd[k][0:len(j)] = j
+    abund_pd = pd.DataFrame(abund_pd)
+    # diver
+    diver_pd = pd.DataFrame(diver)
+    print(['alpha'+ str(x) for x in range(diver_pd.shape[1] )])
+    diver_pd.columns = ['alpha'+ str(x) for x in range(diver_pd.shape[1] )]
+    print(diver_pd)
+    sumstat = pd.concat([abund_pd.reset_index(drop=True), diver_pd], axis=1)
 
-        try:
-            df = df.append(pd.Series(), ignore_index=True)
-            # sample parameters from prior for simulation
+    print(sumstat)
 
-            if isinstance(sample_size, list):
-                samp = sample(sample_size[0], sample_size[1], seed = seed)
-                df['sampsize'] = samp
-        
-            if muprior is not None:
-                if len(muprior) == 1:
-                    mu = muprior[0]
-                else:
-                    mu = sample(muprior[0], muprior[1], distr = prior_distrib, seed = seed)
-                df['mu'].iloc[i,] = mu
+    if file_name is not None :
+        saved = ""
+        if "Params" in output:
+            saved += params.to_string()
+        if "Sumstat" in output :
+            saved += "\n###\n" + sumstat.to_string()
+        if "Trees" in output : 
+            saved += "\n###\n" + trees
 
-            if comprior is not None:
-                if len(comprior) == 1:
-                    com_size = comprior[0]
-                else:
-                    com_size = sample(comprior[0], comprior[1], distr = prior_distrib, typ = "int", seed = seed)
-                df['comsize'].iloc[i,] = com_size
-            
-            if pastprior is not None:
-                past_sizes = [sample(pastprior[0], pastprior[1], distr = prior_distrib, typ = "int", seed = seed) for _ in range(nepoch)]
-                colnames = ['pastsize{}'.format(i) for i in range(1, nepoch+1)]
-                for j in range(nepoch):
-                    df[colnames[j]].iloc[i,] = past_sizes[j]
-
-            if init_sizeprior is not None and init_ratesprior is not None and npop is not None:
-                init_rates = [sample(init_ratesprior[0], init_ratesprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
-                init_sizes = [sample(init_sizeprior[0], init_sizeprior[1], distr = prior_distrib, typ = "float", seed = seed) for _ in range(npop)][0]
-                colnames1 = ['initrate{}'.format(i) for i in range(1, npop+1)]
-                colnames2 = ['initsize{}'.format(i) for i in range(1, npop+1)]
-                for j in range(npop):
-                    df[colnames1[j]].iloc[i,] = init_rates[j][0]
-                    df[colnames2[j]].iloc[i,] = init_sizes[j][0]
-
-            if withmigr and npop is not None:
-                m = sample(0, 1, distr = prior_distrib, typ = "float", seed = seed)
-                df['m'].iloc[i,] = m
-
-            if massprior is not None:
-                # probably better to fix split dates same as changetime
-                split_dates = [params(massprior, 1, distrib = prior_distrib) for _ in range(nsplit)][0]
-                colnames = ['splitdate{}'.format(i) for i in range(1, nsplit+1)]
-                for j in range(nsplit):
-                    df[colnames[j]].iloc[i,] = split_dates[j][0]
-            # simulate phylogeny
-            phylo = simulate(sample_size = samp,
-                             com_size = com_size,
-                             mu = mu,
-                             mrca = lim_mrca,
-                             npop = npop,
-                             changetime = changetime,
-                             m = m,
-                             init_rates = init_rates,
-                             init_sizes = init_sizes,
-                             past_sizes = past_sizes,
-                             split_dates = split_dates,
-                             migrfrom = migrfrom,
-                             migrto = migrto,
-                             verbose = verbose, seed = seed)
-
-            if sstype == 'SFS':
-                ss.append(getAbund(phylo, samp))
-
-            if savetrees:
-                trees += phylo.write() + "\n"
-        except: 
-            df = df[:-1]
-        else:
-            i += 1
-        finally: 
-            safecount+=1
-
-    if sstype == 'SFS':
-        SFS = np.zeros((len(ss), max(len(x) for x in ss)))
-        for k, j in enumerate(ss):
-            SFS[k][0:len(j)] = j
-    ssdf = pd.DataFrame(SFS)
-    
-    if savetrees:
-        saved = df.to_string()
-        if sstype == 'SFS':
-            saved += "\n###\n" + ssdf.to_string()
-        saved += "\n###\n" + trees
-
-        f = open(saveto, "w")
+        print('\nSimulation saved in :', file_name, '\n')
+        f = open(file_name, "w")
         f.write(saved)
         f.close()
-    return df, ssdf
 
+    result = [params, sumstat]
+    return result
 
-def check_params(samples, com_size, mu, init_rates = None, 
-                   changetime = None, mrca = None, 
-                   migr = 1, migr_time = None, vic_events = None,
+def check_params(samples, deme_sizes, mu, gr_rates = None, 
+                   changetimes = None, mrca = None, 
+                   migr = 1, migr_times = None, splits = None,
                    verbose = False, seed = None, prior_locate = None):
     """
     Internal function used to check parameters of simulate and dosimulate 
@@ -266,16 +293,16 @@ def check_params(samples, com_size, mu, init_rates = None,
                 )
             if prior[0] == "mu": # draw prior for mu
                 mu = sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
-            if prior[0] == "com_size": # draw prior for com_size
-                com_size[prior[1]][prior[2]] = round(
+            if prior[0] == "deme_sizes": # draw prior for deme_sizes
+                deme_sizes[prior[1]][prior[2]] = round(
                     sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
                 )
-            if prior[0] == "changetime": # draw prior for changetime
-                changetime[prior[1]][prior[2]] = round(
+            if prior[0] == "changetimes": # draw prior for changetimes
+                changetimes[prior[1]][prior[2]] = round(
                     sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
                 )
-            if prior[0] == "init_rates": # draw prior for init_rates
-                init_rates[prior[1]][prior[2]] = sample(
+            if prior[0] == "gr_rates": # draw prior for gr_rates
+                gr_rates[prior[1]][prior[2]] = sample(
                     prior[3][0], prior[3][1], prior[3][2], seed = seed
                 )
             if prior[0] == "migr":
@@ -307,112 +334,112 @@ def check_params(samples, com_size, mu, init_rates = None,
         # compute number of populations
         npop = len(samples)
 
-        # check changetime
-        if changetime is not None:
-            if not isinstance(changetime, list):
-                if isinstance(changetime, (int,float)) : 
-                    if changetime >= 0 :
-                        changetime = [[changetime]]
+        # check changetimes
+        if changetimes is not None:
+            if not isinstance(changetimes, list):
+                if isinstance(changetimes, (int,float)) : 
+                    if changetimes >= 0 :
+                        changetimes = [[changetimes]]
                     else :
-                        raise ValueError("changetime must be positive values")
+                        raise ValueError("changetimes must be positive values")
                 else :
-                    raise ValueError("changetime must be int, list of int or"+
+                    raise ValueError("changetimes must be int, list of int or"+
                     " nested list of int")
             else :
-                for i in range(len(changetime)):
-                    if isinstance(changetime[i], list):
-                        for ii in range(len(changetime[i])):
+                for i in range(len(changetimes)):
+                    if isinstance(changetimes[i], list):
+                        for ii in range(len(changetimes[i])):
                             # draw priors
-                            if prior_locate is not None and isinstance(changetime[i][ii], list):
-                                prior_locate.append(["changetime", i, ii, changetime[i][ii]])
-                                changetime[i][ii] = round(sample(
-                                    changetime[i][ii][0], changetime[i][ii][1],
-                                    changetime[i][ii][2], seed = seed
+                            if prior_locate is not None and isinstance(changetimes[i][ii], list):
+                                prior_locate.append(["changetimes", i, ii, changetimes[i][ii]])
+                                changetimes[i][ii] = round(sample(
+                                    changetimes[i][ii][0], changetimes[i][ii][1],
+                                    changetimes[i][ii][2], seed = seed
                                 ))
-                        if not all(isinstance(y, (float, int)) for y in changetime[i]) :
-                            raise ValueError("changetime must be int, list of"+
+                        if not all(isinstance(y, (float, int)) for y in changetimes[i]) :
+                            raise ValueError("changetimes must be int, list of"+
                             " int or nested list of int")
-                        if any(y < 0 for y in changetime[i][1:]) : 
-                            raise ValueError("changetime must be positive values")
-                        if changetime[i][0] != 0:
-                            raise ValueError("first element of changetime for a Deme"+
+                        if any(y < 0 for y in changetimes[i][1:]) : 
+                            raise ValueError("changetimes must be positive values")
+                        if changetimes[i][0] != 0:
+                            raise ValueError("first element of changetimes for a Deme"+
                             " must be equal to 0")
-                        if len(set(changetime[i])) != len(changetime[i]) :
-                            raise ValueError("Duplicated times in changetime for a Deme" +
+                        if len(set(changetimes[i])) != len(changetimes[i]) :
+                            raise ValueError("Duplicated times in changetimes for a Deme" +
                                      " are not possible")
                     else :
-                        if len(set(changetime)) != len(changetime) :
-                            raise ValueError("Duplicated times in changetime are not possible")
-                        if not isinstance(changetime[i], (float, int)):
-                            raise ValueError("changetime must be int, list of int or"+
+                        if len(set(changetimes)) != len(changetimes) :
+                            raise ValueError("Duplicated times in changetimes are not possible")
+                        if not isinstance(changetimes[i], (float, int)):
+                            raise ValueError("changetimes must be int, list of int or"+
                                      " nested list of int")
-                        if changetime[i] < 0 :
-                            raise ValueError("changetime must be positive values")
-                        if changetime[0] != 0:
-                            raise ValueError("first element of changetime"+
+                        if changetimes[i] < 0 :
+                            raise ValueError("changetimes must be positive values")
+                        if changetimes[0] != 0:
+                            raise ValueError("first element of changetimes"+
                             " must be equal to 0")
-                if not isinstance(changetime[i], list):
-                    changetime = [changetime]
-            if len(changetime) != npop :
+                if not isinstance(changetimes[i], list):
+                    changetimes = [changetimes]
+            if len(changetimes) != npop :
                 raise ValueError("there should be as many past sizes as there " + 
-                "are epochs in changetime")
+                "are epochs in changetimes")
         else :
-            changetime = [[0]] * npop
+            changetimes = [[0]] * npop
     
-        # check com_size 
-        if changetime is not None  :
+        # check deme_sizes 
+        if changetimes is not None  :
             isint_com = True
             sampl_com = True
-            if not isinstance(com_size, list) :
-                if isinstance(com_size, (int,float)) and com_size > 0 : 
-                    if com_size < samples[0] : sampl_com = False
-                    com_size = [[int(com_size)]] * npop
+            if not isinstance(deme_sizes, list) :
+                if isinstance(deme_sizes, (int,float)) and deme_sizes > 0 : 
+                    if deme_sizes < samples[0] : sampl_com = False
+                    deme_sizes = [[int(deme_sizes)]] * npop
                 else :
                     isint_com = False
             else :
-                for i in range(len(com_size)):
-                    if isinstance(com_size[i], list):
-                        for ii in range(len(com_size[i])): 
+                for i in range(len(deme_sizes)):
+                    if isinstance(deme_sizes[i], list):
+                        for ii in range(len(deme_sizes[i])): 
                             # draw priors
-                            if prior_locate is not None and isinstance(com_size[i][ii], list):
-                                prior_locate.append(["com_size", i, ii, com_size[i][ii]])
-                                com_size[i][ii] = round(sample(
-                                    com_size[i][ii][0], com_size[i][ii][1],
-                                    com_size[i][ii][2], seed = seed
+                            if prior_locate is not None and isinstance(deme_sizes[i][ii], list):
+                                prior_locate.append(["deme_sizes", i, ii, deme_sizes[i][ii]])
+                                deme_sizes[i][ii] = round(sample(
+                                    deme_sizes[i][ii][0], deme_sizes[i][ii][1],
+                                    deme_sizes[i][ii][2], seed = seed
                                 ))
 
-                        if not all(isinstance(y, (float, int)) for y in com_size[i]) :
+                        if not all(isinstance(y, (float, int)) for y in deme_sizes[i]) :
                             isint_com = False
                         else :
-                            com_size[i] = [int(x) if isinstance(x, float) else x for x in com_size[i]]
-                        if len(com_size) != npop :
+                            deme_sizes[i] = [int(x) if isinstance(x, float) else x for x in deme_sizes[i]]
+                        if len(deme_sizes) != npop :
                             raise ValueError("there should be as many elements in"+
-                                     " com_size as there are demes")
-                        if len(com_size[i]) !=  len(changetime[i]) :
+                                     " deme_sizes as there are demes")
+                        if len(deme_sizes[i]) !=  len(changetimes[i]) :
                             raise ValueError("there should be as many past "+
-                            "com_size as there are epochs in changetime")
-                        if isint_com and any([s <= 0 for s in com_size[i]]):
+                            "deme_sizes as there are epochs in changetimes")
+                        if isint_com and any([s <= 0 for s in deme_sizes[i]]):
                             raise ValueError("all past sizes should be strictly positive")
-                        if isint_com and any([x < samples[i] for x in com_size[i]]):
+                        if isint_com and any([x < samples[i] for x in deme_sizes[i]]):
                             sampl_com = False 
                     else :
-                        if len(com_size) != npop :
+                        if len(deme_sizes) != npop :
                             raise ValueError("there should be as many elements in"+
-                                     " com_size as there are demes")
-                        if not isinstance(com_size[i], (float, int)):
+                                     " deme_sizes as there are demes")
+                        if not isinstance(deme_sizes[i], (float, int)):
                             isint_com = False 
-                        if isint_com and com_size[i] <= 0 :
+                        if isint_com and deme_sizes[i] <= 0 :
                             raise ValueError("all past sizes should be strictly positive")
-                        if isint_com and com_size[i] < samples[i] :
+                        if isint_com and deme_sizes[i] < samples[i] :
                             sampl_com = False 
-                        com_size[i] = [com_size[i]]
+                        deme_sizes[i] = [deme_sizes[i]]
             if not isint_com:
                 raise ValueError("community sizes should be strictly positive int")
             if not sampl_com:
-                raise ValueError("com_size must be superior to samples")
+                raise ValueError("deme_sizes must be superior to samples")
             
-        # if isinstance(com_size, float) :
-        #     com_size = [[int(com_size)]] * npop
+        # if isinstance(deme_sizes, float) :
+        #     deme_sizes = [[int(deme_sizes)]] * npop
         # check mu
         # draw prior
         if isinstance(mu, list) and len(mu) == 3 and prior_locate is not None and \
@@ -421,58 +448,58 @@ def check_params(samples, com_size, mu, init_rates = None,
             mu = sample(mu[0], mu[1], mu[2])
         if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
             raise ValueError("mu must be a float between 0 and 1")
-        # check init_rates
-        if init_rates is not None and changetime is not None:
+        # check gr_rates
+        if gr_rates is not None and changetimes is not None:
             isint_rates = True
-            if not isinstance(init_rates, list):
-                if isinstance(init_rates, (int,float)) : 
-                    init_rates = [[init_rates]] * npop
+            if not isinstance(gr_rates, list):
+                if isinstance(gr_rates, (int,float)) : 
+                    gr_rates = [[gr_rates]] * npop
                 else :
                     isint_rates = False
             else :
-                for i in range(len(init_rates)):
-                    if isinstance(init_rates[i], list):
-                        for ii in range(len(init_rates[i])): 
+                for i in range(len(gr_rates)):
+                    if isinstance(gr_rates[i], list):
+                        for ii in range(len(gr_rates[i])): 
                             # draw priors
-                            if prior_locate is not None and isinstance(init_rates[i][ii], list):
-                                prior_locate.append(["init_rates", i, ii, com_size[i][ii]])
-                                init_rates[i][ii] = round(sample(
-                                    init_rates[i][ii][0], init_rates[i][ii][1],
-                                    init_rates[i][ii][2], seed = seed
+                            if prior_locate is not None and isinstance(gr_rates[i][ii], list):
+                                prior_locate.append(["gr_rates", i, ii, deme_sizes[i][ii]])
+                                gr_rates[i][ii] = round(sample(
+                                    gr_rates[i][ii][0], gr_rates[i][ii][1],
+                                    gr_rates[i][ii][2], seed = seed
                                 ))
-                        if not all(isinstance(y, (float, int)) for y in init_rates[i]) :
+                        if not all(isinstance(y, (float, int)) for y in gr_rates[i]) :
                             isint_rates = False
-                        if len(init_rates[i]) !=  len(changetime[i]) :
+                        if len(gr_rates[i]) !=  len(changetimes[i]) :
                             raise ValueError("there should be as many past growth "+
-                            "init_rates as there are epochs in changetime")
+                            "gr_rates as there are epochs in changetimes")
                     else :
-                        if len(init_rates) != npop :
+                        if len(gr_rates) != npop :
                             raise ValueError("there should be as many elements in"+
-                            " init_rates as there are demes")
-                        if not isinstance(init_rates[i], (float, int)):
+                            " gr_rates as there are demes")
+                        if not isinstance(gr_rates[i], (float, int)):
                             isint_rates = False 
-                        init_rates[i] <- [init_rates[i]]
+                        gr_rates[i] <- [gr_rates[i]]
             if not isint_rates:
-                raise ValueError("init_rates must be float, list of float or"+
+                raise ValueError("gr_rates must be float, list of float or"+
                                      " nested list of float")
-            if len(init_rates) != npop :
+            if len(gr_rates) != npop :
                 raise ValueError("there should be as many past sizes as there " + 
-                "are epochs in init_rates")
+                "are epochs in gr_rates")
         else :
-            init_rates = [[0]] * npop
+            gr_rates = [[0]] * npop
     
         # check mrca
         # if mrca is not None :
         #     # TODO : do this
-        # check migr_time
-        if migr_time is not None and migr is not None:
-            if not isinstance(migr_time, list):
-                raise ValueError("migr_time should be a list of int")
-            if not all([isinstance(x, (int,float)) for x in migr_time]):
-                raise ValueError("migr_time should be a list of int")
+        # check migr_times
+        if migr_times is not None and migr is not None:
+            if not isinstance(migr_times, list):
+                raise ValueError("migr_times should be a list of int")
+            if not all([isinstance(x, (int,float)) for x in migr_times]):
+                raise ValueError("migr_times should be a list of int")
         else :
-            migr_time = [0]
-        # check migr & migr_time
+            migr_times = [0]
+        # check migr & migr_times
         if migr is not None :
             if npop == 1 :
                 # warnings.warn("no migration matrix is needed for a single deme")
@@ -490,15 +517,15 @@ def check_params(samples, com_size, mu, init_rates = None,
             else :
                 for i in range(len(migr)):
                     if not isinstance(migr[i], list): # case ['a, ... ,'b]
-                        if len(migr) != len(migr_time):
+                        if len(migr) != len(migr_times):
                             raise ValueError("there should be as many migration rates" + 
-                                " or matrices as there are times in migr_time")
+                                " or matrices as there are times in migr_times")
                         if not isinstance(migr[i], (int,float)) :
                             raise ValueError("migration rate must be a float or an int.")
                         if migr[i] < 0 or migr[i] > 1 :
                             raise ValueError("migration rate should be positive (or zero)" + 
                                      " and not exceed 1")
-                        # check len of migr is done with migr_time
+                        # check len of migr is done with migr_times
                         # migr[i] = np.ones((npop,npop))*migr[i]
                         # np.fill_diagonal(migr[i], 0)
                     else :
@@ -519,9 +546,9 @@ def check_params(samples, com_size, mu, init_rates = None,
                                 raise ValueError("found custom migration matrix with" + 
                                     " negative migration rates or greater than 1")
                         else: # case [[[0, 'a], ['a, 0]], [[0, 'b], ['b, 0]]]
-                            if len(migr) != len(migr_time):
+                            if len(migr) != len(migr_times):
                                 raise ValueError("there should be as many migration rates" + 
-                                    " or matrices as there are times in migr_time")
+                                    " or matrices as there are times in migr_times")
                             for j in range(len(migr[i])) :
                                 if len(migr[i][j]) != len(migr[i]) or len(migr[i]) != npop:
                                     raise ValueError("custom migration matrices should be" + 
@@ -537,54 +564,54 @@ def check_params(samples, com_size, mu, init_rates = None,
         dim = m.shape
         if np.sum(m) == 0 :
             raise ValueError("migration matrices cannot all be empty")
-        # check vic_events
-        if vic_events is not None:
-            if not isinstance(vic_events, list):
-                raise ValueError("vic_events should be a nested list of list with "+
+        # check splits
+        if splits is not None:
+            if not isinstance(splits, list):
+                raise ValueError("splits should be a nested list of list with "+
                 "a length 3")
-            for i in range(len(vic_events)) :
-                if not isinstance(vic_events[i], list):
-                    raise ValueError("vic_events should be a nested list of list with "+
+            for i in range(len(splits)) :
+                if not isinstance(splits[i], list):
+                    raise ValueError("splits should be a nested list of list with "+
                                  "a length 3")
-                if len(vic_events[i]) != 3 :
-                    raise ValueError("all elements in vic_events should be lists of"+
+                if len(splits[i]) != 3 :
+                    raise ValueError("all elements in splits should be lists of"+
                                          " lenght 3")
-                if len(vic_events[i][0])!=2:
-                    raise ValueError("first element of vic_events should be a list"+
+                if len(splits[i][0])!=2:
+                    raise ValueError("first element of splits should be a list"+
                     " of 2 deme ids")
                 # # TODO : cath float and format them
-                if not all([isinstance(x, int) for x in flatten(vic_events[i])]):
-                     raise ValueError("all elements of vic_events should be ints")
-                if vic_events[i][2] < 0 or any([ x < 0 for x in vic_events[i][0]]):
-                    raise ValueError("all times in _vic_events should be strictly"+
+                if not all([isinstance(x, int) for x in flatten(splits[i])]):
+                     raise ValueError("all elements of splits should be ints")
+                if splits[i][2] < 0 or any([ x < 0 for x in splits[i][0]]):
+                    raise ValueError("all times in _splits should be strictly"+
                     " positive")
                 
-                if any(vic_events[i][0]) > npop or vic_events[i][1] > npop  :
+                if any(splits[i][0]) > npop or splits[i][1] > npop  :
                     raise ValueError("Split events do not match provided deme"+
                     " information")
 
-                if vic_events[i][2] >= len(changetime[vic_events[i][1]]):
-                    raise ValueError("split times in vic_events should also appear"+
-                                       " in changetime")
-                if vic_events[i][1] not in vic_events[i][0]:
+                if splits[i][2] >= len(changetimes[splits[i][1]]):
+                    raise ValueError("split times in splits should also appear"+
+                                       " in changetimes")
+                if splits[i][1] not in splits[i][0]:
                     raise ValueError("Splits events of two demes should be defined"+
                     " relative to one of the demes' id")
             
-            vic_dates = [v[2] for v in vic_events]
+            vic_dates = [v[2] for v in splits]
             if vic_dates != sorted(vic_dates):
                 raise ValueError("Split dates should be provided in chronological"+
                 " order")
             
-            for i in range(len(vic_events)) :
+            for i in range(len(splits)) :
                 if i == 0 :
                     continue
-                if vic_events[i][0][0] in vic_events[i-1][0] and vic_events[i][0][0] != vic_events[i-1][1]:
+                if splits[i][0][0] in splits[i-1][0] and splits[i][0][0] != splits[i-1][1]:
                     raise ValueError("Trying to merge with inactive deme")
-                if vic_events[i][0][1] in vic_events[i-1][0] and vic_events[i][0][1] != vic_events[i-1][1]:
+                if splits[i][0][1] in splits[i-1][0] and splits[i][0][1] != splits[i-1][1]:
                     raise ValueError("Trying to merge with inactive deme")
 
         # check coalesc
-        if migr is None and vic_events is None and npop > 1:
+        if migr is None and splits is None and npop > 1:
             raise ValueError("Multiple demes must be linked by either migration"+
             " or vicariance events in order to coalesce")
         # check verbose
@@ -596,15 +623,15 @@ def check_params(samples, com_size, mu, init_rates = None,
         if seed is not None and isinstance(seed, float):
             seed = int(seed)
 
-    return samples, com_size, mu, init_rates, changetime, mrca, migr, \
-                    migr_time, vic_events, verbose, seed, prior_locate
+    return samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, \
+                    migr_times, splits, verbose, seed, prior_locate
 
 
 
-def simulate(samples, com_size, mu, init_rates = None, 
-                   changetime = None, mrca = None, 
-                   migr = 1, migr_time = None, vic_events = None,
-                   verbose = False, seed = None, force = False):
+def simulate(samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
+             gr_rates = None, changetimes = None, mrca = None, 
+             migr = 1, migr_times = None, splits = None,
+             verbose = False, seed = None, force = False):
     """
     This function implements the simulation algorithm described in Barthelemy
     et al. 2021 in which (i) the shared co-ancestry of present individuals is
@@ -627,7 +654,7 @@ def simulate(samples, com_size, mu, init_rates = None,
         co-ancestry should be reconstructed. If multiple demes are to be
         simulated, this should be a list of sample sizes for each deme. These
         should not exceed the present or past assemblage sizes.
-    com_size : int or nested list of ints
+    deme_sizes : int or nested list of ints
         the size of Jm for each deme at each given period. Should be a nested
         list containing for each deme, a list of past Jm sizes in which the
         first element is the current size of the assemblage and the nth element
@@ -635,15 +662,15 @@ def simulate(samples, com_size, mu, init_rates = None,
         # TODO: rename to Jm ?
     mu : float
         the point mutation rate must be comprised between between 0 and 1.
-    init_rates: float or nested list of floats
+    gr_rates: float or nested list of floats
         the growth rates for each deme at each given period. Should be a nested
         list containing for each deme, a list of past growth rates in which the
         first element is the current growth rate and the nth element is the
         growth rate at epoch n. If no growth rates are given, then changes in
-        deme sizes occur instantenously following sizes provided in com_size at
-        the different times given in changetime
+        deme sizes occur instantenously following sizes provided in deme_sizes at
+        the different times given in changetimes
         # TODO: rename to gr_rates ?
-    changetime: list of int or nested list of int
+    changetimes: list of int or nested list of int
         the times (in generation before present) at which either growth rates or
         the size of the assemblages Jm have changed. If multiple demes are to be
         simulated, should be a nested list containing for each deme, a list of
@@ -662,23 +689,23 @@ def simulate(samples, com_size, mu, init_rates = None,
         rate at epoch n.
         For non-symmetric migration rates, migr should be a list of migration
         matrices M of size dxd where d is the number of demes. Migr should then
-        contain as many matrices M as there are time periods in migr_time where
+        contain as many matrices M as there are time periods in migr_times where
         M[j,k] is the rate at which individuals move from deme j to deme k in
         the coalescent process, backwards in time. Individuals that move from
         deme j to k backwards in time actually correspond to individuals
         migrating from deme k to j forwards in time.
-    migr_time = None: list of ints
+    migr_times = None: list of ints
         the times (in generation before present) at which migration rates have
         changed in which the first element is 0
-    vic_events = nested list of ints # TODO : change doc for vic_events
+    splits = nested list of ints # TODO : change doc for splits
         a nested list detailing the different split events that should be 
-        included in the simulation. Each element of vic_events should be a list
+        included in the simulation. Each element of splits should be a list
         specifying, in order: the date (in generations before present) at which
         the split occured, the demes resulting from the split (as a list of ints)
         and finally the ancestral deme number. For instance, if deme 1 splits 
-        into deme 0 and deme 1 then vic_events =  [[time01, [0,1], 1]]
-        Note that time01 should appear in changetime. Also, user should specify
-        in com_size (at the correct position i.e to the size of the ancestral 
+        into deme 0 and deme 1 then splits =  [[time01, [0,1], 1]]
+        Note that time01 should appear in changetimes. Also, user should specify
+        in deme_sizes (at the correct position i.e to the size of the ancestral 
         deme at time01) the size of the ancestral deme when the split occurs. 
     verbose = False : bool
         whether or not to print a summary of the demographic history and the
@@ -688,46 +715,46 @@ def simulate(samples, com_size, mu, init_rates = None,
     
     Examples
     --------
-    >>> t = simulate(samples = [10], com_size = [[1e5]], mu = 0.03, seed = 42)
+    >>> t = simulate(samples = [10], deme_sizes = [[1e5]], mu = 0.03, seed = 42)
     >>> print(t)
     <BLANKLINE>
-          /-1
+          /-sp1
        /-|
-      |  |   /-8
+      |  |   /-sp2
       |   \-|
-    --|      \-0
+    --|      \-sp3
       |
-      |   /-7
+      |   /-sp4
       |  |
-       \-|      /-5
+       \-|      /-sp5
          |   /-|
-          \-|   \-3
+          \-|   \-sp6
             |
-             \-6
-    >>> t = simulate(samples = [5, 5], com_size = [[1e5], [1e5]], 
+             \-sp7
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e5], [1e5]], 
     ... mu = 0.03, migr = 1, seed = 42)
     >>> print(t)
     <BLANKLINE>
-          /-7
+          /-sp1
          |
-       /-|      /-4
+       /-|      /-sp2
       |  |   /-|
-      |   \-|   \-8
+      |   \-|   \-sp3
     --|     |
-      |      \-0
+      |      \-sp4
       |
-      |   /-3
+      |   /-sp5
        \-|
-          \-1
+          \-sp6
     """ 
     # Idiotproof
     if not force :
-        samples, com_size, mu, init_rates, changetime, mrca, migr, migr_time,\
-                        vic_events, verbose, seed, prior_locate = check_params(
-            samples = samples, com_size = com_size, mu = mu,  
-            init_rates = init_rates, changetime = changetime,
-            mrca = mrca, migr = migr, migr_time = migr_time,
-            vic_events = vic_events, verbose = verbose, seed = seed, 
+        samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times,\
+                        splits, verbose, seed, prior_locate = check_params(
+            samples = samples, deme_sizes = deme_sizes, mu = mu,  
+            gr_rates = gr_rates, changetimes = changetimes,
+            mrca = mrca, migr = migr, migr_times = migr_times,
+            splits = splits, verbose = verbose, seed = seed, 
             prior_locate = None
         )
   
@@ -747,31 +774,31 @@ def simulate(samples, com_size, mu, init_rates = None,
     # initialize population configurations
     for pop in range(npop):
         demography.add_population(
-            initial_size= com_size[pop][0],       
-            growth_rate=init_rates[pop][0])
+            initial_size= deme_sizes[pop][0],       
+            growth_rate=gr_rates[pop][0])
         
         # if population sizes have fluctuated in the past:
-        if len(changetime[pop]) > 1 and len(com_size[pop]) > 1:
-            for i in range(len(changetime[pop][1:])):
+        if len(changetimes[pop]) > 1 and len(deme_sizes[pop]) > 1:
+            for i in range(len(changetimes[pop][1:])):
                 demography.add_population_parameters_change(
-                    time = changetime[pop][i+1] , 
-                    initial_size=com_size[pop][i+1], 
+                    time = changetimes[pop][i+1] , 
+                    initial_size=deme_sizes[pop][i+1], 
                     population= pop_ids[pop])
         
         # if population growth rates have fluctuated in the past:
-        if len(changetime[pop]) > 1 and len(init_rates[pop]) > 1:
-            for i in range(len(changetime[pop][1:])):
+        if len(changetimes[pop]) > 1 and len(gr_rates[pop]) > 1:
+            for i in range(len(changetimes[pop][1:])):
                 demography.add_population_parameters_change(
-                    time = changetime[pop][i+1] , 
-                    growth_rate=init_rates[pop][i+1], 
+                    time = changetimes[pop][i+1] , 
+                    growth_rate=gr_rates[pop][i+1], 
                     population= pop_ids[pop])
 
     ## VICARIANCE EVENTS
-    if vic_events is not None:
-        vic_dates = [changetime[v[1]][v[2]] for v in vic_events]
+    if splits is not None:
+        vic_dates = [changetimes[v[1]][v[2]] for v in splits]
         # extract some informations about 
-        nvic = len(vic_events)
-        ancestrals = [str(vic_events[i][1]) for i in range(nvic)] 
+        nvic = len(splits)
+        ancestrals = [str(splits[i][1]) for i in range(nvic)] 
         count = {}
         for i, anc in enumerate(ancestrals):
             cnt = count.get(anc, 0)
@@ -784,17 +811,17 @@ def simulate(samples, com_size, mu, init_rates = None,
         for v in range(nvic):
             demography.add_population(
                 name = ancestrals[v],
-                initial_size= com_size[vic_events[v][1]]\
-                           [changetime[vic_events[v][1]].index(vic_dates[v])])
-            tmp = changetime[vic_events[v][1]].index(vic_dates[v]) + 1
-            an_changetime = changetime[vic_events[v][1]][tmp:]
-            an_com_size = com_size[vic_events[v][1]][tmp:]
-            for i in range(len(an_changetime)):
+                initial_size= deme_sizes[splits[v][1]]\
+                           [changetimes[splits[v][1]].index(vic_dates[v])])
+            tmp = changetimes[splits[v][1]].index(vic_dates[v]) + 1
+            an_changetimes = changetimes[splits[v][1]][tmp:]
+            an_deme_sizes = deme_sizes[splits[v][1]][tmp:]
+            for i in range(len(an_changetimes)):
                 demography.add_population_parameters_change(
                     population=ancestrals[v],
-                    time = an_changetime[i],
-                    initial_size= an_com_size[i])
-            derived.extend(vic_events[v][0])
+                    time = an_changetimes[i],
+                    initial_size= an_deme_sizes[i])
+            derived.extend(splits[v][0])
 
         #set up split events
         derived = [str(o) for o in derived]
@@ -826,7 +853,7 @@ def simulate(samples, com_size, mu, init_rates = None,
             if len(migr) > 1:
                 for m in range(len(migr[1:])):
                     demography.add_migration_rate_change(
-                        time = migr_time[m+1], rate = migr[m+1])
+                        time = migr_times[m+1], rate = migr[m+1])
 
         if len(dim) > 2 :
             # custom migration matrix
@@ -840,13 +867,13 @@ def simulate(samples, com_size, mu, init_rates = None,
 
             # if migration matrix has changed in the past
             if len(migr)>1:
-                for t in range(len(migr_time)):
+                for t in range(len(migr_times)):
                     for row in range(npop):
                         for col in range(npop):
                             if migr[t][row][col] == 0 :
                                 continue
                             demography.add_migration_rate_change(
-                                time = migr_time[t], rate = migr[t][row][col], 
+                                time = migr_times[t], rate = migr[t][row][col], 
                                 source=pop_ids[row], dest=pop_ids[col])
 
     # sort events chronologically
@@ -870,7 +897,9 @@ def simulate(samples, com_size, mu, init_rates = None,
     node_labels = {u: str(u)+'_'+str(tree.population(u)) for u in tree.nodes()\
                                                            if tree.is_sample(u)}
     tree = Tree(tree.newick(node_labels = node_labels))
-    phylo = phylogen.toPhylo(tree, mu, seed = seed)
+    phylo = phylogen.toPhylo(
+        tree= tree, mu= mu, tau= tau, spmodel = spmodel, seed= seed
+    )
 
     return phylo
 
@@ -898,63 +927,37 @@ def sample(lower, upper, distr = "uniform", seed = None):
 
     Examples
     --------
+    >>> sample(lower=1, upper=6, distr="uniform", seed = 42)
+    4.197133992289419
     """
+    if not isinstance(lower, (int,float)):
+            raise ValueError("lower must be an integer or a float")
+    if not isinstance(upper, (int,float)):
+            raise ValueError("upper must be an integer or a float")
+    if not isinstance(distr, str):
+            raise ValueError("distr must be a string in this list :"+
+            " uniform"+
+            ", log_unif"+
+            ".")
+    if seed is not None and not isinstance(seed, (int,float)):
+            raise ValueError("seed must be an integer")
+
     random.seed(seed)
     if upper == lower :
-        p = upper
+        return upper
+
     if lower > upper :
         tmp = lower
         lower = upper
         upper = tmp
+
     if distr == "uniform":
         p = random.uniform(lower,upper)
-    if distr == "log_unif":
-        p =   loguniform(lower, upper).rvs()
+    elif distr == "log_unif":
+        p = loguniform(lower, upper).rvs()
+    else :
+        raise ValueError("This distribution is not implemented")
     return p 
-
-# TODO : FUNCTION TO REMOVE !!!
-def params(lim, nsim, distrib = "uniform", typ = "float", seed = None):
-    """
-    Make a list of parameters to test from prior distribution limits.
-
-    Parameters
-    ----------
-    lim: list of int or float
-        the inferior and superior limits of the prior distribution.
-        length == 2
-    nsim: int
-        number of replicates.
-    distrib: str, optional
-        the type of prior distribution. The default is "uniform".
-        choice are uniform, logunif
-    typ : str
-        float or int, typ of lim elements.
-    seed : int
-        None by default, set the seed for mutation random events.
-
-    Returns
-    -------
-    params: list
-        a list of nsim parameter values.
-
-    Examples
-    --------
-    """
-    # TODO : idiotproof
-    # TODO : more examples
-    if len(lim) == 1:
-        p = np.repeat([lim[0]], nsim)
-    else:
-        np.random.seed(seed)
-        if distrib == "uniform":
-            if typ == "int":
-                p = np.random.randint(lim[0], lim[1], size = nsim, dtype=np.int64)
-            if typ == "float":
-                p = np.random.uniform(lim[0], lim[1], size = nsim)
-        if distrib == "logunif":
-            # TODO : add case for int input
-            p = np.exp(np.random.uniform(lim[0], lim[1], size = nsim))
-    return p
 
 
 def flatten(x):
@@ -970,33 +973,33 @@ def flatten(x):
 if __name__ == "__main__":
         import doctest
         doctest.testmod()
-        #simulate(samples = [5, 5], com_size = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
-        # simulate(samples = [10], com_size = [[500, 1000]], mu = 0.05, changetime= [[0,100]], seed = 42, verbose = True )
-        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
+        #simulate(samples = [5, 5], deme_sizes = [[500], [500]], mu = 0.05, migr = 1, verbose = True, seed = 42)
+        # simulate(samples = [10], deme_sizes = [[500, 1000]], mu = 0.05, changetimes= [[0,100]], seed = 42, verbose = True )
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 2, verbose = True)
         # print(t)
 
         ## SINGLE POP
         # stat discret
-        # t = simulate(samples = [5], com_size = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], deme_sizes = [[1e3]], mu = 0.03, migr = 2, seed = 42, verbose = True)
         # stat continue 
-        # t = simulate(samples = [5], com_size = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], deme_sizes = [[1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
         
         # fluct discret
-        # t = simulate(samples = [5], com_size = [[1e3, 2e3]], changetime = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5], deme_sizes = [[1e3, 2e3]], changetimes = [[0, 50]], mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         ## MULT POP
 
         # stat discret
-        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # stat continue # 
-        # t = simulate(samples = [5, 5], com_size = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]], stable_pop = False, mu = 0.03, migr = 2, seed = 42, verbose = True)
 
         # fluct discret
-        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 2, seed = 42, verbose = True)
 
-        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_time = [0, 200], seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], migr_times = [0, 200], seed = 42, verbose = True)
         # print(t)
 
-        # t = simulate(samples = [5, 5], com_size = [[1e3, 2e3], [1e3, 5e2]], changetime = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
+        # t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]], changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42, verbose = True)
         # print(t)
 

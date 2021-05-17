@@ -3,13 +3,14 @@
 from ecophylo import phylogen
 from ecophylo import pastdemo
 from ecophylo import dosimulate
+from ecophylo import sumstat
 
 if __name__ == "__main__":
     import doctest
     print('==================')
-    print("phylogen examples")
+    print("Phylogen examples")
     print(doctest.testmod(phylogen))
-    print('\nphylogen error tests')
+    print('* Phylogen error tests')
     print('toPhylo :', doctest.testfile("tests/test-toPhylo.txt"))
     print('ubranch_mutation :', doctest.testfile("tests/test-ubranch_mutation.txt"))
 
@@ -17,15 +18,20 @@ if __name__ == "__main__":
     print('\n==================')
     print('Pastdemos examples')
     print(doctest.testmod(pastdemo))
-    print('\nPastdemos error tests')
+    print('* Pastdemos error tests')
     print('timeframes :', doctest.testfile("tests/test-timeframes.txt"))
 
+    print('\n==================')
+    print('Sumstat examples')
+    print(doctest.testmod(sumstat))
+    print('* Sumstat error tests')
+    print('getAbund :', doctest.testfile("tests/test-getAbund.txt"))
+    print('getDeme :', doctest.testfile("tests/test-getDeme.txt"))
 
     print('\n==================')
     print('Dosimulate examples')
     print(doctest.testmod(dosimulate))
-    print('\nDosimulate error tests')
+    print('* Dosimulate error tests')
     print('simulate :', doctest.testfile("tests/test-simulate.txt"))
-    print('getAbund :', doctest.testfile("tests/test-getAbund.txt"))
-
+    print('simulate :', doctest.testfile("tests/test-sample.txt"))
 

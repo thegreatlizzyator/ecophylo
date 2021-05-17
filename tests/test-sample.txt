@@ -1,0 +1,38 @@
+The ``ecophylo`` module
+======================
+
+Using ``sample``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``sample`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import sample
+
+Now use it:
+
+    >>> sample(lower="1", upper=6, distr="uniform", seed = 42)
+    Traceback (most recent call last):
+      ...
+    ValueError: lower must be an integer or a float
+    
+    >>> sample(lower=1, upper="6", distr="uniform", seed = 42)
+    Traceback (most recent call last):
+      ...
+    ValueError: upper must be an integer or a float
+    
+    >>> sample(lower=1, upper=6, distr=1, seed = 42)
+    Traceback (most recent call last):
+      ...
+    ValueError: distr must be a string in this list : uniform, log_unif.
+    
+    >>> sample(lower=1, upper=6, distr="uniform", seed = "luck")
+    Traceback (most recent call last):
+      ...
+    ValueError: seed must be an integer
+
+    >>> sample(lower=1, upper=6, distr="poker", seed = 42)
+    Traceback (most recent call last):
+      ...
+    ValueError: This distribution is not implemented
