@@ -35,23 +35,52 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
              output = ['Params'], # Params, Sumstat, Tree
              file_name = None, seed = None):
     """
-  
-    nsim : int
-    Simulate parameters : See simulate documentation
+    This function allows simulating large datasets over wide ranges of eco-
+    evolutive parameters by repeatedly calling the simulate function and 
+    retreiving summary statistics generated for different parameter values 
+    drawn from specified distributions.
+    
+    This function returns a table of sampled parameter values used for the 
+    simulations, a table of summary statistics and (if specified) exports the 
+    simulated phylogeneties.
+
+    Parameters
+    ----------
+    nsim : a positive int
+        the number of simulations to run
     output = ['Params'] : list of str
-        Can be Params, Sumstat or/and Treee
-    file_name = one
+        A list specifying which elements to return among the following options:
+            - Params :  returns the table of parameter values used for the 
+                        simulations 
+            - Sumstats: returns the table of relative abundances as well as 
+                        alpha diversity metrics per deme if multiple demes 
+                        are simulated
+            - Tree:     returns the simulated phylogenies to a specified file
+    file_name = None :str
+        a string specifying the file path to save the output
     seed = None : int
-        set seed for entire simulation. If seeded, all nsim simulation will be 
-        identical
+        set seed for entire simulation. Note that if seed is specified, all 
+        nsim simulation will be identical.
+        
+    all other parameters are documented in the simulate function 
 
     Notes
     -----
-        To implement a prior, change a value by a list of length 3 like so :
-        [min_prior, max_prior, sample_law].
+        Whether a given parameter for the simulation should be drawn from a 
+        prior distribution should be specified by remplacing the parameter 
+        value by a list containing in order: the parameter bounds as well as a
+        string specifying the shape of the distribution, as follows:
+        [min_prior, max_prior, "sample_law"] 
+        
+        Implemented distributions include:
+            - "uniform" for a uniform distibution
+            - "log_unif" for a log-uniform distribution
       
     Examples
     --------
+    #ecophylo.dosimuls(nsim = 5, samples = [10, 9], com_size = [[500, 1000], [2000, [1500, 5000, "uniform"], 6000]], mu = 0.001, migr = 0.5, changetime = [[0, 200], [0, 100, 500]])
+    
+    
     """
     # Idiotproof dosimul parameters
     # nsim
