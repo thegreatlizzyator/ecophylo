@@ -234,8 +234,6 @@ def toPhylo(tree, mu, tau = 0, spmodel = "SGD",
 def ubranch_mutation(node, mu, tau = 0, seed = None):
     """
     Draw mutations following a poisson process.
-    # TODO : add tau parameter for speciation
-    # TODO : 
 
     Parameters
     ----------

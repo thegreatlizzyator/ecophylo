@@ -22,16 +22,17 @@ if __name__ == "__main__":
     print('timeframes :', doctest.testfile("tests/test-timeframes.txt"))
 
     print('\n==================')
+    print('Dosimulate examples')
+    print(doctest.testmod(dosimulate))
+    print('* Dosimulate error tests')
+    print('simulate :', doctest.testfile("tests/test-simulate.txt"))
+    print('simulate :', doctest.testfile("tests/test-dosimuls.txt"))
+    print('simulate :', doctest.testfile("tests/test-sample.txt"))
+
+    print('\n==================')
     print('Sumstat examples')
     print(doctest.testmod(sumstat))
     print('* Sumstat error tests')
     print('getAbund :', doctest.testfile("tests/test-getAbund.txt"))
     print('getDeme :', doctest.testfile("tests/test-getDeme.txt"))
-
-    print('\n==================')
-    print('Dosimulate examples')
-    print(doctest.testmod(dosimulate))
-    print('* Dosimulate error tests')
-    print('simulate :', doctest.testfile("tests/test-simulate.txt"))
-    print('simulate :', doctest.testfile("tests/test-sample.txt"))
 
