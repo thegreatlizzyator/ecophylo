@@ -249,28 +249,31 @@ def toPhylo(tree, mu, tau = 1, spmodel = "SGD",
 
 def ubranch_mutation(node, mu, tau = 0, seed = None):
     """
-    Draw mutations following a poisson process.
-    # TODO : add tau parameter for speciation
-    # TODO : 
+    Draw mutations following a poisson process with parameter 
+    max((𝐵 - tau), 0)*mu where mu is the point mutation rate, 𝐵 is the 
+    length of the branch at a given node and tau 
 
     Parameters
     ----------
     node : ete3.coretype.tree.TreeNode
         node from which to compute branch length
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
-    tau = 0 : float
-        # TODO : DESCRIPTION
+        point mutation rate, must be comprised between between 0 and 1. 
+    tau = 1 : float
+        The minimum number of generations monophyletic lineages have to be 
+        seperated for to be considered distinct species
     seed : int
         None by default, set the seed for mutation random events.
         
     Returns
     -------
     bool
-        whether or not a mutation should appear on the tree at this node
+        whether or not a at least one mutation should appear on the tree at 
+        this node
 
     Examples
     -------
+    TODO: Examples with tau ?
     >>> from ete3 import Tree
     >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
     >>> node = tree.children[0] # first non-root node
