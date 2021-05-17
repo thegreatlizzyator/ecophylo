@@ -84,7 +84,6 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
     )
     npop = len(samples)
     priors = [prior_locate[p][0] for p in range(len(prior_locate))]
-    print("prior_locate :",prior_locate) # TODO : remove
 
     ##########################################################################
     ####                    SETUP DATAFRAME                               ####
@@ -159,9 +158,6 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         #     else: 
         #         params[col_migr[j]] = [migr_val[j]]*nsim
 
-    ## splits
-    # if Nonedef[4]:
-    #     print("you are fucked") # TODO : maybe remove this
     # print(params)
 
     result = list()
@@ -659,7 +655,6 @@ def simulate(samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
         list containing for each deme, a list of past Jm sizes in which the
         first element is the current size of the assemblage and the nth element
         is the size of Jm at epoch n 
-        # TODO: rename to Jm ?
     mu : float
         the point mutation rate must be comprised between between 0 and 1.
     gr_rates: float or nested list of floats
@@ -669,13 +664,11 @@ def simulate(samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
         growth rate at epoch n. If no growth rates are given, then changes in
         deme sizes occur instantenously following sizes provided in deme_sizes at
         the different times given in changetimes
-        # TODO: rename to gr_rates ?
     changetimes: list of int or nested list of int
         the times (in generation before present) at which either growth rates or
         the size of the assemblages Jm have changed. If multiple demes are to be
         simulated, should be a nested list containing for each deme, a list of
         times at which changes occured in which the first element is 0.
-        # TODO: rename epochs? times?
     mrca = None : int
         # TODO : document this when it is implemented
     migr = 1 : int, float or list of int,float or nested lists of int,float
@@ -923,7 +916,7 @@ def sample(lower, upper, distr = "uniform", seed = None):
     Returns
     -------
     params: 
-      # TODO : test what type is returned
+      float single values
 
     Examples
     --------
