@@ -3,7 +3,8 @@
 tophylo
 Created on Fri Nov 6 13:20:00 2020
 
-@author: barthele
+@author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+@author : Elizabeth Bathelemy <barthelemy.elizabeth@gmail.com>
 
 Functions : 
     toPhylo
@@ -14,35 +15,51 @@ Functions :
 
 import numpy as np
 
-def toPhylo(tree, mu, tau = 0, spmodel = "SGD", 
+def toPhylo(tree, mu, tau = 1, spmodel = "SGD", 
             force_ultrametric = True, seed = None):
     """
     Merge branches of genealogy following speciation model of the user choice 
-    after applying mutation to the tree.
-
+    after sprinkling mutation events over the branches of simulated genealogies
+    depending on branch lengths. 
+    
+    Mutation events are sprinkled over the branches of simulated genealogies 
+    depending on branch lengths, so that the number of mutations over a branch 
+    follows a Poisson distribution with parameter 𝜇·𝐵 where 𝜇 is the point 
+    mutation rate and 𝐵 is the length of the branch. 
+    
+    The descendants stemming from a branch with at least one mutation define
+    a genetically distinct clade. Since an extant species should be a 
+    monophyletic genetic clade distinct from other species, all paraphyletic 
+    clades of haplotypes at present are merged to form a single species. 
+    
     Parameters
     ----------
     tree : TreeNode (ete3 class)
-        A tree with all the individuals.
+        A tree representing the genealogy of simulated individuals.
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
-    tau = 0 : float
-        # TODO : DESCRIPTION
+        point mutation rate, must be comprised between between 0 and 1. 
+    tau = 1 : float
+        The minimum number of generations monophyletic lineages have to be 
+        seperated for to be considered distinct species
     spmodel = "SGD" : string
-        # TODO :DESCRIPTION
-        choices SGD, NTD ; type of model of speciation wanted
-        NTD -> hubbel speciation (point mutation)
-        SGD -> manseau & al 2015 (with a tau != 1 is different model)
+        the type of speciation model to implement. Default if "SGD" and 
+        corresponds to a generalisation of the Speciation by Genetic 
+        Differentiation. Note that setting tau to 1 will equate to the SGD 
+        model as described in Manceau et al. 2015.
+        "NTB" corresponds to the speciation model as described in Hubbell 2001, 
+        in which point mutations instantenously give rise to new species.
     force_ultrametric = True : bool
-        msprime tree are not ultrametric by default so here is the correction.
+        Whether or note to force phylogenetic tree ultrametry 
     seed = None : int
         None by default, set the seed for mutation random events.
 
     Returns
     -------
     Tree Node (ete3 class)
-      Individuals are merged based on the mutation present to represent species.
-      A species population size can be assessed by the getAbund function.
+        A phylogeny representing the phylogenetic relationships among species 
+        as well as the number of individuals descending from a speciation event
+        in the genealogy, which defined the species abundance in the sample at 
+        present (abundances can be retrived using the getAbund function).
 
     Examples
     --------
@@ -233,26 +250,31 @@ def toPhylo(tree, mu, tau = 0, spmodel = "SGD",
 
 def ubranch_mutation(node, mu, tau = 0, seed = None):
     """
-    Draw mutations following a poisson process.
-
+    Draw mutations following a poisson process with parameter 
+    max((B - tau), 0)*mu where mu is the point mutation rate, B is the 
+    length of the branch at a given node and tau 
+>>>
     Parameters
     ----------
     node : ete3.coretype.tree.TreeNode
         node from which to compute branch length
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
-    tau = 0 : float
-        # TODO : DESCRIPTION
+        point mutation rate, must be comprised between between 0 and 1. 
+    tau = 1 : float
+        The minimum number of generations monophyletic lineages have to be 
+        seperated for to be considered distinct species
     seed : int
         None by default, set the seed for mutation random events.
         
     Returns
     -------
     bool
-        whether or not a mutation should appear on the tree at this node
+        whether or not a at least one mutation should appear on the tree at 
+        this node
 
     Examples
     -------
+    TODO: Examples with tau ?
     >>> from ete3 import Tree
     >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
     >>> node = tree.children[0] # first non-root node

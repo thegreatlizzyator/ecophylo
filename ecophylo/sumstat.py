@@ -3,7 +3,8 @@
 
 Created on Wed May 13 11:42:50 2020
 
-@author: barthele
+@author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+@author : Elizabeth Bathelemy <barthelemy.elizabeth@gmail.com>
 
 Functions :
     getAbund
