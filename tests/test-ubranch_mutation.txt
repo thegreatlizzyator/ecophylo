@@ -18,9 +18,9 @@ Now use it:
     >>> ubranch_mutation(node = 'bamboo', mu = -1, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: node must have a class TreeNode
+    ValueError: node must have a class TreeNode
     
     >>> ubranch_mutation(node = node, mu = -1, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: mu must be a float between 0 and 1
+    ValueError: mu must be a float between 0 and 1

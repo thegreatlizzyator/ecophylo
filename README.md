@@ -1,20 +1,31 @@
 # EcoPhylo
 
-project description
+[![PyPI status](https://img.shields.io/pypi/status/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+[![PyPI version](https://badge.fury.io/py/ecophylo.svg)](https://badge.fury.io/py/ecophylo)
+[![PyPI license](https://img.shields.io/pypi/l/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ecophylo.svg)](https://pypi.python.org/pypi/ecophylo/)
+
+*Ecophylo* is dedicated to coalescent-based simulation of eco-evolutionary dynamics. Species assemblages and their shared ancestry can be simulated by jointly taking into account the influence of past demographic fluctuations and extinctions along with how divergent genotypes have introduced new species over time through speciation.
 
 The source for this project is available [here][src].
 
-Provide a link to full documentation tutorial [here][tutorial]. 
-
 ----
-
-Publications using this package here. 
 
 [src]: https://github.com/thegreatlizzyator/ecophylo
 
-## Installation ##
+## Dependencies
 
-To install this package, you can either download the tar.gz file in the dist directory of the repository :
+This package depend on **python 3.7**.
+
+There are multiple dependencies to other python packages. This will be done when installing ecophylo tool in most cases. 
+
+You can experiment difficulties for installing msprime, check the help [here][msprime]
+
+[msprime]: https://tskit.dev/msprime/docs/stable/installation.html
+
+## Install (with pip)
+
+To install this package, you can either download the tar.gz file in the *dist* directory of the repository :
 ```shell
 python3 -m pip install <path_to>/ecophylo-<VERSION>.tar.gz
 ``` 
@@ -30,57 +41,43 @@ or install from github (it does not work for private repository):
 ```shell
 python3 -m pip install git+https://github.com/thegreatlizzyator/ecophylo/tree/packaging/dist/ecophylo-0.0.5.tar.gz
 ```
-<!---
-TODO : check if better way to check on dependencies
--->
-To end the installation please check for the dependencies. In python you can check the dependencies like this :
+
+## Usage
+
+You can simulate trees using this package main function in python.
+
 ```python
-# dependencies
-import msprime
-import numpy as np
-import sys
-from ete3 import Tree
-import pandas as pd
+import ecophylo
+n = 25 #the number of sampled individuals
+com_size = [[5000,10000,50000]] # the size of the assemblage in the past, the first element is the current assemblage size
+mu = 0.001 # the point mutation rate
+changetime = [[0,700,10000]] # the dates (in generation time) at which the assemblage has changed sizes in the past
+
+tree = ecophylo.simulate(samples = n,
+                         com_size= com_size, 
+                         mu = mu, 
+                         changetime= changetime, seed= 42)
+
+print(tree)
 ```
 
-You can install them by running (numpy is an example):
-```shell
-python3 -m pip install numpy
-```
-You can experiment difficulties for installing msprime, check the help [here][msprime]
+## Maintainers
 
-[msprime]: https://msprime.readthedocs.io/en/stable/installation.html
+[@thegreatlizzyator](https://github.com/thegreatlizzyator) & [@gowachin](https://github.com/gowachin).
 
-### Installation and usage in R (on Windows aka the painfull way)
+## Contributing
 
-> For François : First create a new project in rstudio with **version control** from the [github](https://github.com/thegreatlizzyator/ecophylo). 
+Feel free to dive in! [Open an issue](https://github.com/thegreatlizzyator/ecophylo/issues/new) or submit PRs.
 
-You will need to install `{reticulate}` package and python dependencies.
+thegreatlizzyator follows the [Contributor Covenant](http://contributor-covenant.org/version/1/3/0/) Code of Conduct.
 
-```r
-# NOT RUN
-install.packages('reticulate') # answer yes
-library(reticulate)
-# python dependencies
-conda_install('r-reticulate', c('msprime','ete3','pandas'))
-```
+### Contributors
 
-## Running ##
+This project exists thanks to all the people who contribute. 
+<a href = "https://github.com/thegreatlizzyator/ecophylo/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo = thegreatlizzyator/ecophylo"/>
+</a>
 
-### In python
+## License
 
-In python ( version >= 3.6) you can simulate trees using this package main function in python. 
-```python
-from ecophylo import dosimuls
-dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True)
-```
-
-Note that there is random events during the simulation that you can control by setting a seed :
-```python
-dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
-dosimuls(nsim = 5, sample_size = 100, comprior = [1000,10e9], muprior = [1e-6] , verbose = True, seed = 42)
-```
-
-### In R
-
-**A vignette is being written at this moment.**
+[CeCILL-B](LICENSE) © Richard Littauer

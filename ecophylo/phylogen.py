@@ -3,7 +3,8 @@
 tophylo
 Created on Fri Nov 6 13:20:00 2020
 
-@author: barthele
+@author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+@author : Elizabeth Bathelemy <barthelemy.elizabeth@gmail.com>
 
 Functions : 
     toPhylo
@@ -13,34 +14,52 @@ Functions :
 # TODO : more info in help toPhylo
 
 import numpy as np
-import sys
 
-def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
+def toPhylo(tree, mu, tau = 1, spmodel = "SGD", 
+            force_ultrametric = True, seed = None):
     """
     Merge branches of genealogy following speciation model of the user choice 
-    after applying mutation to the tree.
-
+    after sprinkling mutation events over the branches of simulated genealogies
+    depending on branch lengths. 
+    
+    Mutation events are sprinkled over the branches of simulated genealogies 
+    depending on branch lengths, so that the number of mutations over a branch 
+    follows a Poisson distribution with parameter 𝜇·𝐵 where 𝜇 is the point 
+    mutation rate and 𝐵 is the length of the branch. 
+    
+    The descendants stemming from a branch with at least one mutation define
+    a genetically distinct clade. Since an extant species should be a 
+    monophyletic genetic clade distinct from other species, all paraphyletic 
+    clades of haplotypes at present are merged to form a single species. 
+    
     Parameters
     ----------
     tree : TreeNode (ete3 class)
-        A tree with all the individuals.
+        A tree representing the genealogy of simulated individuals.
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
+        point mutation rate, must be comprised between between 0 and 1. 
+    tau = 1 : float
+        The minimum number of generations monophyletic lineages have to be 
+        seperated for to be considered distinct species
     spmodel = "SGD" : string
-        # TODO :DESCRIPTION
-        choices SGD, NTD ; type of model of speciation wanted
-        NTD -> hubbel speciation (point mutation)
-        SGD -> manseau & al 2015 (with a tau != 1 is different model)
+        the type of speciation model to implement. Default if "SGD" and 
+        corresponds to a generalisation of the Speciation by Genetic 
+        Differentiation. Note that setting tau to 1 will equate to the SGD 
+        model as described in Manceau et al. 2015.
+        "NTB" corresponds to the speciation model as described in Hubbell 2001, 
+        in which point mutations instantenously give rise to new species.
     force_ultrametric = True : bool
-        msprime tree are not ultrametric by default so here is the correction.
+        Whether or note to force phylogenetic tree ultrametry 
     seed = None : int
         None by default, set the seed for mutation random events.
 
     Returns
     -------
     Tree Node (ete3 class)
-      Individuals are merged based on the mutation present to represent species.
-      A species population size can be assessed by the getAbund function.
+        A phylogeny representing the phylogenetic relationships among species 
+        as well as the number of individuals descending from a speciation event
+        in the genealogy, which defined the species abundance in the sample at 
+        present (abundances can be retrived using the getAbund function).
 
     Examples
     --------
@@ -64,27 +83,27 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
     >>> phylo = toPhylo(tree, 0.5, seed = 42)
     >>> print(phylo)
     <BLANKLINE>
-          /-A
+          /-sp1
        /-|
-    --|   \-D
+    --|   \-sp2
       |
-       \-F
+       \-sp3
     >>> import ecophylo as eco
     >>> eco.getAbund(phylo, 7)
     [3, 2, 2]
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
-        sys.exit('tree must have a class TreeNode')
+        raise ValueError('tree must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
-        sys.exit('mu must be a float between 0 and 1')
+        raise ValueError('mu must be a float between 0 and 1')
     if not spmodel in ['SGD', 'NTD']:
-        sys.exit(spmodel+' is not a correct model. '+
+        raise ValueError(spmodel+' is not a correct model. '+
                 'spmodel must be either "SGD" or "NTD" string')
     if not isinstance(force_ultrametric, bool):
-        sys.exit('force_ultrametric must be a boolean')
-    if not isinstance(seed, int):
-        sys.exit('seed must be an integer')
+        raise ValueError('force_ultrametric must be a boolean')
+    if seed is not None and not isinstance(seed, int):
+        raise ValueError('seed must be an integer')
 
     # init some parameters
     innerNodeIndex = 0
@@ -118,7 +137,7 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
             node.name = name_deme[0]
 
         if not node.is_leaf():
-            umut = ubranch_mutation(node, mu, seed = seed)
+            umut = ubranch_mutation(node= node, mu= mu, tau= tau, seed= seed)
             if umut:
                 # print(f"Speciation event @ node {node.name}")
                 spID += 1
@@ -157,13 +176,20 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
         
         
     if spmodel == "SGD" : 
+
+        for leaf in tree.iter_leaves():
+            popInd = [0] * (ndeme + 1)
+            popInd[leaf.deme] += 1
+            leaf.popInd = popInd
+
         traversedNodes = set()
         for node in tree.traverse("preorder"):
             if node not in traversedNodes:
                 if not node.is_leaf():
                     children = node.get_children()
                     if len(children) != 2:
-                        sys.exit("The algorithm does not know how to deal with non dichotomic trees!")
+                        raise ValueError("The algorithm does not know how to"+
+                                         " deal with non dichotomic trees!")
                     csp1 = set()
                     for j in children[0].iter_leaves():
                         csp1.add(j.sp)
@@ -206,10 +232,6 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
                             # actualize "mergedInd" feature of new leaf
                             newLeaf[0].mergedInd = mergedLeaves
                             newLeaf[0].popInd = popInd
-                else :
-                    popInd = [0] * (ndeme + 1)
-                    popInd[node.deme] += 1
-                    node.popInd = popInd
     
     if force_ultrametric: # TODO : add is.ultramtric from ete3
         tree_dist = tree.get_farthest_leaf()[1]
@@ -217,32 +239,42 @@ def toPhylo(tree, mu, spmodel = "SGD", force_ultrametric = True, seed = None):
             dst = tree.get_distance(leaf)
             if dst != tree_dist:
                 leaf.dist += tree_dist - dst
+
+    nsp = 1
+    for leaf in tree.iter_leaves():
+        leaf.name = "sp"+str(nsp)
+        nsp += 1
     
     return tree
 
 
-def ubranch_mutation(node, mu, seed = None):
+def ubranch_mutation(node, mu, tau = 0, seed = None):
     """
-    Draw mutations following a poisson process.
-    # TODO : add tau parameter for speciation
-    # TODO : 
-
+    Draw mutations following a poisson process with parameter 
+    max((B - tau), 0)*mu where mu is the point mutation rate, B is the 
+    length of the branch at a given node and tau 
+>>>
     Parameters
     ----------
     node : ete3.coretype.tree.TreeNode
         node from which to compute branch length
     mu : float
-        mutation rate, must be comprised between between 0 and 1.
+        point mutation rate, must be comprised between between 0 and 1. 
+    tau = 1 : float
+        The minimum number of generations monophyletic lineages have to be 
+        seperated for to be considered distinct species
     seed : int
         None by default, set the seed for mutation random events.
         
     Returns
     -------
     bool
-        whether or not a mutation should appear on the tree at this node
+        whether or not a at least one mutation should appear on the tree at 
+        this node
 
     Examples
     -------
+    TODO: Examples with tau ?
     >>> from ete3 import Tree
     >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
     >>> node = tree.children[0] # first non-root node
@@ -258,13 +290,15 @@ def ubranch_mutation(node, mu, seed = None):
     """
     # Idiot proof
     if node.__class__.__name__ != 'TreeNode' :
-        sys.exit('node must have a class TreeNode')
+        raise ValueError('node must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
-        sys.exit('mu must be a float between 0 and 1')
-    if not isinstance(seed, int):
-        sys.exit('seed must be an integer')
+        raise ValueError('mu must be a float between 0 and 1')
+    if tau < 0 or not isinstance(tau, (int,float)):
+        raise ValueError('tau must be a float superior or equal to 0')
+    if seed is not None and not isinstance(seed, int):
+        raise ValueError('seed must be an integer')
     
-    lambd = node.dist * mu # modify node.dist -> max((node.dist - tau), 0)
+    lambd = max((node.dist - tau), 0) * mu 
     # set the seed
     np.random.seed(seed)
     rb = np.random.poisson(lambd) 
