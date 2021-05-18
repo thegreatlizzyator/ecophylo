@@ -1,0 +1,77 @@
+The ``ecophylo`` module
+======================
+
+Using ``dosimuls``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``dosimuls`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import dosimuls
+
+Now use it:
+
+testing nsim
+    >>> t = dosimuls(nsim = -1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: nsim must be a int value above 0
+    >>> t = dosimuls(nsim = 0, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: nsim must be a int value above 0
+    >>> t = dosimuls(nsim = "1", samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: nsim must be a int value above 0
+
+testing output
+    >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, output = "Sumstat",
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: output must be a list of string
+    >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, output = ["peepoodo"],
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: output must contain only 'Params', 'Sumstat' or/and 'Trees'
+
+testing file_name
+    >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, file_name = 1,
+    ...  verbose = False, seed = 42)
+    Traceback (most recent call last):
+      ...
+    ValueError: file_name must be string value.
+    
+testing seed
+    >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: seed must be an integer

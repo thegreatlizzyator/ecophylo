@@ -5,9 +5,12 @@ build/
 
 ecophylo/__pycache__/
 .Rprofile
+.Renviron
 
 todo.html
 vignette/Vignette.html
 ms mee/main.html
 ms mee/main.docx
 ms mee/main.tex
+
+.vscode

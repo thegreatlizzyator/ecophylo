@@ -34,22 +34,22 @@ Now use it:
     >>> toPhylo(tree = 'bamboo', mu = 0.5, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: tree must have a class TreeNode
+    ValueError: tree must have a class TreeNode
     
     >>> toPhylo(tree = tree, mu = -1, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: mu must be a float between 0 and 1
+    ValueError: mu must be a float between 0 and 1
     
     >>> toPhylo(tree = tree, mu = 0.5, spmodel = 'creationism', seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
+    ValueError: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
     
     >>> toPhylo(tree = tree, mu = 0.5, force_ultrametric = 'ça fait plaisir', seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: force_ultrametric must be a boolean
+    ValueError: force_ultrametric must be a boolean
     
     >>> tree_er = Tree('((A:4,(B:4,C:3)1:4)1:5, Err:1, (D:1,E:1)1:1);')
     >>> print(tree_er)
@@ -68,4 +68,4 @@ Now use it:
     >>> toPhylo(tree_er, 0.5, seed = 42)
     Traceback (most recent call last):
       ...
-    SystemExit: The algorithm does not know how to deal with non dichotomic trees!
+    ValueError: The algorithm does not know how to deal with non dichotomic trees!

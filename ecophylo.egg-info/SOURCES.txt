@@ -1,10 +1,11 @@
+LICENSE.txt
 README.md
 setup.py
 ecophylo/__init__.py
 ecophylo/dosimulate.py
-ecophylo/islmodel.py
 ecophylo/pastdemo.py
 ecophylo/phylogen.py
+ecophylo/sumstat.py
 ecophylo.egg-info/PKG-INFO
 ecophylo.egg-info/SOURCES.txt
 ecophylo.egg-info/dependency_links.txt

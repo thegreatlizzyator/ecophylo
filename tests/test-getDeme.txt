@@ -1,15 +1,16 @@
 The ``ecophylo`` module
 ======================
 
-Using ``getAbund``
+Using ``getDeme``
 -------------------
 Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
 
 This is an example text file in reStructuredText format.  First import
-``toPhylo`` and ``getAbund`` from the ``ecophylo`` module:
+``toPhylo`` and ``getDeme`` from the ``ecophylo`` module:
 
+    >>> import ecophylo
     >>> from ecophylo import toPhylo
-    >>> from ecophylo import getAbund
+    >>> from ecophylo import getDeme
 
 Now use it:
 
@@ -38,17 +39,16 @@ Now use it:
     --|   \-sp2
       |
        \-sp3
-    >>> getAbund('bamboo', 7)
+    >>> getDeme('bamboo')
     Traceback (most recent call last):
       ...
     ValueError: tree must have a class TreeNode
-    
-    >>> getAbund(phylo, "7")
-    Traceback (most recent call last):
-      ...
-    ValueError: samples must be an integer
-    
-    >>> getAbund(phylo, 6)
-    Traceback (most recent call last):
-      ...
-    Exception: Simulated phylogeny has only one species!
+
+
+    >>> tree = ecophylo.simulate(samples = [5, 10],
+    ...                     deme_sizes= [[1000,2500],[4000,5000,6000]], 
+    ...                     mu = 0.001, 
+    ...                     changetimes= [[0,100], [0,300,400]],
+    ...                     seed= 42)
+    >>> print(ecophylo.getDeme(tree))
+    [[1, 0], [3, 3], [0, 2], [1, 5]]

@@ -1,0 +1,879 @@
+The ``ecophylo`` module
+======================
+
+Using ``simulate``
+-------------------
+Author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+
+This is an example text file in reStructuredText format.  First import
+``simulate`` from the ``ecophylo`` module:
+
+    >>> from ecophylo import simulate
+
+Now use it:
+
+testing samples
+    >>> t = simulate(samples = "2", deme_sizes = 1, mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: samples should all be ints
+    >>> t = simulate(samples = ["2", 1], deme_sizes = 1, mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: samples should all be ints
+    >>> t = simulate(samples = -1, deme_sizes = 1, mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: samples should all be positive
+    >>> t = simulate(samples = [2, -1], deme_sizes = 1, mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: samples should all be positive
+
+# testing deme_sizes
+    >>> t = simulate(samples = 5, deme_sizes = [10, 30], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many elements in deme_sizes as there are demes
+    >>> t = simulate(samples = 5, deme_sizes = [1], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: deme_sizes must be superior to samples
+    >>> t = simulate(samples = 5, deme_sizes = -1, mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: community sizes should be strictly positive int
+    >>> t = simulate(samples = 5, deme_sizes = "many", mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: community sizes should be strictly positive int
+    >>> t = simulate(samples = [5, 5], deme_sizes = [10, -30], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0], [0]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all past sizes should be strictly positive
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[10], [30]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20], [0]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many past deme_sizes as there are epochs in changetimes
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[10], [-30]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0], [0]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all past sizes should be strictly positive
+
+testing mu
+    >>> t = simulate(samples = 2, deme_sizes = [[500]], mu = -1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: mu must be a float between 0 and 1
+    >>> t = simulate(samples = 2, deme_sizes = [[500]], mu = 10, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: mu must be a float between 0 and 1
+    >>> t = simulate(samples = 2, deme_sizes = [[500]], mu = "0.5", 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: mu must be a float between 0 and 1
+
+testing gr_rates
+    >>> t = simulate(samples = 2, deme_sizes = [[500]], mu = 1, 
+    ...  gr_rates = "make babies", 
+    ...  changetimes = [[0]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: gr_rates must be float, list of float or nested list of float
+    >>> t = simulate(samples = 2, deme_sizes = [[500, 200]], mu = 1, 
+    ...  gr_rates = [1, 2], 
+    ...  changetimes = [[0, 20]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many elements in gr_rates as there are demes
+    >>> t = simulate(samples = 2, deme_sizes = [[500]], mu = 1, 
+    ...  gr_rates = [[1, 2]], 
+    ...  changetimes = [[0]], mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many past growth gr_rates as there are epochs in changetimes
+
+
+testing changetimes
+# single value
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = "KT", mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be int, list of int or nested list of int
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = -66, mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be positive values
+
+# list of val
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [0, 0, 20] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Duplicated times in changetimes are not possible
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [0, "KT", 20] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be int, list of int or nested list of int
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [0, -66, 20] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be positive values
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [66, 0, 20] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: first element of changetimes must be equal to 0
+
+# nested list of int
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Duplicated times in changetimes for a Deme are not possible
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, "KT", 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be int, list of int or nested list of int
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, -66, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: changetimes must be positive values
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[66, 0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: first element of changetimes for a Deme must be equal to 0
+
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many past sizes as there are epochs in changetimes
+    
+testing mrca
+
+testing migr_times
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = 1, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migr_times should be a list of int
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 1, migr_times = ["truc"], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migr_times should be a list of int
+
+testing migr
+# one rate
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = 0, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration matrices cannot all be empty
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = -1, migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration rate should be positive (or zero) and not exceed 1
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = "0", migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration rate must be a float or an int.
+
+# mult rates
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [1, 1], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many migration rates or matrices as there are times in migr_times
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [0, 1], migr_times = [30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many migration rates or matrices as there are times in migr_times
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = ["0", 1], migr_times = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration rate must be a float or an int.
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [-0.5, 1], migr_times = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration rate should be positive (or zero) and not exceed 1
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [0, 0], migr_times = [0, 30], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration matrices cannot all be empty
+
+# matrix
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0,0],[0,0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: migration matrices cannot all be empty
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0,0, 0],[0,0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0, 1],[1, 0, 0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0, 1],["1", 0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0, "1"],[1, 0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0, 1],[-1, 0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[0, -1],[1, 0]], migr_times = None, 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
+
+# matrix list
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[[0, -1],[1, 0]], [[0, -1],[1, 0]]], migr_times = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: there should be as many migration rates or matrices as there are times in migr_times
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[[0, 1, 1],[1, 0]]], migr_times = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: custom migration matrices should be of size ndeme x ndeme
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[[0, '1'],[1, 0]]], migr_times = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix that is not made of ints or floats
+    >>> t = simulate(samples = [2, 2], deme_sizes = [20, 50], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = None, mrca = None, 
+    ...  migr = [[[0, -1],[1, 0]]], migr_times = [0], 
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: found custom migration matrix with negative migration rates or greater than 1
+
+testing splits
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = "Noa Arch",
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: splits should be a nested list of list with a length 3
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = ["Noa Arch"],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: splits should be a nested list of list with a length 3
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[30, [0, 1]]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all elements in splits should be lists of lenght 3
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0], 0, 2]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: first element of splits should be a list of 2 deme ids
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 1], 0, "Birth of Christ"]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all elements of splits should be ints
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 1], 0, - 2]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: all times in _splits should be strictly positive
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 1], 0, 3]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: split times in splits should also appear in changetimes
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 1], 3, 2]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Split events do not match provided deme information
+    >>> t = simulate(samples = [2, 2, 2], deme_sizes = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 2], 0, 3], [[0, 1], 0, 2]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Split dates should be provided in chronological order
+    >>> t = simulate(samples = [2, 2], deme_sizes = [[20, 50, 100], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[1, 1], 0, 2]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Splits events of two demes should be defined relative to one of the demes' id
+    >>> t = simulate(samples = [2, 2, 2], deme_sizes = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, splits = [[[0, 1], 0, 2], [[0, 1], 0, 3]],
+    ...  verbose = False, seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: Trying to merge with inactive deme
+
+    
+testing verbose
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = "False", seed = None)
+    Traceback (most recent call last):
+      ...
+    ValueError: verbose must be a boolean
+    
+testing seed
+    >>> t = simulate(samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 20]] , mrca = None, 
+    ...  migr = 1, migr_times = None, 
+    ...  verbose = False, seed = "tournesol")
+    Traceback (most recent call last):
+      ...
+    ValueError: seed must be an integer
+
+
+## Testing outputs
+
+# one population test
+## discret
+### const
+    >>> t = simulate(samples = [5], deme_sizes = [[1e3]], mu = 0.03,
+    ... seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+    --|   \-sp2
+      |
+       \-sp3
+
+### fluct
+    >>> t = simulate(samples = [5], deme_sizes = [[1e3, 2e3]], 
+    ... changetimes = [[0, 50]], mu = 0.03, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+    --|   \-sp2
+      |
+       \-sp3
+
+## gr
+### const
+    >>> t = simulate(samples = [5], deme_sizes = [[1e3]], mu = 0.03,
+    ... gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+    --|   \-sp2
+      |
+       \-sp3
+
+### fluct
+    >>> t = simulate(samples = [5], deme_sizes = [[1e3, 2e3]], 
+    ... changetimes = [[0, 50]], mu = 0.03, gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+    --|   \-sp2
+      |
+       \-sp3
+
+
+# npop with K migr
+## discret
+### const
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+         |
+       /-|      /-sp2
+      |  |   /-|
+      |   \-|   \-sp3
+    --|     |
+      |      \-sp4
+      |
+      |   /-sp5
+       \-|
+          \-sp6
+
+### fluct
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|         /-sp3
+      |      /-|
+      |   /-|   \-sp4
+      |  |  |
+       \-|   \-sp5
+         |
+          \-sp6
+
+## gr
+### const
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e5], [1e5]], 
+    ... mu = 0.03, migr = 1, gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |  |   /-sp2
+      |   \-|
+      |      \-sp3
+    --|
+      |      /-sp4
+      |   /-|
+      |  |   \-sp5
+       \-|
+         |   /-sp6
+          \-|
+             \-sp7
+
+### fluct
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetimes = [[0, 50],[0, 30]], mu = 0.03, migr = 1, gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|         /-sp3
+      |      /-|
+      |   /-|   \-sp4
+      |  |  |
+       \-|   \-sp5
+         |
+          \-sp6
+
+
+# npop with diff migr
+## discret
+### const
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]],
+    ... changetimes = [[0],[0]], mu = 0.03, migr = [0, 1], 
+    ... migr_times = [0, 200], seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|      /-sp3
+      |   /-|
+      |  |  |   /-sp4
+      |  |   \-|
+       \-|      \-sp5
+         |
+         |   /-sp6
+          \-|
+             \-sp7
+
+### fluct
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetimes = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], 
+    ... migr_times = [0, 200], seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |  |   /-sp2
+      |   \-|
+    --|      \-sp3
+      |
+      |      /-sp4
+      |   /-|
+       \-|   \-sp5
+         |
+          \-sp6
+
+## gr
+### const
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3], [1e3]],
+    ... changetimes = [[0],[0]], mu = 0.03, migr = [0, 1], 
+    ... migr_times = [0, 200], gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|      /-sp3
+      |   /-|
+      |  |  |   /-sp4
+      |  |   \-|
+       \-|      \-sp5
+         |
+         |   /-sp6
+          \-|
+             \-sp7
+
+### fluct
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e3, 2e3], [1e3, 5e2]],
+    ... changetimes = [[0, 500],[0, 300]], mu = 0.03, migr = [0, 1], 
+    ... migr_times = [0, 200], gr_rates = 0.001, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |  |   /-sp2
+      |   \-|
+    --|      \-sp3
+      |
+      |      /-sp4
+      |   /-|
+       \-|   \-sp5
+         |
+          \-sp6
+
+
+# npop with vic
+## discret
+### const
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[2e3, 4e3], [2e3]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 300], [0]] , mrca = None, 
+    ...  migr = None, migr_times = None, splits = [[[0, 1], 0, 1]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+         |
+       /-|      /-sp2
+      |  |   /-|
+      |  |  |   \-sp3
+      |   \-|
+      |     |   /-sp4
+    --|      \-|
+      |        |   /-sp5
+      |         \-|
+      |            \-sp6
+      |
+       \-sp7
+
+### fluct
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[2e3, 5e3, 1e4], [2e3, 5e3]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 200, 300], [0, 150]] , mrca = None, 
+    ...  migr = None, migr_times = None, splits = [[[0, 1], 0, 2]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|      /-sp3
+      |   /-|
+      |  |   \-sp4
+       \-|
+         |   /-sp5
+          \-|
+            |   /-sp6
+             \-|
+                \-sp7
+    
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[2e3, 5e3, 1e4, 5e3], [2e3, 5e3]], mu = 1, 
+    ...  gr_rates = None, 
+    ...  changetimes = [[0, 200, 300, 500], [0, 150]] , mrca = None, 
+    ...  migr = None, migr_times = None, splits = [[[0, 1], 0, 2]],
+    ...  verbose = False, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |  |   /-sp2
+      |   \-|
+      |      \-sp3
+    --|
+      |      /-sp4
+      |   /-|
+      |  |  |   /-sp5
+       \-|   \-|
+         |      \-sp6
+         |
+          \-sp7
+    >>> t = simulate(samples = [5,5,5],
+    ...                     deme_sizes= [[2e3], [2e3, 3e3, 4e3], [2e3]], 
+    ...                     mu =  0.01, 
+    ...                     changetimes= [[0], [0, 1000, 2000], [0]],
+    ...                     splits = [[[0,1], 1, 1], [[1,2], 1, 2]], 
+    ...                     seed= 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |   \-sp2
+      |
+    --|         /-sp3
+      |      /-|
+      |   /-|   \-sp4
+      |  |  |
+       \-|   \-sp5
+         |
+         |   /-sp6
+          \-|
+             \-sp7
+
+
+### Vignette cases ! # TODO : move this to code doc !
+    >>> t = simulate(samples = [10], deme_sizes = [[1e5]], mu = 0.03, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+       /-|
+      |  |   /-sp2
+      |   \-|
+    --|      \-sp3
+      |
+      |   /-sp4
+      |  |
+       \-|      /-sp5
+         |   /-|
+          \-|   \-sp6
+            |
+             \-sp7
+    >>> t = simulate(samples = [5, 5], deme_sizes = [[1e5], [1e5]], mu = 0.03, migr = 1, seed = 42)
+    >>> print(t)
+    <BLANKLINE>
+          /-sp1
+         |
+       /-|      /-sp2
+      |  |   /-|
+      |   \-|   \-sp3
+    --|     |
+      |      \-sp4
+      |
+      |   /-sp5
+       \-|
+          \-sp6
+
+cas qui est cense marche (migration) mais flemme
+   # >>> t = simulate(samples = [2, 2, 2], deme_sizes = [[20, 50, 100, 200], [20, 50], [20, 50]], mu = 1, 
+   # ...  gr_rates = None, 
+   # ...  changetimes = [[0, 20, 30, 40], [0, 20], [0, 20]] , mrca = None, 
+   # ...  migr = 1, migr_times = None, splits = [[[0, 1], 0, 2]],
+   # ...  verbose = False, seed = None)
