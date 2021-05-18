@@ -80,4 +80,4 @@ This project exists thanks to all the people who contribute.
 
 ## License
 
-[CeCILL-B](LICENSE) © Richard Littauer
+[CeCILL-B](LICENSE) © Elizabeth Bathelemy

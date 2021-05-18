@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: ecophylo
-Version: 0.1.1
+Version: 0.1.2
 Summary: Coalescent-based simulations of eco-evolutionary biodiverity dynamics
 Home-page: https://github.com/thegreatlizzyator/ecophylo
 Author: Elizabeth Barthelemy
@@ -31,7 +31,7 @@ Description: # EcoPhylo
         
         [msprime]: https://tskit.dev/msprime/docs/stable/installation.html
         
-        ## Installation (with pip)
+        ## Install (with pip)
         
         To install this package, you can either download the tar.gz file in the *dist* directory of the repository :
         ```shell
@@ -50,7 +50,7 @@ Description: # EcoPhylo
         python3 -m pip install git+https://github.com/thegreatlizzyator/ecophylo/tree/packaging/dist/ecophylo-0.0.5.tar.gz
         ```
         
-        ## Running ##
+        ## Usage
         
         You can simulate trees using this package main function in python.
         
@@ -69,6 +69,26 @@ Description: # EcoPhylo
         print(tree)
         ```
         
+        ## Maintainers
+        
+        [@thegreatlizzyator](https://github.com/thegreatlizzyator) & [@gowachin](https://github.com/gowachin).
+        
+        ## Contributing
+        
+        Feel free to dive in! [Open an issue](https://github.com/thegreatlizzyator/ecophylo/issues/new) or submit PRs.
+        
+        thegreatlizzyator follows the [Contributor Covenant](http://contributor-covenant.org/version/1/3/0/) Code of Conduct.
+        
+        ### Contributors
+        
+        This project exists thanks to all the people who contribute. 
+        <a href = "https://github.com/thegreatlizzyator/ecophylo/graphs/contributors">
+          <img src = "https://contrib.rocks/image?repo = thegreatlizzyator/ecophylo"/>
+        </a>
+        
+        ## License
+        
+        [CeCILL-B](LICENSE) © Richard Littauer
 Platform: UNKNOWN
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Science/Research
