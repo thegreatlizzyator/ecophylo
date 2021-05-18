@@ -15,7 +15,7 @@ Functions :
 
 import numpy as np
 
-def toPhylo(tree, mu, tau = 1, spmodel = "SGD", 
+def toPhylo(tree, mu, tau = 0, spmodel = "SGD", 
             force_ultrametric = True, seed = None):
     """
     Merge branches of genealogy following speciation model of the user choice 
@@ -38,7 +38,7 @@ def toPhylo(tree, mu, tau = 1, spmodel = "SGD",
         A tree representing the genealogy of simulated individuals.
     mu : float
         point mutation rate, must be comprised between between 0 and 1. 
-    tau = 1 : float
+    tau = 0 : float
         The minimum number of generations monophyletic lineages have to be 
         seperated for to be considered distinct species
     spmodel = "SGD" : string
