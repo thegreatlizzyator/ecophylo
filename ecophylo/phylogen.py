@@ -91,6 +91,12 @@ def toPhylo(tree, mu, tau = 0, spmodel = "SGD",
     >>> import ecophylo as eco
     >>> eco.getAbund(phylo, 7)
     [3, 2, 2]
+    >>> phylo = toPhylo(tree, mu = 0.5, tau = 0.005, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+       /-sp1
+    --|
+       \-sp2
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
