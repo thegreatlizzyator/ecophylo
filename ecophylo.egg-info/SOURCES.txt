@@ -1,4 +1,4 @@
-LICENSE.txt
+LICENSE
 README.md
 setup.py
 ecophylo/__init__.py

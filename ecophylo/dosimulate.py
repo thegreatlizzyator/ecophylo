@@ -3,7 +3,8 @@
 
 Created on Wed May 13 11:42:50 2020
 
-@author: barthele
+@author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
+@author : Elizabeth Bathelemy <barthelemy.elizabeth@gmail.com>
 
 Functions :
     dosimuls
@@ -27,11 +28,10 @@ from ecophylo import pastdemo
 from ecophylo import phylogen
 from ecophylo import sumstat
 
-def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None, 
-             changetimes = None, mrca = None, migr = 1, migr_times = None,
-             splits = None, 
-             verbose = False,
-             output = ['Params'], # Params, Sumstat, Tree
+def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, spmodel = "SGD", 
+             gr_rates = None, changetimes = None, mrca = None, migr = 1, 
+             migr_times = None, splits = None, 
+             verbose = False, output = ['Params'], # Params, Sumstat, Tree
              file_name = None, seed = None):
     """
     This function allows simulating large datasets over wide ranges of eco-
@@ -103,9 +103,10 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         else : Nonedef[i] = False
     
     # IDIOTPROOF and Register locations
-    samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times, \
+    samples, deme_sizes, mu, tau, gr_rates, changetimes, mrca, migr, migr_times, \
                     splits, verbose, seed, prior_locate = check_params(
-        samples = samples, deme_sizes = deme_sizes, mu = mu, gr_rates = gr_rates, 
+        samples = samples, deme_sizes = deme_sizes, mu = mu, tau = tau,
+        gr_rates = gr_rates, 
         changetimes = changetimes, mrca = mrca, migr = migr, 
         migr_times = migr_times, splits = splits, 
         verbose = verbose, seed = seed, prior_locate = 'naive'
@@ -129,6 +130,7 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
     for prior in prior_locate :
         if prior[0] == "samples": prior_names.append(f'samples_pop{prior[1]}')
         if prior[0] == "mu": prior_names.append('mu')
+        if prior[0] == "tau": prior_names.append('tau')
         if prior[0] == "deme_sizes":
             prior_names.append(f'deme_sizes_pop{prior[1]}_t{prior[2]}')
         if prior[0] == "changetimes":
@@ -137,13 +139,16 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
             prior_names.append(f'rate_pop{prior[1]}_t{prior[2]}')
         if prior[0] == "migr": prior_names.append(f'migr_t{migr_times[prior[1]]}')
     ## samples
-    col_samples = ['samples_pop{}'.format(i) for i in range(len(samples))]
     for j in range(len(samples)):
-        if col_samples[j] in prior_names: params[col_samples[j]] =  [None]*nsim
+        tmp_name = f'samples_pop{j}'
+        if tmp_name in prior_names: params[col_samples[j]] =  [None]*nsim
         else: params[col_samples[j]] = [samples[j]]*nsim
     ## mu
     if "mu" in priors: params["mu"] = [None]*nsim 
     else: params["mu"] = [mu]*nsim
+    ## tau
+    if "tau" in priors: params["tau"] = [None]*nsim 
+    else: params["tau"] = [tau]*nsim
     ## deme_sizes
     for j in range(len(deme_sizes)):
         for jj in range(len(deme_sizes[j])):
@@ -202,7 +207,7 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         # SIMULATE
         phylo = simulate(
             samples = samples, deme_sizes = deme_sizes, mu = mu, tau = tau,
-            gr_rates = gr_rates, changetimes = changetimes, 
+            spmodel = spmodel, gr_rates = gr_rates, changetimes = changetimes, 
             mrca = mrca, migr = migr, migr_times = migr_times, 
             splits = splits, verbose = False, seed = seed, force = True
         )
@@ -215,9 +220,11 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
             for ii in range(len(prior_locate)):
                 tmp_p = prior_locate[ii]
                 if tmp_p[0] == "samples":
-                    print('not done') # TODO : samples 
+                    params.loc[i,(f'samples_pop{tmp_p[1]}')] = samples[tmp_p[1]]
                 if tmp_p[0] == "mu":
                     params.loc[i,'mu'] = mu
+                if tmp_p[0] == "tau":
+                    params.loc[i,'tau'] = tau
                 if tmp_p[0] == "deme_sizes":
                     params.loc[i,(f'deme_sizes_pop{tmp_p[1]}_t{tmp_p[2]}')] = \
                         deme_sizes[tmp_p[1]][tmp_p[2]]
@@ -242,9 +249,10 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
         #################################################################
         ####                    RESAMPLING                           ####
         #################################################################
-        samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times, \
+        samples, deme_sizes, mu, tau, gr_rates, changetimes, mrca, migr, migr_times, \
                     splits, verbose, seed, prior_locate = check_params(
-            samples = samples, deme_sizes = deme_sizes, mu = mu, gr_rates = gr_rates, 
+            samples = samples, deme_sizes = deme_sizes, mu = mu, tau = tau,
+            gr_rates = gr_rates, 
             changetimes = changetimes, mrca = mrca, migr = migr, 
             migr_times = migr_times, splits = splits, 
             verbose = verbose, seed = seed, prior_locate = prior_locate
@@ -286,7 +294,7 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, gr_rates = None,
     result = [params, sumstats]
     return result
 
-def check_params(samples, deme_sizes, mu, gr_rates = None, 
+def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None, 
                    changetimes = None, mrca = None, 
                    migr = 1, migr_times = None, splits = None,
                    verbose = False, seed = None, prior_locate = None):
@@ -320,6 +328,8 @@ def check_params(samples, deme_sizes, mu, gr_rates = None,
                 )
             if prior[0] == "mu": # draw prior for mu
                 mu = sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
+            if prior[0] == "tau": # draw prior for tau
+                tau = sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
             if prior[0] == "deme_sizes": # draw prior for deme_sizes
                 deme_sizes[prior[1]][prior[2]] = round(
                     sample(prior[3][0], prior[3][1], prior[3][2], seed = seed)
@@ -475,6 +485,12 @@ def check_params(samples, deme_sizes, mu, gr_rates = None,
             mu = sample(mu[0], mu[1], mu[2])
         if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
             raise ValueError("mu must be a float between 0 and 1")
+        # check tau
+        # draw prior
+        if isinstance(tau, list) and len(tau) == 3 and prior_locate is not None and \
+             all([x >= 0 for x in tau[:2]]):
+            prior_locate.append(["tau", 0, 0, tau])
+            tau = sample(tau[0], tau[1], tau[2])
         # check gr_rates
         if gr_rates is not None and changetimes is not None:
             isint_rates = True
@@ -650,7 +666,7 @@ def check_params(samples, deme_sizes, mu, gr_rates = None,
         if seed is not None and isinstance(seed, float):
             seed = int(seed)
 
-    return samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, \
+    return samples, deme_sizes, mu, tau, gr_rates, changetimes, mrca, migr, \
                     migr_times, splits, verbose, seed, prior_locate
 
 
@@ -773,9 +789,9 @@ def simulate(samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
     """ 
     # Idiotproof
     if not force :
-        samples, deme_sizes, mu, gr_rates, changetimes, mrca, migr, migr_times,\
+        samples, deme_sizes, mu, tau, gr_rates, changetimes, mrca, migr, migr_times,\
                         splits, verbose, seed, prior_locate = check_params(
-            samples = samples, deme_sizes = deme_sizes, mu = mu,  
+            samples = samples, deme_sizes = deme_sizes, mu = mu, tau = tau,  
             gr_rates = gr_rates, changetimes = changetimes,
             mrca = mrca, migr = migr, migr_times = migr_times,
             splits = splits, verbose = verbose, seed = seed, 
