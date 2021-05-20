@@ -141,8 +141,8 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
     ## samples
     for j in range(len(samples)):
         tmp_name = f'samples_pop{j}'
-        if tmp_name in prior_names: params[col_samples[j]] =  [None]*nsim
-        else: params[col_samples[j]] = [samples[j]]*nsim
+        if tmp_name in prior_names: params[tmp_name] =  [None]*nsim
+        else: params[tmp_name] = [samples[j]]*nsim
     ## mu
     if "mu" in priors: params["mu"] = [None]*nsim 
     else: params["mu"] = [mu]*nsim
@@ -200,7 +200,6 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
     abund = list()
     diver = list()
     trees = ""
-    print("\n****SIMULATING***************\n\n")
     failed = 0
     i = 0
     while i < nsim and failed < 100:
@@ -270,12 +269,8 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
     abund_pd = pd.DataFrame(abund_pd)
     # diver
     diver_pd = pd.DataFrame(diver)
-    print(['alpha'+ str(x) for x in range(diver_pd.shape[1] )])
     diver_pd.columns = ['alpha'+ str(x) for x in range(diver_pd.shape[1] )]
-    print(diver_pd)
     sumstats = pd.concat([abund_pd.reset_index(drop=True), diver_pd], axis=1)
-
-    print(sumstats)
 
     if file_name is not None :
         saved = ""
