@@ -22,4 +22,5 @@ twine upload dist/*
 # for install from Pypi
 pip install [your-package]
 
-
+# build doc
+python3.7 -m sphinx.cmd.quickstart -p ecophylo -a "Elizabeth Bathelemy" -v 0.1.2 -l en --ext-autodoc --ext-githubpages
