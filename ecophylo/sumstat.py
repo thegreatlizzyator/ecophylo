@@ -23,7 +23,7 @@ def getAbund(tree, samples = None):
         Phylogeny with attributes on leafs. This attributes is a character 
         string containing all names of the species individual (mean to use 
         topPhylo result). Names is formated like this :
-          " name1 name2 name3"
+        " name1 name2 name3"
     samples : int
         number of individual in the community
         # TODO : set this check as optionnal
@@ -82,7 +82,7 @@ def getDeme(tree, div = False):
         Phylogeny with attributes on leafs. This attributes is a character 
         string containing all names of the species individual (mean to use 
         topPhylo result). Names is formated like this :
-          " name1 name2 name3"
+        " name1 name2 name3"
     div : bool
         Option to simplify the matrix to a simple list of Deme species diversity.
 

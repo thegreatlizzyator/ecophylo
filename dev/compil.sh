@@ -12,3 +12,6 @@ printf "\n======================================================================
 printf "=============================  TESTING   ================================\n"
 printf "=========================================================================\n"
 python3.7 test.py
+
+# python3.7 -m sphinx.cmd.build -b html /home/maxime/BEE/ecophylo/docs /home/maxime/BEE/ecophylo/docs/_build
+# from https://brendanhasz.github.io/2019/01/05/sphinx.html#cross-referencing

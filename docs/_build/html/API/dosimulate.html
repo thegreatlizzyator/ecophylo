@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Simulating API &#8212; ecophylo 0.1.2 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Summary statistics" href="sumstat.html" />
+    <link rel="prev" title="Welcome to ecophylo’s documentation!" href="../index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="simulating-api">
+<h1>Simulating API<a class="headerlink" href="#simulating-api" title="Permalink to this headline">¶</a></h1>
+<section id="single-simulation">
+<h2>Single simulation<a class="headerlink" href="#single-simulation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ecophylo.simulate">
+<span class="sig-prename descclassname"><span class="pre">ecophylo.</span></span><span class="sig-name descname"><span class="pre">simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deme_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SGD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr_rates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changetimes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mrca</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migr_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecophylo.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function implements the simulation algorithm described in Barthelemy
+et al. 2021 in which (i) the shared co-ancestry of present individuals is
+simulated backward in time using coalescent theory (ii) speciation events
+are sprinkled over the simulated genealogy conditionally to its topology
+and branch lengths and (iii) the phylogenetic relationships amongst
+individuals and their abundances are finally obtained by merging
+paraphyletic clades into single species. Coalescent reconstruction of the
+genealogy of individuals can be simulated to represent past demographic
+fluctuations due to varying habitat availability, or include multiple demes
+linked by migration events and/or vicariance.</p>
+<p>Phylogenies are returned in Newick format given the desired parameter
+combinations accounting for the demographic history of Jm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>samples</strong> (<em>int</em><em> or </em><em>list of int</em>) – number of sampled individuals in an assemblage for which the shared
+co-ancestry should be reconstructed. If multiple demes are to be
+simulated, this should be a list of sample sizes for each deme. These
+should not exceed the present or past assemblage sizes.</p></li>
+<li><p><strong>deme_sizes</strong> (<em>int</em><em> or </em><em>nested list of ints</em>) – the size of Jm for each deme at each given period. Should be a nested
+list containing for each deme, a list of past Jm sizes in which the
+first element is the current size of the assemblage and the nth element
+is the size of Jm at epoch n</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – the point mutation rate must be comprised between between 0 and 1.</p></li>
+<li><p><strong>gr_rates</strong> (<em>float</em><em> or </em><em>nested list of floats</em>) – the growth rates for each deme at each given period. Should be a nested
+list containing for each deme, a list of past growth rates in which the
+first element is the current growth rate and the nth element is the
+growth rate at epoch n. If no growth rates are given, then changes in
+deme sizes occur instantenously following sizes provided in deme_sizes at
+the different times given in changetimes</p></li>
+<li><p><strong>changetimes</strong> (<em>list of int</em><em> or </em><em>nested list of int</em>) – the times (in generation before present) at which either growth rates or
+the size of the assemblages Jm have changed. If multiple demes are to be
+simulated, should be a nested list containing for each deme, a list of
+times at which changes occured in which the first element is 0.</p></li>
+<li><p><strong>= None</strong> (<em>seed</em>) – # TODO : document this when it is implemented</p></li>
+<li><p><strong>= 1</strong> (<em>migr</em>) – the migration rates between pairs of demes at each given period. Can be
+an int or float comprised between 0 and 1, in which case constant
+symmetric migration is assumed between all demes for all epochs.
+If migration rate are to change then migr should be a list of ints or
+floats comprised between 0 and 1 containing the different symmetric
+migration rates at each given time period in which the first element is
+the current symmetric migration rate and the nth element is the migration
+rate at epoch n.
+For non-symmetric migration rates, migr should be a list of migration
+matrices M of size dxd where d is the number of demes. Migr should then
+contain as many matrices M as there are time periods in migr_times where
+M[j,k] is the rate at which individuals move from deme j to deme k in
+the coalescent process, backwards in time. Individuals that move from
+deme j to k backwards in time actually correspond to individuals
+migrating from deme k to j forwards in time.</p></li>
+<li><p><strong>= None</strong> – the times (in generation before present) at which migration rates have
+changed in which the first element is 0</p></li>
+<li><p><strong>= nested list of ints # TODO</strong> (<em>splits</em>) – a nested list detailing the different split events that should be
+included in the simulation. Each element of splits should be a list
+specifying, in order: the date (in generations before present) at which
+the split occured, the demes resulting from the split (as a list of ints)
+and finally the ancestral deme number. For instance, if deme 1 splits
+into deme 0 and deme 1 then splits =  [[time01, [0,1], 1]]
+Note that time01 should appear in changetimes. Also, user should specify
+in deme_sizes (at the correct position i.e to the size of the ancestral
+deme at time01) the size of the ancestral deme when the split occurs.</p></li>
+<li><p><strong>= False</strong> (<em>verbose</em>) – whether or not to print a summary of the demographic history and the
+resulting genealogy to be passed to a phylogeny</p></li>
+<li><p><strong>= None</strong> – set seed for entire simulation</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">],</span> <span class="n">deme_sizes</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1e5</span><span class="p">]],</span> <span class="n">mu</span> <span class="o">=</span> <span class="mf">0.03</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="go">      /-sp1</span>
+<span class="go">   /-|</span>
+<span class="go">  |  |   /-sp2</span>
+<span class="go">  |   \-|</span>
+<span class="go">--|      \-sp3</span>
+<span class="go">  |</span>
+<span class="go">  |   /-sp4</span>
+<span class="go">  |  |</span>
+<span class="go">   \-|      /-sp5</span>
+<span class="go">     |   /-|</span>
+<span class="go">      \-|   \-sp6</span>
+<span class="go">        |</span>
+<span class="go">         \-sp7</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">simulate</span><span class="p">(</span><span class="n">samples</span> <span class="o">=</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="n">deme_sizes</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">1e5</span><span class="p">],</span> <span class="p">[</span><span class="mf">1e5</span><span class="p">]],</span>
+<span class="gp">... </span><span class="n">mu</span> <span class="o">=</span> <span class="mf">0.03</span><span class="p">,</span> <span class="n">migr</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+<span class="go">      /-sp1</span>
+<span class="go">     |</span>
+<span class="go">   /-|      /-sp2</span>
+<span class="go">  |  |   /-|</span>
+<span class="go">  |   \-|   \-sp3</span>
+<span class="go">--|     |</span>
+<span class="go">  |      \-sp4</span>
+<span class="go">  |</span>
+<span class="go">  |   /-sp5</span>
+<span class="go">   \-|</span>
+<span class="go">      \-sp6</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="running-multiple-simulations">
+<h2>Running multiple simulations<a class="headerlink" href="#running-multiple-simulations" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="ecophylo.dosimuls">
+<span class="sig-prename descclassname"><span class="pre">ecophylo.</span></span><span class="sig-name descname"><span class="pre">dosimuls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deme_sizes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tau</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spmodel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SGD'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gr_rates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changetimes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mrca</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">migr_times</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">['Params']</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ecophylo.dosimuls" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function allows simulating large datasets over wide ranges of eco-
+evolutive parameters by repeatedly calling the simulate function and
+retreiving summary statistics generated for different parameter values
+drawn from specified distributions.</p>
+<p>This function returns a table of sampled parameter values used for the
+simulations, a table of summary statistics and (if specified) exports the
+simulated phylogeneties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsim</strong> (<em>a positive int</em>) – the number of simulations to run</p></li>
+<li><p><strong>=</strong><strong> [</strong><strong>'Params'</strong><strong>]</strong> (<em>output</em>) – <dl class="simple">
+<dt>A list specifying which elements to return among the following options:</dt><dd><ul>
+<li><dl class="simple">
+<dt>Params<span class="classifier">returns the table of parameter values used for the</span></dt><dd><p>simulations</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Sumstats: returns the table of relative abundances as well as</dt><dd><p>alpha diversity metrics per deme if multiple demes
+are simulated</p>
+</dd>
+</dl>
+</li>
+<li><p>Tree:     returns the simulated phylogenies to a specified file</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>= None</strong> (<em>seed</em>) – a string specifying the file path to save the output</p></li>
+<li><p><strong>= None</strong> – set seed for entire simulation. Note that if seed is specified, all
+nsim simulation will be identical.</p></li>
+<li><p><strong>other parameters are documented in the simulate function</strong> (<em>all</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Whether a given parameter for the simulation should be drawn from a
+prior distribution should be specified by remplacing the parameter
+value by a list containing in order: the parameter bounds as well as a
+string specifying the shape of the distribution, as follows:
+[min_prior, max_prior, “sample_law”]</p>
+<dl class="simple">
+<dt>Implemented distributions include:</dt><dd><ul class="simple">
+<li><p>“uniform” for a uniform distibution</p></li>
+<li><p>“log_unif” for a log-uniform distribution</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>#ecophylo.dosimuls(nsim = 5, samples = [10, 9], com_size = [[500, 1000], [2000, [1500, 5000, “uniform”], 6000]], mu = 0.001, migr = 0.5, changetime = [[0, 200], [0, 100, 500]])</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">ecophylo</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Simulating API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#single-simulation">Single simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-multiple-simulations">Running multiple simulations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sumstat.html">Summary statistics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="phylogen.html">Phylogenetic models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="internal.html">Internal functions</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to ecophylo’s documentation!</a></li>
+      <li>Next: <a href="sumstat.html" title="next chapter">Summary statistics</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, Elizabeth Bathelemy.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/API/dosimulate.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
