@@ -1,8 +1,6 @@
 Phylogenetic models
 ===================
 
-.. automodule:: ecophylo.phylogen
-
 Merging individual tree to species
 ----------------------------------
 
