@@ -17,7 +17,7 @@ def read_file(*parts):
 
 setuptools.setup(
     name="ecophylo",
-    version="0.1.2",
+    version="0.1.4",
     author="Elizabeth Barthelemy",
     author_email="elizabeth.barthelemy@univ-grenoble-alpes.fr",
     url="https://github.com/thegreatlizzyator/ecophylo",
