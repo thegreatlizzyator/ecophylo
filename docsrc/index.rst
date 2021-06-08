@@ -16,9 +16,4 @@ Welcome to ecophylo's documentation!
    API/phylogen.rst
    API/internal.rst
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
