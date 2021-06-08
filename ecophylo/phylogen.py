@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-tophylo
 Created on Fri Nov 6 13:20:00 2020
 
 @author : Maxime Jaunatre <maxime.jaunatre@yahoo.fr>
@@ -259,7 +258,7 @@ def ubranch_mutation(node, mu, tau = 0, seed = None):
     Draw mutations following a poisson process with parameter 
     max((B - tau), 0)*mu where mu is the point mutation rate, B is the 
     length of the branch at a given node and tau 
->>>
+
     Parameters
     ----------
     node : ete3.coretype.tree.TreeNode
@@ -279,7 +278,7 @@ def ubranch_mutation(node, mu, tau = 0, seed = None):
         this node
 
     Examples
-    -------
+    --------
     TODO: Examples with tau ?
     >>> from ete3 import Tree
     >>> tree = Tree('((A:1,(B:1,C:1)1:1)1:5,(D:1,E:1)1:1);')
