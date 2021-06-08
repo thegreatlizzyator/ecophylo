@@ -13,7 +13,7 @@ text-align: justify}
 ```{r setup, include=FALSE}
 library(reticulate)
 knitr::opts_chunk$set(echo = TRUE)
-use_python(Sys.which("python3"))
+use_python(Sys.which("python3.7"), required = TRUE)
 ```
 
 ## Introduction
@@ -132,7 +132,7 @@ However, past environmental changes such as alternating periods of contraction a
 
 Let us assume that the Jm has fluctuated in the past. 
 
-```{r}
+```{r, eval = FALSE}
 pastsizes <- list(as.integer(1000), as.integer(5000)) # the size of the metacommunity in the past 
 changetime <- list(as.integer(100),as.integer(200)) # the time (in generations) at which metacommunity size has changed
 
@@ -150,19 +150,20 @@ phylo1 <- read.tree(text = tree1$write())
 ```
 
 ```{r}
+ecophylo <- import('ecophylo')
 # chunk to check if Maxime doesn't break the function !
-changetime <- list(list(0,100)) # the time (in generations) at which metacommunity size has changed
+changetime <- list(list(0)) #,7e2, 1e5)) # the time (in generations) at which metacommunity size has changed
 
 n <- list(as.integer(10)) # the sample size
-Jm <- list(list(as.integer(500),as.integer(1000))) # the size of the metacommunity (sensu Hubbell, 2001)
-mu <- as.numeric(0.01) # the point mutation rate
+Jm <- list(list(500)) #,1000, 2000)) # the size of the metacommunity (sensu Hubbell, 2001)
+mu <- 0.01# the point mutation rate
 
 cat(py_capture_output( # capture the verbose
-  tree1b <- ecophylo$simulate_dolly(sample_size = n, 
-                                    com_size = Jm, 
-                                    mu = mu,
-                                    changetime = changetime,
-                                    seed = 42, verbose = TRUE),
+  tree1 <- ecophylo$simulate(samples = n,
+                              com_size = Jm,
+                              mu = mu,
+                              #changetime = changetime,
+                               seed = 42, verbose = TRUE) ,
   type = "stderr")) # verbose is eported as an error
 
 abund1 <- ecophylo$getAbund(tree1, n[[1]])
