@@ -275,7 +275,7 @@ def dosimuls(nsim, samples, deme_sizes, mu, tau = 0, spmodel = "SGD",
     if file_name is not None :
         saved = ""
         if "Params" in output:
-            saved += params.to_string()
+            saved += params.to_string(float_format=lambda x: '%E' % x)
         if "Sumstat" in output :
             saved += "\n###\n" + sumstats.to_string()
         if "Trees" in output : 

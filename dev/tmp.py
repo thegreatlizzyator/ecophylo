@@ -13,26 +13,26 @@
 #     return x
 
 import ecophylo
-mu = 0.05
-samples = [3,3,3]
-deme_sizes = [[200], [200, 300, 400], [200]]
-change_time = [[0], [0, 1000, 2000], [0]]
-splits = [[[0,1], 1, 1],
-          [[1,2], 1, 2]]
+# mu = 0.05
+# samples = [3,3,3]
+# deme_sizes = [[200], [200, 300, 400], [200]]
+# change_time = [[0], [0, 1000, 2000], [0]]
+# splits = [[[0,1], 1, 1],
+#           [[1,2], 1, 2]]
 
-tree = ecophylo.simulate(samples = samples,
-                         deme_sizes= deme_sizes, 
-                         mu = mu, 
-                         changetimes= changetimes,
-                         splits = splits, seed= 42)
+# tree = ecophylo.simulate(samples = samples,
+#                          deme_sizes= deme_sizes, 
+#                          mu = mu, 
+#                          changetimes= changetimes,
+#                          splits = splits, seed= 42)
 
-import pandas as pd
-import numpy as np
-from ecophylo import check_params
-from ecophylo import simulate
-from ecophylo import getAbund
-from ecophylo import getDeme
-from ecophylo import dosimuls
+# import pandas as pd
+# import numpy as np
+# from ecophylo import check_params
+# from ecophylo import simulate
+# from ecophylo import getAbund
+# from ecophylo import getDeme
+# from ecophylo import dosimuls
 
 # t = simulate(samples = [5, 5], deme_sizes = [[2e3, 4e3], [2e3]], mu = 1,
 #              gr_rates = None, changetimes = [[0, 300], [0]] , mrca = None, 
@@ -50,11 +50,11 @@ from ecophylo import dosimuls
 # TODO : expect error here !!
 
 
-print("\n\n* test 1\n")
-print(dosimuls(nsim = 5, samples = [10],
-    deme_sizes = [[500]],
-    mu = 0.1, # will fail if 0.0001
-    seed = 42))
+# print("\n\n* test 1\n")
+# print(dosimuls(nsim = 5, samples = [10],
+#     deme_sizes = [[500]],
+#     mu = 0.1, # will fail if 0.0001
+#     seed = 42))
 # print("\n\n* test mu\n")
 # print(dosimuls(nsim = 5, samples = [10],
 # #     com_size = [[500]],
@@ -112,3 +112,18 @@ print(dosimuls(nsim = 5, samples = [10],
 #     changetime = [[0, 200], [0, 100, 500]],
 #     seed = 42,
 #     prior_locate = None))
+
+
+t = ecophylo.dosimuls(nsim = 10, samples = 3063, deme_sizes = [[6e5, 1e11]], 
+mu = [1e-7, 1e-9, "uniform"], 
+gr_rates = None, changetimes = [[0, 8e4]] , mrca = None, migr = 1, 
+migr_times = None, file_name = "tmp.lol", verbose = True)
+
+print(t[0].loc[0:1,"mu"])
+print(t[0].loc[0,"mu"])
+
+# import pandas as pd
+# d = {'col1': [1, 2], 'col2': [6.000822964516544e-08, 4.034576430589255e-08]}
+# df = pd.DataFrame(d)
+# print(df)
+# print(df.to_string())
