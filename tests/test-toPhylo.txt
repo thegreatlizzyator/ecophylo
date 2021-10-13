@@ -44,7 +44,7 @@ Now use it:
     >>> toPhylo(tree = tree, mu = 0.5, spmodel = 'creationism', seed = 42)
     Traceback (most recent call last):
       ...
-    ValueError: creationism is not a correct model. spmodel must be either "SGD" or "NTD" string
+    ValueError: creationism is not a correct model. spmodel must be either "SGD" or "NTB" string
     
     >>> toPhylo(tree = tree, mu = 0.5, force_ultrametric = 'ça fait plaisir', seed = 42)
     Traceback (most recent call last):

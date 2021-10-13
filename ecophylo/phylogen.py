@@ -96,15 +96,21 @@ def toPhylo(tree, mu, tau = 0, spmodel = "SGD",
        /-sp1
     --|
        \-sp2
+    >>> phylo = toPhylo(tree, mu = 0.5, spmodel = "NTB", tau = 0.005, seed = 42)
+    >>> print(phylo)
+    <BLANKLINE>
+       /-sp1
+    --|
+       \-sp2
     """
     # Idiot proof
     if tree.__class__.__name__ != 'TreeNode' :
         raise ValueError('tree must have a class TreeNode')
     if mu < 0 or mu > 1 or not isinstance(mu, (int,float)):
         raise ValueError('mu must be a float between 0 and 1')
-    if not spmodel in ['SGD', 'NTD']:
+    if not spmodel in ['SGD', 'NTB']:
         raise ValueError(spmodel+' is not a correct model. '+
-                'spmodel must be either "SGD" or "NTD" string')
+                'spmodel must be either "SGD" or "NTB" string')
     if not isinstance(force_ultrametric, bool):
         raise ValueError('force_ultrametric must be a boolean')
     if seed is not None and not isinstance(seed, int):
