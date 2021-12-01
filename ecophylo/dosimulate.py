@@ -23,6 +23,7 @@ from ete3 import Tree
 import pandas as pd
 from scipy.stats import loguniform
 import collections
+import copy
 
 from ecophylo import pastdemo
 from ecophylo import phylogen
@@ -307,6 +308,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
         If lsit will use info stored inside for resampling
 
     """
+
     # Idiotproof prior_locate 
     if prior_locate is not None and prior_locate != "naive" and \
                                      not isinstance(prior_locate, list):
@@ -356,6 +358,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
         for i in range(len(samples)):
             if prior_locate is not None and isinstance(samples[i], list):
                 prior_locate.append(["samples", i, 0, samples[i]])
+                samples = copy.deepcopy(samples)
                 samples[i] = round(sample(
                     samples[i][0], samples[i][1], samples[i][2], seed = seed
                 ))
@@ -384,6 +387,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
                             # draw priors
                             if prior_locate is not None and isinstance(changetimes[i][ii], list):
                                 prior_locate.append(["changetimes", i, ii, changetimes[i][ii]])
+                                changetimes = copy.deepcopy(changetimes)
                                 changetimes[i][ii] = round(sample(
                                     changetimes[i][ii][0], changetimes[i][ii][1],
                                     changetimes[i][ii][2], seed = seed
@@ -435,6 +439,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
                             # draw priors
                             if prior_locate is not None and isinstance(deme_sizes[i][ii], list):
                                 prior_locate.append(["deme_sizes", i, ii, deme_sizes[i][ii]])
+                                deme_sizes = copy.deepcopy(deme_sizes)
                                 deme_sizes[i][ii] = round(sample(
                                     deme_sizes[i][ii][0], deme_sizes[i][ii][1],
                                     deme_sizes[i][ii][2], seed = seed
@@ -477,6 +482,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
         if isinstance(mu, list) and len(mu) == 3 and prior_locate is not None and \
              all([x > 0 and x < 1 for x in mu[:2]]):
             prior_locate.append(["mu", 0, 0, mu])
+            mu = copy.deepcopy(mu)
             mu = sample(mu[0], mu[1], mu[2])
         if not isinstance(mu, (int,float)) or mu < 0 or mu > 1 :
             raise ValueError("mu must be a float between 0 and 1")
@@ -485,6 +491,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
         if isinstance(tau, list) and len(tau) == 3 and prior_locate is not None and \
              all([x >= 0 for x in tau[:2]]):
             prior_locate.append(["tau", 0, 0, tau])
+            tau = copy.deepcopy(tau)
             tau = sample(tau[0], tau[1], tau[2])
         # check gr_rates
         if gr_rates is not None and changetimes is not None:
@@ -500,11 +507,12 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
                         for ii in range(len(gr_rates[i])): 
                             # draw priors
                             if prior_locate is not None and isinstance(gr_rates[i][ii], list):
-                                prior_locate.append(["gr_rates", i, ii, deme_sizes[i][ii]])
-                                gr_rates[i][ii] = round(sample(
+                                prior_locate.append(["gr_rates", i, ii, gr_rates[i][ii]])
+                                gr_rates = copy.deepcopy(gr_rates)
+                                gr_rates[i][ii] = sample(
                                     gr_rates[i][ii][0], gr_rates[i][ii][1],
                                     gr_rates[i][ii][2], seed = seed
-                                ))
+                                )
                         if not all(isinstance(y, (float, int)) for y in gr_rates[i]) :
                             isint_rates = False
                         if len(gr_rates[i]) !=  len(changetimes[i]) :
@@ -570,6 +578,7 @@ def check_params(samples, deme_sizes, mu, tau = 0, gr_rates = None,
                         # draw prior
                         if prior_locate is not None and len(migr[i]) == 3 and isinstance(migr[i][2], str) :
                             prior_locate.append(["migr", i, 0, migr[i]])
+                            migr = copy.deepcopy(migr)
                             migr[i] = sample(
                                 migr[i][0], migr[i][1], migr[i][2], seed = seed
                             )

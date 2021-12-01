@@ -17,7 +17,7 @@ testing nsim
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_times = None, 
-    ...  verbose = False, seed = "tournesol")
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: nsim must be a int value above 0
@@ -25,15 +25,15 @@ testing nsim
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_times = None, 
-    ...  verbose = False, seed = "tournesol")
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: nsim must be a int value above 0
-    >>> t = dosimuls(nsim = "1", samples = 2, deme_sizes = [[20, 50]], mu = 1, 
+    >>> t = dosimuls(nsim = '1', samples = 2, deme_sizes = [[20, 50]], mu = 1, 
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_times = None, 
-    ...  verbose = False, seed = "tournesol")
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: nsim must be a int value above 0
@@ -42,16 +42,16 @@ testing output
     >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
-    ...  migr = 1, migr_times = None, output = "Sumstat",
-    ...  verbose = False, seed = "tournesol")
+    ...  migr = 1, migr_times = None, output = 'Sumstat',
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: output must be a list of string
     >>> t = dosimuls(nsim = 1, samples = 2, deme_sizes = [[20, 50]], mu = 1, 
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
-    ...  migr = 1, migr_times = None, output = ["peepoodo"],
-    ...  verbose = False, seed = "tournesol")
+    ...  migr = 1, migr_times = None, output = ['peepoodo'],
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: output must contain only 'Params', 'Sumstat' or/and 'Trees'
@@ -71,7 +71,101 @@ testing seed
     ...  gr_rates = None, 
     ...  changetimes = [[0, 20]] , mrca = None, 
     ...  migr = 1, migr_times = None, 
-    ...  verbose = False, seed = "tournesol")
+    ...  verbose = False, seed = 'tournesol')
     Traceback (most recent call last):
       ...
     ValueError: seed must be an integer
+
+  checking side effect on priors
+  samples
+    >>> samp = [[500, 510, 'uniform']]
+    >>> print(samp)
+    [[500, 510, 'uniform']]
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = samp, 
+    ...  deme_sizes= [[9e3]], 
+    ...  mu = 0.0001, tau = 0, gr_rates = None,
+    ...  changetimes= None, migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(samp)
+    [[500, 510, 'uniform']]
+
+  changetimes
+    >>> chtime = [[0, [100, 110, 'uniform']]]
+    >>> print(chtime)
+    [[0, [100, 110, 'uniform']]]
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = 50, 
+    ...  deme_sizes= [[9e3, 9e3]], 
+    ...  mu = 0.0001, tau = 0, gr_rates = None,
+    ...  changetimes= chtime, migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(chtime)
+    [[0, [100, 110, 'uniform']]]
+
+  deme_sizes
+    >>> ds = [[9e3, [99e4,8e7, 'uniform']]] 
+    >>> print(ds)
+    [[9000.0, [990000.0, 80000000.0, 'uniform']]]
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = 50, 
+    ...  deme_sizes= ds, 
+    ...  mu = 0.0001, tau = 0, gr_rates = None,
+    ...  changetimes= [[0,100]], migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(ds)
+    [[9000.0, [990000.0, 80000000.0, 'uniform']]]
+
+  mu
+    >>> m = [0.0001,0.001, 'uniform']
+    >>> print(m)
+    [0.0001, 0.001, 'uniform']
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = 50, 
+    ...  deme_sizes= [[9e3]], 
+    ...  mu = m, tau = 0, gr_rates = None,
+    ...  changetimes= None, migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(m)
+    [0.0001, 0.001, 'uniform']
+
+  tau
+    >>> ta = [0,5, 'uniform']
+    >>> print(ta)
+    [0, 5, 'uniform']
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = 50, 
+    ...  deme_sizes= [[9e3]], 
+    ...  mu = 0.0001, tau = ta, gr_rates = None,
+    ...  changetimes= None, migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(ta)
+    [0, 5, 'uniform']
+
+  gr_rates
+    >>> gr = [[[0.001,0.0001, 'uniform']]]
+    >>> print(gr)
+    [[[0.001, 0.0001, 'uniform']]]
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = 50, 
+    ...  deme_sizes= [[9e3]], 
+    ...  mu = 0.0001, tau = 0, gr_rates = gr,
+    ...  changetimes = 0, migr = 1,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(gr)
+    [[[0.001, 0.0001, 'uniform']]]
+
+  migr
+    >>> migr = [[0.9,1,'uniform']]
+    >>> print(migr)
+    [[0.9, 1, 'uniform']]
+    >>> t =  dosimuls(nsim = 1, 
+    ...  samples = [500, 500], 
+    ...  deme_sizes= [[9e3], [9e3]], 
+    ...  mu = 0.0001, tau = 0, gr_rates = None,
+    ...  changetimes= [[0], [0]], migr = migr,
+    ...  output=['Params','Sumstat','Trees'])
+    >>> print(migr)
+    [[0.9, 1, 'uniform']]
+
+
